@@ -39,3 +39,54 @@ corresponding data representation of the field.
   * Marching cubes (?)
 
 * Support for ISPC, GPU (CUDA) and MATE (code generation in general[?])
+
+# Drawbacks of the old version
+
+* Rigid communication sequence mirrored both in the kernels and the 
+block processor.
+
+  Consider an algorithm that requires communication
+  (e.g. exchange of halo cells, reduction, linear solver, dump).
+  Each MPI rank operates on multiple blocks
+  and executes the same kernel code on many blocks.
+  A kernel cannot issue calls to MPI or other libraries because
+
+  - the call would be performed multiple times;
+  - a block is not aware of other blocks so it cannot coordinate communication.
+
+  Therefore, a communication request needs to be reflected both
+  in the kernels (they require communication as prerequisites)
+  and the block processor (they ensure communication before executing the kernels).
+
+  Drawbacks
+
+  - maintaining two separate parts of the implementation:
+  kernels and block processor
+  - limited code reuse
+  (e.g. algorithms that require communication cannot be
+  encapsulated in a function)
+
+* All kernels share a common data structure.
+
+  Particularly applies to MPCF with its FluidElement. 
+  The kernels (e.g. HLLC and viscous fluxes) together with their counterparts
+  on the node level potentially have access to all fields in the FluidElement.
+  Any temporary field also needs to be included in the FluidElement.
+  
+  Drawbacks
+
+  - kernels assume the presence of certain fields and
+  cannot be reused in a different context 
+  - temporary fields required by the kernels are also shared 
+  which complicates their interaction
+  - no well-defined interfaces to kernels as all data is exposed
+
+* No support for indexing and mesh topology.
+
+  Kernels on the core level effectively operate on a 3D array
+  taking as arguments the dimensions and a pointer to data.
+  
+  Drawbacks
+
+  - stencil operations are only expressed using indices such as `[i][j][k]` 
+  which is cumbersome and error prone.
