@@ -5,6 +5,8 @@
 #ifndef PROFILER_H_LQ95Z7KM
 #define PROFILER_H_LQ95Z7KM
 
+#include "Common.h"
+
 #include <assert.h>
 #undef min
 #undef max
@@ -16,8 +18,6 @@
 #include <stdio.h>
 #include <string>
 #include <sys/time.h>
-
-#include "Common.h"
 
 NAMESPACE_BEGIN(cubism)
 
