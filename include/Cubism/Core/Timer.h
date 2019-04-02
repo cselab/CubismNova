@@ -5,9 +5,8 @@
 #ifndef TIMER_H_1TOI9LUC
 #define TIMER_H_1TOI9LUC
 
-#include <sys/time.h>
-
 #include "Common.h"
+#include <sys/time.h>
 
 NAMESPACE_BEGIN(cubism)
 
