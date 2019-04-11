@@ -1,0 +1,4 @@
+field_view
+*.o
+*~
+*.swp
