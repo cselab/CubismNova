@@ -9,7 +9,7 @@ standard](https://llvm.org/docs/CodingStandards.html).
 There are few deviations from the above coding style, defined in the file
 `format` in this directory.
 
-## Variable naming convention
+### Variable naming convention
 
 The [naming conventions](https://llvm.org/docs/CodingStandards.html#name-types-functions-variables-and-enumerators-properly)
 follow the LLVM standard with one exception:

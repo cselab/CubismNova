@@ -16,6 +16,7 @@ read -r -d '' STYLE <<'EOF'
   AlignOperands: true,
   AlignTrailingComments: true,
   AllowShortIfStatementsOnASingleLine: false,
+  AlwaysBreakTemplateDeclarations: Yes,
   IndentCaseLabels: false,
   KeepEmptyLinesAtTheStartOfBlocks: false,
   BinPackArguments:  false,
