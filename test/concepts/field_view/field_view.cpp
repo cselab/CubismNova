@@ -26,13 +26,10 @@ template <typename T>
 class Field
 {
 public:
-    Field(const std::string &name) : v_(SIZE), name_(name)
+    Field(std::string name) : v_(SIZE), name_(std::move(name))
     {
         std::cout << "Constructor Field<" << typeid(T).name() << ">(" << name_
                   << "): callid: " << ++ctor_count << '\n';
-        for (size_t i = 0; i < SIZE; ++i) {
-            std::memset(&v_[i], 0, sizeof(T));
-        }
     }
 
     // disable copying
@@ -115,7 +112,7 @@ private:
     std::tuple<TFields &&...> fields_;
 };
 
-int main(int argc, char *argv[])
+int main(int /*argc*/, char * /*argv*/[])
 {
     struct AoS {
         double d0;

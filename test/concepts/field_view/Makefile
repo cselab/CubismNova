@@ -1,7 +1,7 @@
-CC = clang++
+CXXFLAGS ?= -std=c++11 -Wall -Wextra -pedantic
 
 field_view: field_view.cpp
-	$(CC) -o $@ $<
+	$(CXX) $(CXXFLAGS) -o $@ $<
 
 clean:
 	rm -f field_view *~ *.o *.swp
