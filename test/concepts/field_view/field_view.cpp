@@ -112,7 +112,7 @@ private:
     std::tuple<TFields &&...> fields_;
 };
 
-int main(int /*argc*/, char * /*argv*/[])
+int main()
 {
     struct AoS {
         double d0;
