@@ -19,7 +19,7 @@
 #include <string>
 #include <sys/time.h>
 
-NAMESPACE_BEGIN(cubism)
+NAMESPACE_BEGIN(Cubism)
 
 const bool bVerboseProfiling = false;
 
@@ -264,6 +264,6 @@ public:
     friend class ProfileAgent;
 };
 
-NAMESPACE_END(cubism)
+NAMESPACE_END(Cubism)
 
 #endif /* PROFILER_H_LQ95Z7KM */

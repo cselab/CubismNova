@@ -8,7 +8,7 @@
 #include "Common.h"
 #include <sys/time.h>
 
-NAMESPACE_BEGIN(cubism)
+NAMESPACE_BEGIN(Cubism)
 
 class Timer
 {
@@ -26,6 +26,6 @@ public:
     }
 };
 
-NAMESPACE_END(cubism)
+NAMESPACE_END(Cubism)
 
 #endif /* TIMER_H_1TOI9LUC */
