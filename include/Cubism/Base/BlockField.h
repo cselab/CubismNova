@@ -21,11 +21,8 @@ NAMESPACE_BEGIN()
 // Cell:      Data is represented at cell centers
 // Node:      Data is represented at cell nodes (vertices)
 // Face:      Data is represented at cell faces (any)
-// FaceX:     Data is represented at cell faces in X dimension
-// FaceY:     Data is represented at cell faces in Y dimension
-// FaceZ:     Data is represented at cell faces in Z dimension
-constexpr std::array<const char *, 7> DATA_MAPPING = {
-    "Undefined", "Cell", "Node", "Face", "FaceX", "FaceY", "FaceZ"};
+constexpr std::array<const char *, 4> DATA_MAPPING = {
+    "Undefined", "Cell", "Node", "Face"};
 NAMESPACE_END()
 
 NAMESPACE_BEGIN(Cubism)
@@ -35,11 +32,8 @@ NAMESPACE_BEGIN(BlockField)
 ///        Undefined corresponds to no associated mapping (default), Cell
 ///        corresponds to data mapped to cell centers, Node corresponds to
 ///        data mapped to cell nodes (vertices), Face corresponds to data
-///        mapped to cell faces (independent of direction), FaceX corresponds
-///        to data mapped to faces along X dimension, FaceY corresponds to data
-///        mapped to faces along Y dimension and FaceZ corresponds to data
-///        mapped to faces along Z dimesnion.
-enum class DataMapping { Undefined = 0, Cell, Node, Face, FaceX, FaceY, FaceZ };
+///        mapped to cell faces
+enum class DataMapping { Undefined = 0, Cell, Node, Face };
 
 /// @brief Allocator independent base class for a block with dimensions DIMX,
 /// DIMY, DIMZ.
@@ -79,15 +73,12 @@ public:
     size_t getBlockSize() const { return DIMX * DIMY * DIMZ; }
 };
 
-/// @brief Generic single block field
+/// @brief Generic single block field that owns the block memory
 ///
 /// @tparam BlockAlloc (block allocator type)
 /// @tparam DM         (data mapping identifier)
-/// @tparam OWNER      (owner of allocated block memory)
-template <typename BlockAlloc,
-          DataMapping DM,
-          Cubism::Dim DIM,
-          bool OWNER = true>
+/// @tparam DIM        (dimension indicator)
+template <typename BlockAlloc, DataMapping DM, Cubism::Dim DIM>
 class Field : public BlockBase<BlockAlloc::BlockDimX,
                                BlockAlloc::BlockDimY,
                                BlockAlloc::BlockDimZ>
@@ -98,7 +89,6 @@ public:
                                BlockAlloc::BlockDimZ>;
     using DataType = typename BlockAlloc::DataType;
 
-    static constexpr bool DataOwner = OWNER;
     // Name ID for data element mapping (cell, node, face)
     static constexpr const char *MapName =
         DATA_MAPPING[static_cast<size_t>(DM)];
@@ -108,64 +98,35 @@ public:
     static constexpr Cubism::Dim Dim = DIM;
 
     /// @brief Base constructor
-    ///
-    /// @param bptr (address to external block memory [only required for
-    ///        proxies])
-    Field(DataType *bptr = nullptr) : block_(bptr), bytes_(0)
+    Field(const bool alloc = true) : block_(nullptr), bytes_(0)
     {
-        if (OWNER) {
-            // data owner
+        if (alloc) {
             assert(
                 block_ == nullptr &&
                 "Passing a valid address for a field owner is not permitted");
             allocBlock_();
+            // TODO: [fabianw@mavt.ethz.ch; 2019-04-14] Works only with POD
+            // currently
             clearBlock_();
-        } else {
-            // proxy (nullptr will cause an illegal instruction when
-            // dereferenced)
-            assert(
-                block_ != nullptr &&
-                "A field proxy can only be constructed with a valid address");
-            bytes_ = blk_alloc_.getBytes(1);
         }
     }
 
     /// @brief Copy constructor
-    ///
-    /// @param c
     Field(const Field &c) : block_(nullptr), bytes_(0)
     {
-        if (OWNER) {
-            // data owner (deep copy)
-            allocBlock_();
-            copyBlock_(c.block_);
-        } else {
-            // proxy (shallow copy)
-            copyBlockShallow_(c.block_);
-        }
+        allocBlock_();
+        copyBlock_(c.block_); // deep copy
     }
 
-    /// @brief Move constructor (move semantics are not permitted for proxies)
-    ///
-    /// @param c
+    /// @brief Move constructor
     Field(Field &&c) noexcept : block_(nullptr), bytes_(0)
     {
-        if (OWNER) {
-            // move semantics are permitted for data owners
-            deallocBlock_();
-            copyBlockShallow_(c.block_);
-            c.setNull_(); // ensures that destructor has no effect
-            return;
-        }
-        assert(false && "Move semantics in proxy fields are forbidden");
+        deallocBlock_();
+        copyBlockShallow_(c.block_);
+        c.setNull_(); // ensure that destructor of c has no effect
     }
 
-    ~Field()
-    {
-        if (OWNER) {
-            deallocBlock_();
-        }
-    }
+    ~Field() { deallocBlock_(); }
 
     void *getBlockPtr() override { return static_cast<void *>(block_); }
 
@@ -177,45 +138,22 @@ public:
     size_t getBlockBytes() const override { return bytes_; }
 
     /// @brief Copy assignment operator
-    ///
-    /// @param c
-    ///
-    /// @return
     Field &operator=(const Field &c)
     {
         if (this != &c) {
-            if (OWNER) {
-                // data owner (deep copy)
-                copyBlock_(c.block_);
-            } else {
-                // proxy (shallow copy)
-                copyBlockShallow_(c.block_);
-            }
+            copyBlock_(c.block_); // deep copy
         }
         return *this;
     }
 
-    /// @brief Move assignment operator (move semantics are not permitted for
-    ///        proxies)
-    ///
-    /// @param c
-    ///
-    /// @return
+    /// @brief Move assignment operator
     Field &operator=(Field &&c)
     {
-        if (OWNER) {
-            if (this != &c) {
-                // data owner (shallow copy)
-                deallocBlock_();
-                copyBlockShallow_(c.block_);
-                c.setNull_(); // ensures that destructor has no effect
-            }
-            return *this;
+        if (this != &c) {
+            deallocBlock_();
+            copyBlockShallow_(c.block_);
+            c.setNull_(); // ensure that destructor of c has no effect
         }
-        // a field proxy can never be the owner of data
-        assert(false && "Move semantics in proxy fields are forbidden");
-        setNull_(); // this will force the proxy to crash when block_ is
-                    // dereferenced
         return *this;
     }
 
@@ -254,7 +192,7 @@ public:
     // (outside of class)
     ////////////////////////////////////////////////////////////////////////////
 
-private:
+protected:
     DataType *block_;      // pointer to first block element
     size_t bytes_;         // number of bytes pointed to by block_
     BlockAlloc blk_alloc_; // block allocator
@@ -291,8 +229,8 @@ private:
 
     /// @brief Deep copy of an external source
     ///
-    /// @param src
-    void copyBlock_(const DataType *src)
+    /// @param src (pointer to first block data element)
+    void copyBlock_(const void *src)
     {
         if (block_ != src) {
             std::memcpy(block_, src, bytes_);
@@ -302,10 +240,10 @@ private:
     /// @brief Shallow copy of an external source (required for move semantics
     ///        and field proxies)
     ///
-    /// @param src
-    void copyBlockShallow_(DataType *src)
+    /// @param src (pointer to first block data element)
+    void copyBlockShallow_(void *src)
     {
-        block_ = src;
+        block_ = static_cast<DataType *>(src);
         bytes_ = blk_alloc_.getBytes(1);
     }
 
@@ -313,10 +251,76 @@ private:
     void clearBlock_()
     {
         if (block_ != nullptr) {
-            // DataType should really be built-in or POD
             std::memset(block_, 0, bytes_);
         }
     }
+};
+
+/// @brief Field proxy type (never owns block memory)
+///
+/// @tparam TField (underlying field type)
+template <typename TField>
+class FieldProxy : public TField
+{
+public:
+    using FieldType = TField;
+
+    FieldProxy() = delete;
+
+    /// @brief Base constructor
+    ///
+    /// @param alloc (switch for block memory allocation)
+    FieldProxy(void *block_ptr) : TField(false)
+    {
+        assert(block_ptr != nullptr &&
+               "A field proxy can only be constructed with a valid address");
+        this->block_ = static_cast<typename TField::DataType *>(block_ptr);
+        this->bytes_ = this->blk_alloc_.getBytes(1);
+    }
+
+    /// @brief Copy constructor for a field proxy
+    FieldProxy(const FieldProxy &c) : TField(false)
+    {
+        this->copyBlockShallow_(c.block_);
+    }
+
+    /// @brief Copy constructor for underlying field type
+    FieldProxy(const TField &c) : TField(false)
+    {
+        this->copyBlockShallow_(const_cast<void *>(c.getBlockPtr()));
+    }
+
+    /// @brief Move semantics are not permitted for a field proxy
+    FieldProxy(FieldProxy &&c) = delete;
+
+    /// @brief Move semantics are not permitted for a field proxy
+    FieldProxy(TField &&c) = delete;
+
+    ~FieldProxy() { this->setNull_(); }
+
+    /// @brief Copy assignment operator for field proxy
+    FieldProxy &operator=(const FieldProxy &c)
+    {
+        if (this != &c) {
+            this->copyBlockShallow_(c.block_);
+        }
+        return *this;
+    }
+
+    /// @brief Copy assignment operator for underlying field type
+    FieldProxy &operator=(const TField &c)
+    {
+        if (this != &c) {
+            this->copyBlockShallow_(const_cast<void *>(c.getBlockPtr()));
+        }
+        return *this;
+    }
+
+    /// @brief Move semantics are not permitted for a field proxy
+    FieldProxy &operator=(FieldProxy &&c) = delete;
+
+    /// @brief Move semantics are not permitted for a field proxy
+    FieldProxy &operator=(TField &&c) = delete;
 };
 
 /// @brief Cell centered data field type for single block
@@ -325,15 +329,13 @@ private:
 /// @tparam BDX (Block cell dimension X)
 /// @tparam BDY (Block cell dimension Y)
 /// @tparam BDZ (Block cell dimension Z)
-/// @tparam OWNER (block memory owner)
 /// @tparam BlockAlloc (block allocator type)
 template <typename DataType,
           size_t BDX,
           size_t BDY,
           size_t BDZ,
-          bool OWNER = true,
           typename BlockAlloc = AlignedBlockAllocator<DataType, BDX, BDY, BDZ>>
-using FieldCell = Field<BlockAlloc, DataMapping::Cell, Cubism::Dim::All, OWNER>;
+using FieldCell = Field<BlockAlloc, DataMapping::Cell, Cubism::Dim::All>;
 
 /// @brief Node centered data field type for single block
 ///
@@ -341,39 +343,59 @@ using FieldCell = Field<BlockAlloc, DataMapping::Cell, Cubism::Dim::All, OWNER>;
 /// @tparam BDX (Block cell dimension X)
 /// @tparam BDY (Block cell dimension Y)
 /// @tparam BDZ (Block cell dimension Z)
-/// @tparam OWNER (block memory owner)
 /// @tparam BlockAlloc (block allocator type)
 template <typename DataType,
           size_t BDX,
           size_t BDY,
           size_t BDZ,
-          bool OWNER = true,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX + 1, BDY + 1, BDZ + 1>>
-using FieldNode = Field<BlockAlloc, DataMapping::Node, Cubism::Dim::All, OWNER>;
+using FieldNode = Field<BlockAlloc, DataMapping::Node, Cubism::Dim::All>;
 
-/// @brief Face centered data field type for single block
+/// @brief X-Face centered data field type for single block
 ///
 /// @tparam DataType
 /// @tparam BDX (Block cell dimension X)
 /// @tparam BDY (Block cell dimension Y)
 /// @tparam BDZ (Block cell dimension Z)
-/// @tparam OWNER (block memory owner)
 /// @tparam BlockAlloc (block allocator type)
-// template <typename DataType,
-//           size_t BDX,
-//           size_t BDY,
-//           size_t BDZ,
-//           bool OWNER = true,
-//           typename BlockAlloc = myvec<DataType>>
-// // XXX: [fabianw@mavt.ethz.ch; 2019-04-13] Split face fields in X, Y and Z
-// using FieldFace = Field<DataType,
-//                         DataMapping::Face,
-//                         Cubism::Dim::X,
-//                         BlockAlloc,
-//                         BDX + 1,
-//                         BDY + 1,
-//                         3 * (BDZ + 1)>;
+template <typename DataType,
+          size_t BDX,
+          size_t BDY,
+          size_t BDZ,
+          typename BlockAlloc =
+              AlignedBlockAllocator<DataType, BDX + 1, BDY, BDZ>>
+using FieldFaceX = Field<BlockAlloc, DataMapping::Face, Cubism::Dim::X>;
+
+/// @brief Y-Face centered data field type for single block
+///
+/// @tparam DataType
+/// @tparam BDX (Block cell dimension X)
+/// @tparam BDY (Block cell dimension Y)
+/// @tparam BDZ (Block cell dimension Z)
+/// @tparam BlockAlloc (block allocator type)
+template <typename DataType,
+          size_t BDX,
+          size_t BDY,
+          size_t BDZ,
+          typename BlockAlloc =
+              AlignedBlockAllocator<DataType, BDX, BDY + 1, BDZ>>
+using FieldFaceY = Field<BlockAlloc, DataMapping::Face, Cubism::Dim::Y>;
+
+/// @brief Z-Face centered data field type for single block
+///
+/// @tparam DataType
+/// @tparam BDX (Block cell dimension X)
+/// @tparam BDY (Block cell dimension Y)
+/// @tparam BDZ (Block cell dimension Z)
+/// @tparam BlockAlloc (block allocator type)
+template <typename DataType,
+          size_t BDX,
+          size_t BDY,
+          size_t BDZ,
+          typename BlockAlloc =
+              AlignedBlockAllocator<DataType, BDX, BDY, BDZ + 1>>
+using FieldFaceZ = Field<BlockAlloc, DataMapping::Face, Cubism::Dim::Z>;
 
 NAMESPACE_END(BlockField)
 NAMESPACE_END(Cubism)
