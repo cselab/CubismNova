@@ -16,6 +16,11 @@
 #define NAMESPACE_END(name) }
 #endif
 
+NAMESPACE_BEGIN(Cubism)
+/// @brief Constants for expressing dimension or indicating a dominant dimension
+enum class Dim { X = 0, Y, Z, XX, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ, All };
+NAMESPACE_END(Cubism)
+
 // FIXME: [fabianw@mavt.ethz.ch; 2019-04-01] Deprecated, will be removed
 #ifdef _USE_NUMA_
 #warning _USE_NUMA_ is deprecated, use CUBISM_USE_NUMA instead.
