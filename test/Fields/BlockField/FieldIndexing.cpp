@@ -82,7 +82,7 @@ void blockIndexing()
     profileIndexing<16, 16, 16>(msg);
     profileIndexing<32, 32, 32>(msg);
     profileIndexing<64, 128, 256>(msg);
-    profileIndexing<1024, 1024, 1024>(msg);
+    profileIndexing<512, 512, 512>(msg);
 
     msg << "Took: " << t0.stop() << " sec" << '\n';
     tell(msg.str());
