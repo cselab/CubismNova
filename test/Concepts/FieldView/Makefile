@@ -1,6 +1,6 @@
 CXXFLAGS ?= -std=c++11 -Wall -Wextra -Wpedantic
 
-field_view: FieldView.cpp
+FieldView: FieldView.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
 clean:
