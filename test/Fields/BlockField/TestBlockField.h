@@ -47,7 +47,7 @@ static void printStaticMember(std::ostream &s)
     s << name << "::BlockDimZ = " << T::BlockDimZ << '\n';
     s << name << "::MapName   = " << T::MapName << '\n';
     s << name << "::MapClass  = " << static_cast<size_t>(T::MapClass) << '\n';
-    s << name << "::Dim       = " << static_cast<size_t>(T::Dim) << '\n';
+    s << name << "::Dir       = " << static_cast<size_t>(T::Dir) << '\n';
 }
 
 #endif /* TESTBLOCKFIELD_H_CMAHYZVB */

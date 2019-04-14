@@ -77,8 +77,8 @@ public:
 ///
 /// @tparam BlockAlloc (block allocator type)
 /// @tparam DM         (data mapping identifier)
-/// @tparam DIM        (dimension indicator)
-template <typename BlockAlloc, DataMapping DM, Cubism::Dim DIM>
+/// @tparam DIR        (direction indicator)
+template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
 class Field : public BlockBase<BlockAlloc::BlockDimX,
                                BlockAlloc::BlockDimY,
                                BlockAlloc::BlockDimZ>
@@ -92,10 +92,8 @@ public:
     // Name ID for data element mapping (cell, node, face)
     static constexpr const char *MapName =
         DATA_MAPPING[static_cast<size_t>(DM)];
-    // Data mapping class identifier
-    static constexpr DataMapping MapClass = DM;
-    // Dominant/leading dimension indicator
-    static constexpr Cubism::Dim Dim = DIM;
+    static constexpr DataMapping MapClass = DM; // Data mapping class identifier
+    static constexpr Cubism::Dir Dir = DIR;     // Direction indicator
 
     /// @brief Base constructor
     Field(const bool alloc = true) : block_(nullptr), bytes_(0)
@@ -335,7 +333,7 @@ template <typename DataType,
           size_t BDY,
           size_t BDZ,
           typename BlockAlloc = AlignedBlockAllocator<DataType, BDX, BDY, BDZ>>
-using FieldCell = Field<BlockAlloc, DataMapping::Cell, Cubism::Dim::All>;
+using FieldCell = Field<BlockAlloc, DataMapping::Cell, Cubism::Dir::Any>;
 
 /// @brief Node centered data field type for single block
 ///
@@ -350,7 +348,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX + 1, BDY + 1, BDZ + 1>>
-using FieldNode = Field<BlockAlloc, DataMapping::Node, Cubism::Dim::All>;
+using FieldNode = Field<BlockAlloc, DataMapping::Node, Cubism::Dir::Any>;
 
 /// @brief X-Face centered data field type for single block
 ///
@@ -365,7 +363,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX + 1, BDY, BDZ>>
-using FieldFaceX = Field<BlockAlloc, DataMapping::Face, Cubism::Dim::X>;
+using FieldFaceX = Field<BlockAlloc, DataMapping::Face, Cubism::Dir::X>;
 
 /// @brief Y-Face centered data field type for single block
 ///
@@ -380,7 +378,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX, BDY + 1, BDZ>>
-using FieldFaceY = Field<BlockAlloc, DataMapping::Face, Cubism::Dim::Y>;
+using FieldFaceY = Field<BlockAlloc, DataMapping::Face, Cubism::Dir::Y>;
 
 /// @brief Z-Face centered data field type for single block
 ///
@@ -395,7 +393,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX, BDY, BDZ + 1>>
-using FieldFaceZ = Field<BlockAlloc, DataMapping::Face, Cubism::Dim::Z>;
+using FieldFaceZ = Field<BlockAlloc, DataMapping::Face, Cubism::Dir::Z>;
 
 NAMESPACE_END(BlockField)
 NAMESPACE_END(Cubism)
