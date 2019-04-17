@@ -254,7 +254,8 @@ protected:
     }
 };
 
-/// @brief Field proxy type (never owns block memory)
+/// @brief Field proxy type (never owns block memory).  Arithmetic operations
+///        and assignment operate on the underlying data.
 ///
 /// @tparam TField (underlying field type)
 template <typename TField>
@@ -296,11 +297,11 @@ public:
 
     ~FieldProxy() { this->setNull_(); }
 
-    /// @brief Copy assignment operator for field proxy
+    /// @brief Copy assignment operator for field proxy (deep copy)
     FieldProxy &operator=(const FieldProxy &c)
     {
         if (this != &c) {
-            this->copyBlockShallow_(c.block_);
+            this->copyBlock_(c.block_);
         }
         return *this;
     }
@@ -319,6 +320,11 @@ public:
 
     /// @brief Move semantics are not permitted for a field proxy
     FieldProxy &operator=(TField &&c) = delete;
+
+    ////////////////////////////////////////////////////////////////////////////
+    // TODO: [fabianw@mavt.ethz.ch; 2019-04-13] arithmetic block operators
+    // (outside of class)
+    ////////////////////////////////////////////////////////////////////////////
 };
 
 /// @brief Cell centered data field type for single block

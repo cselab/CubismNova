@@ -145,12 +145,13 @@ static void assignFields()
         FProxy fp_1(fo_1);
         setFieldValue(fp_1, 3);
         assert(sumField(fp_1) == 3 * fo_1.getBlockSize());
-        fp_1 = fp_0; // proxies
-        assert(fp_0.getBlockPtr() == fp_1.getBlockPtr());
+        fp_1 = fp_0; // proxies (operates on data, deep)
+        assert(fp_0.getBlockPtr() != fp_1.getBlockPtr());
         assert(sumField(fp_1) == fp_1.getBlockSize());
 
-        fp_0 = fo_1; // assign field to proxy
-        assert(sumField(fp_0) == 3 * fo_1.getBlockSize());
+        fp_0 = fo_1; // assign field to proxy (shallow)
+        assert(fp_0.getBlockPtr() == fo_1.getBlockPtr());
+        assert(sumField(fp_0) == fo_1.getBlockSize());
     }
     const double tproxy = t0.stop();
     assert(fo_0.getBlockPtr() != nullptr);
