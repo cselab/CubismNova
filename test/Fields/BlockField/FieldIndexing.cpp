@@ -7,6 +7,10 @@
 
 #include <functional>
 
+#ifdef CUBISMTEST_INTRIN
+#include <x86intrin.h>
+#endif /* CUBISMTEST_INTRIN */
+
 using namespace std;
 using namespace Cubism;
 
@@ -16,7 +20,11 @@ using namespace Cubism;
 template <size_t BX, size_t BY, size_t BZ>
 static void profileIndexing(ostream &s)
 {
+#ifdef CUBISMTEST_INTRIN
+    using TestType = BlockField::FieldCell<double, BX, BY, BZ>;
+#else
     using TestType = BlockField::FieldCell<DataType, BX, BY, BZ>;
+#endif /* CUBISMTEST_INTRIN */
     TestType block;
     setFieldValue(block, 1.0);
 
@@ -27,6 +35,19 @@ static void profileIndexing(ostream &s)
         }
         return sum;
     };
+
+#ifdef CUBISMTEST_INTRIN
+    auto linearAVX256 = [&block](void) {
+        __m256d sum = _mm256_setzero_pd();
+        double *p = static_cast<double *>(block.getBlockPtr());
+        for (size_t i = 0; i < block.getBlockSize(); i += 4) {
+            sum = _mm256_add_pd(sum, _mm256_load_pd(p + i)); // 4 Flop
+        }
+        double ret[4];
+        _mm256_storeu_pd(&ret[0], sum);
+        return ret[0] + ret[1] + ret[2] + ret[3];
+    };
+#endif /* CUBISMTEST_INTRIN */
 
     auto ijk = [&block](void) {
         DataType sum = 0.0;
@@ -63,6 +84,22 @@ static void profileIndexing(ostream &s)
         s << "\tAverage GFlop/s = "
           << (FLOP * SAMPLES * BX * BY * BZ) / tlinear * 1.0e-9 << '\n';
     }
+
+#ifdef CUBISMTEST_INTRIN
+    { // linear indexing (AVX256)
+        // warmup
+        double res = linearAVX256();
+        // profile
+        t0.start();
+        res += bench(linearAVX256);
+        const double tlinear = t0.stop();
+        s << "\tLinear indexing (AVX256): result = "
+          << static_cast<size_t>(res / 2) << "; took " << tlinear << " sec ("
+          << SAMPLES << " samples)" << '\n';
+        s << "\tAverage GFlop/s = "
+          << (FLOP * SAMPLES * BX * BY * BZ) / tlinear * 1.0e-9 << '\n';
+    }
+#endif /* CUBISMTEST_INTRIN */
 
     { // IJK indexing
         // warmup
