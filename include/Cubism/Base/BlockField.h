@@ -12,6 +12,7 @@
 #include <array>
 #include <cassert>
 #include <cstring>
+#include <vector>
 
 NAMESPACE_BEGIN()
 // String literals used to add a descriptive tag to describe a possible data
@@ -87,6 +88,7 @@ public:
     using BaseType = BlockBase<BlockAlloc::BlockDimX,
                                BlockAlloc::BlockDimY,
                                BlockAlloc::BlockDimZ>;
+    using AllocType = BlockAlloc;
     using DataType = typename BlockAlloc::DataType;
 
     // Name ID for data element mapping (cell, node, face)
@@ -400,6 +402,116 @@ template <typename DataType,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX, BDY, BDZ + 1>>
 using FieldFaceZ = Field<BlockAlloc, DataMapping::Face, Cubism::Dir::Z>;
+
+// XXX: [fabianw@mavt.ethz.ch; 2019-04-17] How to treat duplicate nodes
+// and faces for DataMapping::Node or DataMapping::Face? (Treat them differently
+// in Labs is one possibility, means there is duplicate data.  Problematic for
+// reduction operations)
+
+template <typename TField>
+class FieldCartesian
+{
+public:
+    FieldCartesian(size_t nbx, size_t nby = 1, size_t nbz = 1)
+        : block_(nullptr), bytes_(0), nblocks_({nbx, nby, nbz})
+    {
+        const size_t nblocks = nblocks_[0] * nblocks_[1] * nblocks_[2];
+        assert(nblocks > 0);
+        allocBlocks_(nblocks);
+        initProxies_(nblocks);
+    }
+
+    // TODO: [fabianw@mavt.ethz.ch; 2019-04-17] missing constructors
+
+    virtual ~FieldCartesian() { deallocBlock_(); }
+
+    using DataType = typename TField::DataType;
+    using FieldType = TField;
+    using ProxyType = FieldProxy<TField>;
+
+    size_t getBytes() const { return bytes_; }
+    size_t getNBlocks() const
+    {
+        return nblocks_[0] * nblocks_[1] * nblocks_[2];
+    }
+    size_t getNBlocksX() const { return nblocks_[0]; }
+    size_t getNBlocksY() const { return nblocks_[1]; }
+    size_t getNBlocksZ() const { return nblocks_[2]; }
+    const std::array<size_t, 3> &getNBlocksArray() const { return nblocks_; }
+
+    std::vector<ProxyType> &getBlocks() { return proxies_; }
+    const std::vector<ProxyType> &getBlocks() const { return proxies_; }
+
+    ProxyType &getBlock(size_t ix, size_t iy = 0, size_t iz = 0)
+    {
+        assert(ix < nblocks_[0]);
+        assert(iy < nblocks_[1]);
+        assert(iz < nblocks_[2]);
+        return proxies_[ix + nblocks_[0] * (iy + nblocks_[1] * iz)];
+    }
+    const ProxyType &getBlock(size_t ix, size_t iy = 0, size_t iz = 0) const
+    {
+        assert(ix < nblocks_[0]);
+        assert(iy < nblocks_[1]);
+        assert(iz < nblocks_[2]);
+        return proxies_[ix + nblocks_[0] * (iy + nblocks_[1] * iz)];
+    }
+
+    DataType *getData() { return block_; }
+    const DataType *getData() const { return block_; }
+
+private:
+    using AllocType = typename TField::AllocType;
+
+    DataType *block_;     // pointer to first element of first block
+    size_t bytes_;        // number of bytes pointed to by block_
+    AllocType blk_alloc_; // block allocator
+
+    // Cartesian topology of blocks
+    const std::array<size_t, 3> nblocks_;
+
+    // Proxy field container
+    std::vector<ProxyType> proxies_;
+
+    /// @brief Allocate memory for multiple blocks
+    ///
+    /// @return True if success
+    bool allocBlocks_(size_t nblocks)
+    {
+        block_ = blk_alloc_.allocate(nblocks);
+        bytes_ = blk_alloc_.getBytes(nblocks);
+        assert(block_ != nullptr && "Block allocator returned NULL address");
+        if (block_ == nullptr) {
+            return false;
+        }
+        return true;
+    }
+
+    /// @brief Deallocate all blocks
+    void deallocBlock_()
+    {
+        if (block_ != nullptr) {
+            blk_alloc_.deallocate(block_);
+            bytes_ = 0;
+        }
+    }
+
+    /// @brief Create a list block field proxies for interface with block data.
+    ///
+    /// @param nblocks
+    void initProxies_(size_t nblocks)
+    {
+        const ptrdiff_t block_size =
+            AllocType::BlockDimX * AllocType::BlockDimY * AllocType::BlockDimZ;
+
+        proxies_.reserve(nblocks);
+        for (size_t b = 0; b < nblocks; ++b) {
+            void *bptr = static_cast<void *>(block_ + b * block_size);
+            ProxyType fp(bptr);
+            proxies_.push_back(fp);
+        }
+    }
+};
 
 NAMESPACE_END(BlockField)
 NAMESPACE_END(Cubism)
