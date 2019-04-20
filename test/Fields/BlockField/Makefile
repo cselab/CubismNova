@@ -7,5 +7,8 @@ TestBlockField: FieldIndexing.o TestBlockField.cpp
 FieldIndexing.o: FieldIndexing.cpp
 	$(CXX) $(CXXFLAGS) -c -O3 -DNDEBUG -o $@ $<
 
+%.s: %.cpp
+	$(CXX) $(CXXFLAGS) -c -O3 -DNDEBUG -S -o $@ $<
+
 clean:
-	rm -f TestBlockField *~ *.o *.swp
+	rm -f TestBlockField *~ *.o *.swp *.s
