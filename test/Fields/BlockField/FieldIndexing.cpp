@@ -18,7 +18,7 @@ static void profileIndexing(ostream &s)
     setFieldValue(block, 1.0);
 
     auto linear = [&block](void) {
-        double sum = 0.0;
+        DataType sum = 0.0;
         for (size_t i = 0; i < block.getBlockSize(); ++i) {
             sum += block[i];
         }
@@ -26,7 +26,7 @@ static void profileIndexing(ostream &s)
     };
 
     auto ijk = [&block](void) {
-        double sum = 0.0;
+        DataType sum = 0.0;
         for (size_t iz = 0; iz < TestType::BlockDimZ; ++iz)
             for (size_t iy = 0; iy < TestType::BlockDimY; ++iy)
                 for (size_t ix = 0; ix < TestType::BlockDimX; ++ix) {
@@ -35,8 +35,8 @@ static void profileIndexing(ostream &s)
         return sum;
     };
 
-    auto bench = [](std::function<double(void)> kern) {
-        double res = 0.0;
+    auto bench = [](std::function<DataType(void)> kern) {
+        DataType res = 0.0;
         for (size_t i = 0; i < 10; ++i) {
             res += kern();
         }
@@ -50,7 +50,7 @@ static void profileIndexing(ostream &s)
 
     {
         // warmup
-        double res = linear();
+        DataType res = linear();
         // profile
         t0.start();
         res += bench(linear);
@@ -61,7 +61,7 @@ static void profileIndexing(ostream &s)
 
     {
         // warmup
-        double res = ijk();
+        DataType res = ijk();
         // profile
         t0.start();
         res += bench(ijk);
