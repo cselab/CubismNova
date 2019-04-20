@@ -10,6 +10,9 @@
 using namespace std;
 using namespace Cubism;
 
+#define SAMPLES 10
+#define FLOP 1
+
 template <size_t BX, size_t BY, size_t BZ>
 static void profileIndexing(ostream &s)
 {
@@ -20,7 +23,7 @@ static void profileIndexing(ostream &s)
     auto linear = [&block](void) {
         DataType sum = 0.0;
         for (size_t i = 0; i < block.getBlockSize(); ++i) {
-            sum += block[i];
+            sum += block[i]; // 1 Flop
         }
         return sum;
     };
@@ -30,17 +33,17 @@ static void profileIndexing(ostream &s)
         for (size_t iz = 0; iz < TestType::BlockDimZ; ++iz)
             for (size_t iy = 0; iy < TestType::BlockDimY; ++iy)
                 for (size_t ix = 0; ix < TestType::BlockDimX; ++ix) {
-                    sum += block(ix, iy, iz);
+                    sum += block(ix, iy, iz); // 1 Flop
                 }
         return sum;
     };
 
     auto bench = [](std::function<DataType(void)> kern) {
         DataType res = 0.0;
-        for (size_t i = 0; i < 10; ++i) {
+        for (size_t i = 0; i < SAMPLES; ++i) {
             res += kern();
         }
-        return res / 10;
+        return res / SAMPLES;
     };
 
     Timer t0;
@@ -48,7 +51,7 @@ static void profileIndexing(ostream &s)
     s << "Size = " << BX << "x" << BY << "x" << BZ << " (" << BX * BY * BZ
       << ")" << '\n';
 
-    {
+    { // linear indexing
         // warmup
         DataType res = linear();
         // profile
@@ -56,10 +59,12 @@ static void profileIndexing(ostream &s)
         res += bench(linear);
         const double tlinear = t0.stop();
         s << "\tLinear indexing: result = " << static_cast<size_t>(res / 2)
-          << "; took " << tlinear << " sec (10 samples)" << '\n';
+          << "; took " << tlinear << " sec (" << SAMPLES << " samples)" << '\n';
+        s << "\tAverage GFlop/s = "
+          << (FLOP * SAMPLES * BX * BY * BZ) / tlinear * 1.0e-9 << '\n';
     }
 
-    {
+    { // IJK indexing
         // warmup
         DataType res = ijk();
         // profile
@@ -67,7 +72,9 @@ static void profileIndexing(ostream &s)
         res += bench(ijk);
         const double tijk = t0.stop();
         s << "\tIJK indexing: result = " << static_cast<size_t>(res / 2)
-          << "; took " << tijk << " sec (10 samples)" << '\n';
+          << "; took " << tijk << " sec (" << SAMPLES << " samples)" << '\n';
+        s << "\tAverage GFlop/s = "
+          << (FLOP * SAMPLES * BX * BY * BZ) / tijk * 1.0e-9 << '\n';
     }
 }
 
