@@ -1,0 +1,4 @@
+TestVector
+*.o
+*~
+*.swp
