@@ -24,13 +24,14 @@
 NAMESPACE_BEGIN(Cubism)
 
 // FIXME: [fabianw@mavt.ethz.ch; 2019-04-23] Move this to another header.
-/// @brief Generic square root function.  The generic function is not defined
-///        for arbitrary type T.
+/// @brief Generic square root function.  std::sqrt() is overloaded for integral
+///        types T and returns a double.  This causes implicit casts if the
+///        return type of a function is DataType which may be an integral type.
 template <typename T>
 T mySqrt(T v)
 {
-    static_assert(true, "Square root is not defined for arbitrary type T");
-    return 0;
+    assert(false && "Square root function used with integral type T");
+    return static_cast<T>(std::sqrt(v));
 }
 
 /// @brief Specialization of mySqrt for float type
