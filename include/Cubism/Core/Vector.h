@@ -65,7 +65,7 @@ long double mySqrt(long double v)
 template <typename T, size_t DIM>
 class Vector
 {
-public:
+private:
     /// @brief Primitive data container based on arrays with aggregate
     ///        initialization
     ///
@@ -80,20 +80,6 @@ public:
 
         static constexpr size_t Bytes = D * sizeof(U);
         static constexpr size_t Dim = D;
-
-        /// @brief Compute hex-string of byte data
-        static std::string getHashString(const Primitive &p)
-        {
-            std::ostringstream os;
-            os << "0x";
-            const unsigned char *ptr =
-                reinterpret_cast<const unsigned char *>(&p.data_.back());
-            for (size_t i = 0; i < Bytes; ++i) {
-                os << std::hex << std::setfill('0') << std::setw(2)
-                   << static_cast<int>(*ptr--);
-            }
-            return os.str();
-        }
 
         /// @brief Default constructor
         Primitive() : data_({0}) {}
@@ -132,8 +118,6 @@ public:
 
         /// @brief Swap this primitive with other primitive.  std::array does
         ///        not exchange pointers, its complexity for swapping is linear.
-        ///
-        /// @param other
         void swap(Primitive &other)
         {
             using std::swap;
@@ -208,11 +192,13 @@ public:
         ArrayType data_;
     };
 
-    using Array = Primitive<T, DIM>;
-    using ArrayType = typename Array::ArrayType;
-    using DataType = typename Array::DataType;
+    using BaseArray = Primitive<T, DIM>;
 
-    static constexpr size_t Dim = Array::Dim;
+public:
+    using ArrayType = typename BaseArray::ArrayType;
+    using DataType = typename BaseArray::DataType;
+
+    static constexpr size_t Dim = BaseArray::Dim;
 
     template <size_t DIR>
     static Vector getUnitVector()
@@ -638,7 +624,7 @@ public:
     }
 
 private:
-    Array array_;
+    BaseArray array_;
 
     /// @brief Copy from arbitrary source type.  The data type U must be
     ///        castable to DataType.  If size_src < DIM, then the remaining
@@ -666,9 +652,10 @@ private:
     }
 };
 
-/// @brief Non-STL swap function for vector arrays
+/// @brief Non-STL swap function for vector data arrays
 template <typename T, size_t DIM>
-void swap(typename Vector<T, DIM>::Array &a, typename Vector<T, DIM>::Array &b)
+void swap(typename Vector<T, DIM>::BaseArray &a,
+          typename Vector<T, DIM>::BaseArray &b)
 {
     a.swap(b);
 }
