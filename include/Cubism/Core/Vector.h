@@ -264,6 +264,14 @@ public:
         copy_from_address_(ary.data(), ary.size());
     }
 
+    /// @brief Constructor to initialize data from arbitrary pointer ptr.  The
+    ///        number of elements n must be provided.
+    template <typename U>
+    explicit Vector(const U *ptr, size_t n) : array_()
+    {
+        copy_from_address_(ptr, n);
+    }
+
     /// @brief Default destructor
     virtual ~Vector() = default;
 
