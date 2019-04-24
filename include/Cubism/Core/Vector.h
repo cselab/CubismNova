@@ -127,7 +127,7 @@ private:
         // Data access interface:
         //
         /// @brief Return size of vector
-        size_t size() const { return data_.size(); }
+        size_t size() const { return Dim; }
 
         /// @brief Return raw data
         DataType *data() { return data_.data(); }
@@ -157,7 +157,7 @@ private:
         bool operator==(const Primitive &other) const
         {
             bool is_equal = true;
-            for (size_t i = 0; i < data_.size(); ++i) {
+            for (size_t i = 0; i < Dim; ++i) {
                 is_equal = is_equal && (data_[i] == other.data_[i]);
             }
             return is_equal;
@@ -173,7 +173,7 @@ private:
         bool operator<(const Primitive &other) const
         {
             bool is_less = true;
-            for (size_t i = 0; i < data_.size(); ++i) {
+            for (size_t i = 0; i < Dim; ++i) {
                 is_less = is_less && (data_[i] < other.data_[i]);
             }
             return is_less;
