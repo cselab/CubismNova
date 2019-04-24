@@ -341,24 +341,12 @@ public:
 
     // Comparison operators:
     //
-    bool operator==(const Vector &other) const
-    {
-        return array_ == other.array_;
-    }
-    bool operator!=(const Vector &other) const
-    {
-        return array_ != other.array_;
-    }
-    bool operator<(const Vector &other) const { return array_ < other.array_; }
-    bool operator>(const Vector &other) const { return array_ > other.array_; }
-    bool operator<=(const Vector &other) const
-    {
-        return array_ <= other.array_;
-    }
-    bool operator>=(const Vector &other) const
-    {
-        return array_ >= other.array_;
-    }
+    bool operator==(const Vector &rhs) const { return array_ == rhs.array_; }
+    bool operator!=(const Vector &rhs) const { return array_ != rhs.array_; }
+    bool operator<(const Vector &rhs) const { return array_ < rhs.array_; }
+    bool operator>(const Vector &rhs) const { return array_ > rhs.array_; }
+    bool operator<=(const Vector &rhs) const { return array_ <= rhs.array_; }
+    bool operator>=(const Vector &rhs) const { return array_ >= rhs.array_; }
 
     // Arithmetic operators
     //
