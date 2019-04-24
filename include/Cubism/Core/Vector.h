@@ -179,13 +179,21 @@ private:
             return is_less;
         }
         bool operator>(const Primitive &other) const { return (other < *this); }
+
+        /// @brief Less-equal than operator.  A primitive is smaller or equal
+        ///        than another iff all comonents are less or equal than the
+        ///        corresponding components of the other primitive.
         bool operator<=(const Primitive &other) const
         {
-            return !(*this > other);
+            bool is_lesseq = true;
+            for (size_t i = 0; i < Dim; ++i) {
+                is_lesseq = is_lesseq && (data_[i] <= other.data_[i]);
+            }
+            return is_lesseq;
         }
         bool operator>=(const Primitive &other) const
         {
-            return !(*this < other);
+            return (other <= *this);
         }
 
     private:
