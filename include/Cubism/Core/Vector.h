@@ -293,6 +293,22 @@ public:
         return *this;
     }
 
+    /// @brief ArrayType assignment operator
+    Vector &operator=(const ArrayType &c)
+    {
+        // always assign
+        array_ = c;
+        return *this;
+    }
+
+    /// @brief ArrayType move assignment operator
+    Vector &operator=(ArrayType &&c)
+    {
+        // always move
+        array_ = std::move(c);
+        return *this;
+    }
+
     /// @brief Assigment operator for any other Vector type.  The data type U
     ///        must be castable to DataType.  This operation is less efficient
     ///        than assigning vectors of the same type.
