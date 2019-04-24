@@ -469,7 +469,10 @@ public:
 
     friend Vector operator-(const DataType lhs, Vector rhs)
     {
-        return (rhs -= lhs);
+        for (size_t i = 0; i < Dim; ++i) {
+            rhs[i] = lhs - rhs[i];
+        }
+        return rhs;
     }
 
     friend Vector operator*(const DataType lhs, Vector rhs)
