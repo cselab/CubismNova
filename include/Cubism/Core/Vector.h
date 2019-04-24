@@ -326,7 +326,7 @@ public:
     // Allowed casts:
     //
     /// @brief Cast vector to its underlying std::array type
-    explicit operator ArrayType() { return array_.getArray(); }
+    explicit operator ArrayType() const { return array_.getArray(); }
 
     /// @brief Cast vector to pointer, pointing to the first element of its data
     explicit operator DataType *() { return data(); }
