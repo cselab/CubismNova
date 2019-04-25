@@ -7,11 +7,11 @@
 #define VECTOR_H_8YBMEXHP
 
 #include "Core/Common.h"
+#include "Core/Math.h"
 
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cmath>
 #include <initializer_list>
 #include <iomanip>
 #include <istream>
@@ -22,78 +22,6 @@
 #include <vector>
 
 NAMESPACE_BEGIN(Cubism)
-
-// FIXME: [fabianw@mavt.ethz.ch; 2019-04-23] Move this to another header.
-
-/// @brief Generic square root function.  std::sqrt() is overloaded for integral
-///        types T and returns a double.  This causes implicit casts if the
-///        return type of a function is DataType which may be an integral type.
-///        This version forces a link-time error for any unsafe type T.
-template <typename T>
-inline T mySqrt(T v);
-
-/// @brief Specialization of mySqrt for float type
-template <>
-inline float mySqrt(float v)
-{
-    return std::sqrt(v);
-}
-
-/// @brief Specialization of mySqrt for double type
-template <>
-inline double mySqrt(double v)
-{
-    return std::sqrt(v);
-}
-
-/// @brief Specialization of mySqrt for long double type
-template <>
-inline long double mySqrt(long double v)
-{
-    return std::sqrt(v);
-}
-
-/// @brief Generic abs function that allows for unsigned integral types.
-template <typename T>
-inline T myAbs(T v)
-{
-    return std::abs(v);
-}
-
-/// @brief Specialization of myAbs for unsigned char type
-template <>
-inline unsigned char myAbs(unsigned char v)
-{
-    return v;
-}
-
-/// @brief Specialization of myAbs for unsigned short type
-template <>
-inline unsigned short myAbs(unsigned short v)
-{
-    return v;
-}
-
-/// @brief Specialization of myAbs for unsigned long type
-template <>
-inline unsigned long myAbs(unsigned long v)
-{
-    return v;
-}
-
-/// @brief Specialization of myAbs for unsigned long long type
-template <>
-inline unsigned long long myAbs(unsigned long long v)
-{
-    return v;
-}
-
-/// @brief Specialization of myAbs for unsigned type
-template <>
-inline unsigned myAbs(unsigned v)
-{
-    return v;
-}
 
 /// @brief Vector class with support for common operations (wraps around
 ///        std::array)
