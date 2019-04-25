@@ -270,7 +270,7 @@ public:
     {
         const DataType v = static_cast<DataType>(scalar);
         DataType *dst = this->data();
-        std::fill(dst, dst + DIM, v);
+        std::fill(dst, dst + Dim, v);
     }
 
     /// @brief Constructor for arbitrary list initialization
@@ -692,13 +692,13 @@ private:
     BaseArray array_;
 
     /// @brief Copy from arbitrary source type.  The data type U must be
-    ///        castable to DataType.  If size_src < DIM, then the remaining
+    ///        castable to DataType.  If size_src < Dim, then the remaining
     ///        elements will be left untouched.
     template <typename U>
     void copy_from_address_(const U *src, size_t size_src)
     {
-        if (size_src > DIM) {
-            size_src = DIM;
+        if (size_src > Dim) {
+            size_src = Dim;
         }
         for (size_t i = 0; i < size_src; ++i) {
             array_[i] = static_cast<DataType>(*src++);
