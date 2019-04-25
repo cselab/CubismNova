@@ -155,6 +155,7 @@ private:
         const DataType *data() const { return data_.data(); }
 
         /// @brief Return array
+        ArrayType &getArray() { return data_; }
         const ArrayType &getArray() const { return data_; }
 
         /// @brief Data access interface
@@ -376,6 +377,7 @@ public:
     const DataType *data() const { return array_.data(); }
 
     /// @brief Return underlying std::array
+    ArrayType &getArray() { return array_.getArray(); }
     const ArrayType &getArray() const { return array_.getArray(); }
 
     /// @brief Data access interface
