@@ -403,6 +403,17 @@ public:
     bool operator<=(const Vector &rhs) const { return array_ <= rhs.array_; }
     bool operator>=(const Vector &rhs) const { return array_ >= rhs.array_; }
 
+    // Unitary operators:
+    //
+    Vector operator-() const
+    {
+        Vector v(*this);
+        for (size_t i = 0; i < Dim; ++i) {
+            v[i] = -v[i];
+        }
+        return v;
+    }
+
     // Arithmetic operators
     //
     // Vector rhs:
