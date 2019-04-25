@@ -268,6 +268,11 @@ public:
     using ArrayType = typename BaseArray::ArrayType;
     using DataType = typename BaseArray::DataType;
 
+    using iterator = typename ArrayType::iterator;
+    using const_iterator = typename ArrayType::const_iterator;
+    using reverse_iterator = typename ArrayType::reverse_iterator;
+    using const_reverse_iterator = typename ArrayType::const_reverse_iterator;
+
     static constexpr size_t Dim = BaseArray::Dim;
 
     template <size_t DIR>
@@ -433,6 +438,21 @@ public:
 
     /// @brief Cast vector to pointer, pointing to the first element of its data
     explicit operator DataType *() { return data(); }
+
+    // iterators:
+    //
+    iterator begin() noexcept { return getArray().begin(); }
+    iterator end() noexcept { return getArray().end(); }
+    reverse_iterator rbegin() noexcept { return getArray().rbegin(); }
+    reverse_iterator rend() noexcept { return getArray().rend(); }
+
+    const_iterator cbegin() const noexcept { return getArray().cbegin(); }
+    const_iterator cend() const noexcept { return getArray().cend(); }
+    const_reverse_iterator crbegin() const noexcept
+    {
+        return getArray().crbegin();
+    }
+    const_reverse_iterator crend() const noexcept { return getArray().crend(); }
 
     // Comparison operators:
     //
