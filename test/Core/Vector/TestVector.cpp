@@ -742,12 +742,12 @@ void testIterators()
     assert(sumVector(v0) == sum);
 
     // reverse
-    for (auto v = v0.rbegin(); v < v0.rend(); ++v) {
+    for (auto v = v0.rbegin(); v != v0.rend(); ++v) {
         *v += 1;
     }
     assert(sumVector(v0) == 2 * v0.size());
 
-    for (auto v = v0.crbegin(); v < v0.crend(); ++v) {
+    for (auto v = v0.crbegin(); v != v0.crend(); ++v) {
         // *v += 1; // compile-time error
         sum += *v;
     }
