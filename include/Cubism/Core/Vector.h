@@ -233,7 +233,7 @@ public:
     template <typename U, size_t DIMU>
     Vector(const Vector<U, DIMU> &c) : array_()
     {
-        copy_from_address_(c.data(), c.size());
+        copyFromAddress_(c.data(), c.size());
     }
 
     /// @brief Constructor for any scalar type U.  The type U must be castable
@@ -250,21 +250,21 @@ public:
     template <typename U>
     Vector(std::initializer_list<U> ilist) : array_()
     {
-        copy_from_address_(ilist.begin(), ilist.size());
+        copyFromAddress_(ilist.begin(), ilist.size());
     }
 
     /// @brief Constructor to initialize data from std::vector
     template <typename U>
     Vector(const std::vector<U> &vec) : array_()
     {
-        copy_from_address_(vec.data(), vec.size());
+        copyFromAddress_(vec.data(), vec.size());
     }
 
     /// @brief Constructor to initialize data from arbitrary std::array
     template <typename U, size_t DIMU>
     Vector(const std::array<U, DIMU> &ary) : array_()
     {
-        copy_from_address_(ary.data(), ary.size());
+        copyFromAddress_(ary.data(), ary.size());
     }
 
     /// @brief Constructor to initialize data from arbitrary pointer ptr.  The
@@ -272,7 +272,7 @@ public:
     template <typename U>
     explicit Vector(const U *ptr, size_t n) : array_()
     {
-        copy_from_address_(ptr, n);
+        copyFromAddress_(ptr, n);
     }
 
     /// @brief Default destructor
@@ -334,7 +334,7 @@ public:
     Vector &operator=(const Vector<U, DIMU> &c)
     {
         if (static_cast<const void *>(this) != static_cast<const void *>(&c)) {
-            copy_from_address_(c.data(), c.size());
+            copyFromAddress_(c.data(), c.size());
         }
         return *this;
     }
@@ -542,7 +542,7 @@ public:
     // Common vector operations interface:
     //
     /// @brief Squared Euclidean vector norm
-    DataType normsq() const { return sum_prod_(*this); }
+    DataType normsq() const { return sumProd_(*this); }
 
     /// @brief Euclidean vector norm (L2)
     DataType norm() const { return mySqrt(normsq()); }
@@ -571,7 +571,7 @@ public:
     }
 
     /// @brief Vector dot product
-    DataType dot(const Vector &other) const { return sum_prod_(other); }
+    DataType dot(const Vector &other) const { return sumProd_(other); }
 
     /// @brief Vector cross product
     Vector cross(const Vector &other) const
@@ -683,7 +683,7 @@ private:
     ///        castable to DataType.  If size_src < Dim, then the remaining
     ///        elements will be left untouched.
     template <typename U>
-    void copy_from_address_(const U *src, size_t size_src)
+    void copyFromAddress_(const U *src, size_t size_src)
     {
         if (size_src > Dim) {
             size_src = Dim;
@@ -695,7 +695,7 @@ private:
 
     /// @brief Compute the sum of the component-wise products between this
     ///        vector and other vector.
-    DataType sum_prod_(const Vector &other) const
+    DataType sumProd_(const Vector &other) const
     {
         DataType res = 0;
         for (size_t i = 0; i < Dim; ++i) {
