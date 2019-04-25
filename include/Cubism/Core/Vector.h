@@ -82,7 +82,10 @@ private:
         static constexpr size_t Dim = D;
 
         /// @brief Default constructor
-        Primitive() : data_({0}) {}
+        Primitive() : data_({0})
+        {
+            static_assert(Dim > 0, "Vector dimension must be > 0");
+        }
 
         /// @brief Default copy constructor
         Primitive(const Primitive &c) : data_(c.data_) {}
