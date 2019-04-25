@@ -119,6 +119,24 @@ private:
             return *this;
         }
 
+        /// @brief Assignment operator for std::array
+        Primitive &operator=(const ArrayType &c)
+        {
+            if (&data_ != &c) {
+                data_ = c;
+            }
+            return *this;
+        }
+
+        /// @brief Move assignment operator for std::array
+        Primitive &operator=(ArrayType &&c)
+        {
+            if (&data_ != &c) {
+                data_ = std::move(c);
+            }
+            return *this;
+        }
+
         /// @brief Swap this primitive with other primitive.  std::array does
         ///        not exchange pointers, its complexity for swapping is linear.
         void swap(Primitive &other)
@@ -307,7 +325,7 @@ public:
     /// @brief ArrayType assignment operator
     Vector &operator=(const ArrayType &c)
     {
-        // always assign
+        // array_ takes care of address check
         array_ = c;
         return *this;
     }
@@ -315,7 +333,7 @@ public:
     /// @brief ArrayType move assignment operator
     Vector &operator=(ArrayType &&c)
     {
-        // always move
+        // array_ takes care of address check
         array_ = std::move(c);
         return *this;
     }
