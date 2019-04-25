@@ -24,35 +24,75 @@
 NAMESPACE_BEGIN(Cubism)
 
 // FIXME: [fabianw@mavt.ethz.ch; 2019-04-23] Move this to another header.
+
 /// @brief Generic square root function.  std::sqrt() is overloaded for integral
 ///        types T and returns a double.  This causes implicit casts if the
 ///        return type of a function is DataType which may be an integral type.
+///        This version forces a link-time error for any unsafe type T.
 template <typename T>
-T mySqrt(T v)
-{
-    assert(false && "Square root function used with integral type T");
-    return static_cast<T>(std::sqrt(v));
-}
+inline T mySqrt(T v);
 
 /// @brief Specialization of mySqrt for float type
 template <>
-float mySqrt(float v)
+inline float mySqrt(float v)
 {
     return std::sqrt(v);
 }
 
 /// @brief Specialization of mySqrt for double type
 template <>
-double mySqrt(double v)
+inline double mySqrt(double v)
 {
     return std::sqrt(v);
 }
 
 /// @brief Specialization of mySqrt for long double type
 template <>
-long double mySqrt(long double v)
+inline long double mySqrt(long double v)
 {
     return std::sqrt(v);
+}
+
+/// @brief Generic abs function that allows for unsigned integral types.
+template <typename T>
+inline T myAbs(T v)
+{
+    return std::abs(v);
+}
+
+/// @brief Specialization of myAbs for unsigned char type
+template <>
+inline unsigned char myAbs(unsigned char v)
+{
+    return v;
+}
+
+/// @brief Specialization of myAbs for unsigned short type
+template <>
+inline unsigned short myAbs(unsigned short v)
+{
+    return v;
+}
+
+/// @brief Specialization of myAbs for unsigned long type
+template <>
+inline unsigned long myAbs(unsigned long v)
+{
+    return v;
+}
+
+/// @brief Specialization of myAbs for unsigned long long type
+template <>
+inline unsigned long long myAbs(unsigned long long v)
+{
+    return v;
+}
+
+/// @brief Specialization of myAbs for unsigned type
+template <>
+inline unsigned myAbs(unsigned v)
+{
+    return v;
 }
 
 /// @brief Vector class with support for common operations (wraps around
@@ -567,17 +607,17 @@ public:
     {
         DataType res = 0;
         for (size_t i = 0; i < Dim; ++i) {
-            res += std::abs(array_[i]);
+            res += myAbs(array_[i]);
         }
         return res;
     }
 
     /// @brief Vector maximum norm
-    DataType normInf() const
+    DataType normLinf() const
     {
         DataType res = 0;
         for (size_t i = 0; i < Dim; ++i) {
-            res = std::max(res, std::abs(array_[i]));
+            res = std::max(res, myAbs(array_[i]));
         }
         return res;
     }
@@ -683,7 +723,7 @@ public:
     {
         Vector res(*this);
         for (size_t i = 0; i < Dim; ++i) {
-            res[i] = std::abs(res[i]);
+            res[i] = myAbs(res[i]);
         }
         return res;
     }
