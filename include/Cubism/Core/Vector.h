@@ -338,6 +338,14 @@ public:
         return *this;
     }
 
+    /// @brief Assignment operator for scalar
+    Vector &operator=(const DataType c)
+    {
+        DataType *dst = this->data();
+        std::fill(dst, dst + Dim, c);
+        return *this;
+    }
+
     /// @brief Assigment operator for any other Vector type.  The data type U
     ///        must be castable to DataType.  This operation is less efficient
     ///        than assigning vectors of the same type.
