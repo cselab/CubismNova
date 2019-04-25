@@ -9,6 +9,7 @@
 #include "Core/Common.h"
 
 #include <cmath>
+#include <cstdlib>
 
 NAMESPACE_BEGIN(Cubism)
 
