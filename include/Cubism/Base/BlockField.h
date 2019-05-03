@@ -76,8 +76,10 @@ public:
 
 template <size_t DIMX, size_t DIMY, size_t DIMZ>
 constexpr size_t BlockBase<DIMX, DIMY, DIMZ>::BlockDimX;
+
 template <size_t DIMX, size_t DIMY, size_t DIMZ>
 constexpr size_t BlockBase<DIMX, DIMY, DIMZ>::BlockDimY;
+
 template <size_t DIMX, size_t DIMY, size_t DIMZ>
 constexpr size_t BlockBase<DIMX, DIMY, DIMZ>::BlockDimZ;
 
@@ -265,8 +267,10 @@ protected:
 
 template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
 constexpr const char *const Field<BlockAlloc, DM, DIR>::MapName;
+
 template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
 constexpr DataMapping Field<BlockAlloc, DM, DIR>::MapClass;
+
 template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
 constexpr Cubism::Dir Field<BlockAlloc, DM, DIR>::Dir;
 
@@ -322,12 +326,10 @@ public:
         return *this;
     }
 
-    /// @brief Copy assignment operator for underlying field type
+    /// @brief Copy assignment operator for underlying field type (shallow copy)
     FieldProxy &operator=(const TField &c)
     {
-        if (this != &c) {
-            this->copyBlockShallow_(const_cast<void *>(c.getBlockPtr()));
-        }
+        this->copyBlockShallow_(const_cast<void *>(c.getBlockPtr()));
         return *this;
     }
 
