@@ -1,4 +1,5 @@
-TestVector
+test_all
+*.a
 *.o
 *~
 *.swp
