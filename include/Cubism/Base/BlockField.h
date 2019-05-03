@@ -51,7 +51,7 @@ public:
     static constexpr size_t BlockDimZ = DIMZ;
 
     BlockBase() = default;
-    virtual ~BlockBase() {}
+    virtual ~BlockBase() = default;
 
     /// @brief Mutable pointer to address of first data element
     ///
@@ -74,6 +74,13 @@ public:
     size_t getBlockSize() const { return DIMX * DIMY * DIMZ; }
 };
 
+template <size_t DIMX, size_t DIMY, size_t DIMZ>
+constexpr size_t BlockBase<DIMX, DIMY, DIMZ>::BlockDimX;
+template <size_t DIMX, size_t DIMY, size_t DIMZ>
+constexpr size_t BlockBase<DIMX, DIMY, DIMZ>::BlockDimY;
+template <size_t DIMX, size_t DIMY, size_t DIMZ>
+constexpr size_t BlockBase<DIMX, DIMY, DIMZ>::BlockDimZ;
+
 /// @brief Generic single block field that owns the block memory
 ///
 /// @tparam BlockAlloc (block allocator type)
@@ -92,7 +99,7 @@ public:
     using DataType = typename BlockAlloc::DataType;
 
     // Name ID for data element mapping (cell, node, face)
-    static constexpr const char *MapName =
+    static constexpr const char *const MapName =
         DATA_MAPPING[static_cast<size_t>(DM)];
     static constexpr DataMapping MapClass = DM; // Data mapping class identifier
     static constexpr Cubism::Dir Dir = DIR;     // Direction indicator
@@ -255,6 +262,13 @@ protected:
         }
     }
 };
+
+template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
+constexpr const char *const Field<BlockAlloc, DM, DIR>::MapName;
+template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
+constexpr DataMapping Field<BlockAlloc, DM, DIR>::MapClass;
+template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
+constexpr Cubism::Dir Field<BlockAlloc, DM, DIR>::Dir;
 
 /// @brief Field proxy type (never owns block memory).  Arithmetic operations
 ///        and assignment operate on the underlying data.
