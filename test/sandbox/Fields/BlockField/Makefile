@@ -1,5 +1,5 @@
 CXXFLAGS ?= -std=c++11 -Wall -Wextra -Wpedantic
-CXXFLAGS += -I../../../include/Cubism
+CXXFLAGS += -I../../../../include/Cubism
 
 TestBlockField: FieldIndexing.o TestBlockField.cpp
 	$(CXX) $(CXXFLAGS) -O0 -o $@ $^
