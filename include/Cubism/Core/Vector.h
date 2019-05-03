@@ -148,7 +148,8 @@ private:
         {
             bool is_equal = true;
             for (size_t i = 0; i < Dim; ++i) {
-                is_equal = is_equal && (data_[i] == other.data_[i]);
+                is_equal = is_equal && (!(data_[i] > other.data_[i]) &&
+                                        !(data_[i] < other.data_[i]));
             }
             return is_equal;
         }
