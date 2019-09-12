@@ -6,6 +6,20 @@ standard](https://llvm.org/docs/CodingStandards.html).
 
 ## This coding style
 
+Deviations from the above LLVM style are:
+```
+{
+  BasedOnStyle: llvm,                      # LLVM defaults
+  IndentWidth: 4,                          # indentation columns
+  AccessModifierOffset: -4,                # no indent for public, private, etc.
+  AlwaysBreakTemplateDeclarations: Yes,
+  KeepEmptyLinesAtTheStartOfBlocks: false,
+  BinPackArguments:  false,
+  BinPackParameters: false,
+  BreakBeforeBraces: Linux,                # brace breaking style
+}
+```
+
 There are few deviations from the above coding style, defined in the file
 `format` in this directory.
 

@@ -7,22 +7,4 @@
 #              Format: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 # Copyright 2019 ETH Zurich. All Rights Reserved.
 
-read -r -d '' STYLE <<'EOF'
-{
-  BasedOnStyle: llvm,                      # LLVM defaults
-  IndentWidth: 4,                          # indentation columns
-  AccessModifierOffset: -4,                # no indent for public, private, etc.
-  AlignEscapedNewlines: true,              # align '\' in multi-line macros
-  AlignOperands: true,
-  AlignTrailingComments: true,
-  AllowShortIfStatementsOnASingleLine: false,
-  AlwaysBreakTemplateDeclarations: Yes,
-  IndentCaseLabels: false,
-  KeepEmptyLinesAtTheStartOfBlocks: false,
-  BinPackArguments:  false,
-  BinPackParameters: false,
-  BreakBeforeBraces: Linux,                # brace breaking style
-}
-EOF
-
-clang-format -style="${STYLE}" "$@"
+clang-format -style=file "$@"
