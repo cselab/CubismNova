@@ -272,33 +272,27 @@ public:
 
     FieldProxy() = delete;
 
+    ~FieldProxy() { this->setNull_(); }
+
     /// @brief Base constructor
     ///
-    /// @param alloc (switch for block memory allocation)
-    FieldProxy(void *block_ptr) : TField(false)
+    /// @param owner of external memory
+    FieldProxy(TField &owner) : TField(false)
     {
-        assert(block_ptr != nullptr &&
-               "A field proxy can only be constructed with a valid address");
-        this->block_ = static_cast<typename TField::DataType *>(block_ptr);
-        this->bytes_ = this->blk_alloc_.getBytes(1);
+        this->copyBlockShallow_(owner.data());
     }
 
     /// @brief Copy constructor for a field proxy
-    FieldProxy(const FieldProxy &c) : TField(false)
+    FieldProxy(FieldProxy &c) : TField(false)
     {
-        this->copyBlockShallow_(c.block_);
+        this->copyBlockShallow_(c.data());
     }
-
-    /// @brief Copy constructor for underlying field type
-    FieldProxy(TField &c) : TField(false) { this->copyBlockShallow_(c.data()); }
 
     /// @brief Move semantics are not permitted for a field proxy
     FieldProxy(FieldProxy &&c) = delete;
 
     /// @brief Move semantics are not permitted for a field proxy
     FieldProxy(TField &&c) = delete;
-
-    ~FieldProxy() { this->setNull_(); }
 
     /// @brief Copy assignment operator for field proxy
     FieldProxy &operator=(FieldProxy &c)
