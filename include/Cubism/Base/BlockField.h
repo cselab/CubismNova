@@ -300,11 +300,11 @@ public:
 
     ~FieldProxy() { this->setNull_(); }
 
-    /// @brief Copy assignment operator for field proxy (deep copy)
-    FieldProxy &operator=(const FieldProxy &c)
+    /// @brief Copy assignment operator for field proxy
+    FieldProxy &operator=(FieldProxy &c)
     {
         if (this != &c) {
-            this->copyBlock_(c.block_);
+            this->copyBlockShallow_(c.data());
         }
         return *this;
     }
