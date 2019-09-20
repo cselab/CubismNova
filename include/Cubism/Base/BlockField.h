@@ -34,6 +34,12 @@ public:
     BlockBase() = default;
     virtual ~BlockBase() = default;
 
+    BlockBase(const BlockBase &c) = delete;
+    BlockBase(BlockBase &&c) = delete;
+
+    BlockBase &operator=(const BlockBase &c) = delete;
+    BlockBase &operator=(BlockBase &&c) = delete;
+
     /// @brief Mutable pointer to address of first data element
     ///
     /// @return
