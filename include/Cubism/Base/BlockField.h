@@ -17,13 +17,6 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(BlockField)
 
-/// @brief Data layout constants used to describe a special block-data layout.
-///        Undefined corresponds to no associated mapping (default), Cell
-///        corresponds to data mapped to cell centers, Node corresponds to
-///        data mapped to cell nodes (vertices), Face corresponds to data
-///        mapped to cell faces
-enum class DataMapping { Undefined = 0, Cell, Node, Face };
-
 /// @brief Allocator independent base class for a block with dimensions DIMX,
 /// DIMY, DIMZ.
 ///
@@ -76,7 +69,7 @@ constexpr size_t BlockBase<DIMX, DIMY, DIMZ>::BlockDimZ;
 /// @tparam BlockAlloc (block allocator type)
 /// @tparam DM         (data mapping identifier)
 /// @tparam DIR        (direction indicator)
-template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
+template <typename BlockAlloc, Cubism::DataMapping DM, Cubism::Dir DIR>
 class Field : public BlockBase<BlockAlloc::BlockDimX,
                                BlockAlloc::BlockDimY,
                                BlockAlloc::BlockDimZ>
@@ -88,8 +81,8 @@ public:
     using AllocType = BlockAlloc;
     using DataType = typename BlockAlloc::DataType;
 
-    static constexpr DataMapping MapClass = DM; // Data mapping class identifier
-    static constexpr Cubism::Dir Dir = DIR;     // Direction indicator
+    static constexpr Cubism::DataMapping MapClass = DM;
+    static constexpr Cubism::Dir Dir = DIR;
 
     /// @brief Base constructor
     Field(const bool alloc = true) : block_(nullptr), bytes_(0)
@@ -250,10 +243,10 @@ protected:
     }
 };
 
-template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
-constexpr DataMapping Field<BlockAlloc, DM, DIR>::MapClass;
+template <typename BlockAlloc, Cubism::DataMapping DM, Cubism::Dir DIR>
+constexpr Cubism::DataMapping Field<BlockAlloc, DM, DIR>::MapClass;
 
-template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
+template <typename BlockAlloc, Cubism::DataMapping DM, Cubism::Dir DIR>
 constexpr Cubism::Dir Field<BlockAlloc, DM, DIR>::Dir;
 
 /// @brief Field proxy type (never owns block memory).  Arithmetic operations
@@ -339,7 +332,8 @@ template <typename DataType,
           size_t BDY,
           size_t BDZ,
           typename BlockAlloc = AlignedBlockAllocator<DataType, BDX, BDY, BDZ>>
-using FieldCell = Field<BlockAlloc, DataMapping::Cell, Cubism::Dir::Any>;
+using FieldCell =
+    Field<BlockAlloc, Cubism::DataMapping::Cell, Cubism::Dir::Any>;
 
 /// @brief Node centered data field type for single block
 ///
@@ -354,7 +348,8 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX + 1, BDY + 1, BDZ + 1>>
-using FieldNode = Field<BlockAlloc, DataMapping::Node, Cubism::Dir::Any>;
+using FieldNode =
+    Field<BlockAlloc, Cubism::DataMapping::Node, Cubism::Dir::Any>;
 
 /// @brief X-Face centered data field type for single block
 ///
@@ -369,7 +364,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX + 1, BDY, BDZ>>
-using FieldFaceX = Field<BlockAlloc, DataMapping::Face, Cubism::Dir::X>;
+using FieldFaceX = Field<BlockAlloc, Cubism::DataMapping::Face, Cubism::Dir::X>;
 
 /// @brief Y-Face centered data field type for single block
 ///
@@ -384,7 +379,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX, BDY + 1, BDZ>>
-using FieldFaceY = Field<BlockAlloc, DataMapping::Face, Cubism::Dir::Y>;
+using FieldFaceY = Field<BlockAlloc, Cubism::DataMapping::Face, Cubism::Dir::Y>;
 
 /// @brief Z-Face centered data field type for single block
 ///
@@ -399,12 +394,12 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX, BDY, BDZ + 1>>
-using FieldFaceZ = Field<BlockAlloc, DataMapping::Face, Cubism::Dir::Z>;
+using FieldFaceZ = Field<BlockAlloc, Cubism::DataMapping::Face, Cubism::Dir::Z>;
 
-// XXX: [fabianw@mavt.ethz.ch; 2019-04-17] How to treat duplicate nodes
-// and faces for DataMapping::Node or DataMapping::Face? (Treat them differently
-// in Labs is one possibility, means there is duplicate data.  Problematic for
-// reduction operations)
+// XXX: [fabianw@mavt.ethz.ch; 2019-04-17] How to treat duplicate nodes and
+// faces for Cubism::DataMapping::Node or Cubism::DataMapping::Face? (Treat them
+// differently in Labs is one possibility, means there is duplicate data.
+// Problematic for reduction operations)
 
 template <typename TField>
 class FieldCartesian

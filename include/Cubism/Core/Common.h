@@ -19,6 +19,13 @@
 NAMESPACE_BEGIN(Cubism)
 /// @brief Constants for expressing direction
 enum class Dir { X = 0, Y, Z, XX, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ, Any };
+
+/// @brief Data layout constants used to describe a special block-data layout.
+///        Undefined: no associated mapping (default)
+///        Cell: data mapped to cell centers
+///        Node: data mapped to cell nodes (vertices)
+///        Face: data mapped to cell faces
+enum class DataMapping { Undefined = 0, Cell, Node, Face };
 NAMESPACE_END(Cubism)
 
 // FIXME: [fabianw@mavt.ethz.ch; 2019-04-01] Deprecated, will be removed
