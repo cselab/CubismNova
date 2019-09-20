@@ -12,6 +12,7 @@
 #include <array>
 #include <cassert>
 #include <cstring>
+#include <type_traits>
 #include <vector>
 
 NAMESPACE_BEGIN(Cubism)
@@ -90,16 +91,13 @@ public:
     static constexpr Cubism::DataMapping MapClass = DM;
     static constexpr Cubism::Dir Dir = DIR;
 
-    /// @brief Base constructor
-    Field(const bool alloc = true) : block_(nullptr), bytes_(0)
+    /// @brief Base constructor for single block allocation
+    ///
+    /// @param owner of memory
+    Field(const bool owner = true) : block_(nullptr), bytes_(0)
     {
-        if (alloc) {
-            assert(
-                block_ == nullptr &&
-                "Passing a valid address for a field owner is not permitted");
+        if (owner) {
             allocBlock_();
-            // TODO: [fabianw@mavt.ethz.ch; 2019-04-14] Works only with POD
-            // currently
             clearBlock_();
         }
     }
@@ -129,6 +127,9 @@ public:
     }
 
     size_t getBlockBytes() const override { return bytes_; }
+
+    DataType *data() { return block_; }
+    const DataType *data() const { return block_; }
 
     /// @brief Copy assignment operator
     Field &operator=(const Field &c)
@@ -195,9 +196,10 @@ protected:
     /// @return True if success
     bool allocBlock_()
     {
-        block_ = blk_alloc_.allocate(1);
-        bytes_ = blk_alloc_.getBytes(1);
-        assert(block_ != nullptr && "Block allocator returned NULL address");
+        block_ = blk_alloc_.allocate(1); // memory 1 block
+        bytes_ = blk_alloc_.getBytes(1); // bytes 1 block
+        assert(block_ != nullptr &&
+               "Invalid memory address for block allocation");
         if (block_ == nullptr) {
             return false;
         }
@@ -223,8 +225,9 @@ protected:
     /// @brief Deep copy of an external source
     ///
     /// @param src (pointer to first block data element)
-    void copyBlock_(const void *src)
+    void copyBlock_(const DataType *src)
     {
+        static_assert(std::is_pod<DataType>::value, "DataType is not POD");
         if (block_ != src) {
             std::memcpy(block_, src, bytes_);
         }
@@ -234,15 +237,16 @@ protected:
     ///        and field proxies)
     ///
     /// @param src (pointer to first block data element)
-    void copyBlockShallow_(void *src)
+    void copyBlockShallow_(DataType *src)
     {
-        block_ = static_cast<DataType *>(src);
+        block_ = src;
         bytes_ = blk_alloc_.getBytes(1);
     }
 
     /// @brief Clear block memory bitwise
     void clearBlock_()
     {
+        static_assert(std::is_pod<DataType>::value, "DataType is not POD");
         if (block_ != nullptr) {
             std::memset(block_, 0, bytes_);
         }
@@ -264,6 +268,7 @@ class FieldProxy : public TField
 {
 public:
     using FieldType = TField;
+    using DataType = typename TField::DataType;
 
     FieldProxy() = delete;
 
@@ -285,10 +290,7 @@ public:
     }
 
     /// @brief Copy constructor for underlying field type
-    FieldProxy(const TField &c) : TField(false)
-    {
-        this->copyBlockShallow_(const_cast<void *>(c.getBlockPtr()));
-    }
+    FieldProxy(TField &c) : TField(false) { this->copyBlockShallow_(c.data()); }
 
     /// @brief Move semantics are not permitted for a field proxy
     FieldProxy(FieldProxy &&c) = delete;
@@ -307,10 +309,10 @@ public:
         return *this;
     }
 
-    /// @brief Copy assignment operator for underlying field type (shallow copy)
-    FieldProxy &operator=(const TField &c)
+    /// @brief Copy assignment operator for underlying field type
+    FieldProxy &operator=(TField &c)
     {
-        this->copyBlockShallow_(const_cast<void *>(c.getBlockPtr()));
+        this->copyBlockShallow_(c.data());
         return *this;
     }
 
