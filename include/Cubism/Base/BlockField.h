@@ -233,8 +233,7 @@ protected:
         }
     }
 
-    /// @brief Shallow copy of an external source (required for move semantics
-    ///        and field proxies)
+    /// @brief Shallow copy of an external source
     ///
     /// @param src (pointer to first block data element)
     void copyBlockShallow_(DataType *src)
@@ -259,43 +258,43 @@ constexpr Cubism::DataMapping Field<BlockAlloc, DM, DIR>::MapClass;
 template <typename BlockAlloc, Cubism::DataMapping DM, Cubism::Dir DIR>
 constexpr Cubism::Dir Field<BlockAlloc, DM, DIR>::Dir;
 
-/// @brief Field proxy type (never owns block memory).  Arithmetic operations
-///        and assignment operate on the underlying data.
+/// @brief Field view type (never owns block memory).  Arithmetic operations
+///        and assignment operate on the underlying field.
 ///
 /// @tparam TField (underlying field type)
 template <typename TField>
-class FieldProxy : public TField
+class FieldView : public TField
 {
 public:
     using FieldType = TField;
     using DataType = typename TField::DataType;
 
-    FieldProxy() = delete;
+    FieldView() = delete;
 
-    ~FieldProxy() { this->setNull_(); }
+    ~FieldView() { this->setNull_(); }
 
     /// @brief Base constructor
     ///
     /// @param owner of external memory
-    FieldProxy(TField &owner) : TField(false)
+    FieldView(TField &owner) : TField(false)
     {
         this->copyBlockShallow_(owner.data());
     }
 
-    /// @brief Copy constructor for a field proxy
-    FieldProxy(FieldProxy &c) : TField(false)
+    /// @brief Copy constructor for a field view
+    FieldView(FieldView &c) : TField(false)
     {
         this->copyBlockShallow_(c.data());
     }
 
-    /// @brief Move semantics are not permitted for a field proxy
-    FieldProxy(FieldProxy &&c) = delete;
+    /// @brief Move semantics are not permitted for a field view
+    FieldView(FieldView &&c) = delete;
 
-    /// @brief Move semantics are not permitted for a field proxy
-    FieldProxy(TField &&c) = delete;
+    /// @brief Move semantics are not permitted for a field view
+    FieldView(TField &&c) = delete;
 
-    /// @brief Copy assignment operator for field proxy
-    FieldProxy &operator=(FieldProxy &c)
+    /// @brief Copy assignment operator for field view
+    FieldView &operator=(FieldView &c)
     {
         if (this != &c) {
             this->copyBlockShallow_(c.data());
@@ -304,17 +303,17 @@ public:
     }
 
     /// @brief Copy assignment operator for underlying field type
-    FieldProxy &operator=(TField &c)
+    FieldView &operator=(TField &c)
     {
         this->copyBlockShallow_(c.data());
         return *this;
     }
 
-    /// @brief Move semantics are not permitted for a field proxy
-    FieldProxy &operator=(FieldProxy &&c) = delete;
+    /// @brief Move semantics are not permitted for a field view
+    FieldView &operator=(FieldView &&c) = delete;
 
-    /// @brief Move semantics are not permitted for a field proxy
-    FieldProxy &operator=(TField &&c) = delete;
+    /// @brief Move semantics are not permitted for a field view
+    FieldView &operator=(TField &&c) = delete;
 
     ////////////////////////////////////////////////////////////////////////////
     // TODO: [fabianw@mavt.ethz.ch; 2019-04-13] arithmetic block operators
@@ -413,7 +412,7 @@ public:
         const size_t nblocks = nblocks_[0] * nblocks_[1] * nblocks_[2];
         assert(nblocks > 0);
         allocBlocks_(nblocks);
-        initProxies_(nblocks);
+        initFieldViews_(nblocks);
     }
 
     // TODO: [fabianw@mavt.ethz.ch; 2019-04-17] missing constructors
@@ -422,7 +421,7 @@ public:
 
     using DataType = typename TField::DataType;
     using FieldType = TField;
-    using ProxyType = FieldProxy<TField>;
+    using FieldViewType = FieldView<TField>;
 
     size_t getBytes() const { return bytes_; }
     size_t getNBlocks() const
@@ -434,22 +433,22 @@ public:
     size_t getNBlocksZ() const { return nblocks_[2]; }
     const std::array<size_t, 3> &getNBlocksArray() const { return nblocks_; }
 
-    std::vector<ProxyType> &getBlocks() { return proxies_; }
-    const std::vector<ProxyType> &getBlocks() const { return proxies_; }
+    std::vector<FieldViewType> &getBlocks() { return field_views_; }
+    const std::vector<FieldViewType> &getBlocks() const { return field_views_; }
 
-    ProxyType &getBlock(size_t ix, size_t iy = 0, size_t iz = 0)
+    FieldViewType &getBlock(size_t ix, size_t iy = 0, size_t iz = 0)
     {
         assert(ix < nblocks_[0]);
         assert(iy < nblocks_[1]);
         assert(iz < nblocks_[2]);
-        return proxies_[ix + nblocks_[0] * (iy + nblocks_[1] * iz)];
+        return field_views_[ix + nblocks_[0] * (iy + nblocks_[1] * iz)];
     }
-    const ProxyType &getBlock(size_t ix, size_t iy = 0, size_t iz = 0) const
+    const FieldViewType &getBlock(size_t ix, size_t iy = 0, size_t iz = 0) const
     {
         assert(ix < nblocks_[0]);
         assert(iy < nblocks_[1]);
         assert(iz < nblocks_[2]);
-        return proxies_[ix + nblocks_[0] * (iy + nblocks_[1] * iz)];
+        return field_views_[ix + nblocks_[0] * (iy + nblocks_[1] * iz)];
     }
 
     DataType *getData() { return block_; }
@@ -465,8 +464,8 @@ private:
     // Cartesian topology of blocks
     const std::array<size_t, 3> nblocks_;
 
-    // Proxy field container
-    std::vector<ProxyType> proxies_;
+    // Field view container
+    std::vector<FieldViewType> field_views_;
 
     /// @brief Allocate memory for multiple blocks
     ///
@@ -491,19 +490,19 @@ private:
         }
     }
 
-    /// @brief Create a list block field proxies for interface with block data.
+    /// @brief Create a list block field views for interface with block data.
     ///
     /// @param nblocks
-    void initProxies_(size_t nblocks)
+    void initFieldViews_(size_t nblocks)
     {
         const ptrdiff_t block_size =
             AllocType::BlockDimX * AllocType::BlockDimY * AllocType::BlockDimZ;
 
-        proxies_.reserve(nblocks);
+        field_views_.reserve(nblocks);
         for (size_t b = 0; b < nblocks; ++b) {
             void *bptr = static_cast<void *>(block_ + b * block_size);
-            ProxyType fp(bptr);
-            proxies_.push_back(fp);
+            FieldViewType fp(bptr);
+            field_views_.push_back(fp);
         }
     }
 };

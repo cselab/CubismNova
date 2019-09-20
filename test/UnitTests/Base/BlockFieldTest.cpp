@@ -111,32 +111,32 @@ TEST(FieldTest, BasePointer)
     EXPECT_EQ(pc->getBlockSize(), fc.getBlockSize());
 }
 
-TEST(ProxyFieldTest, ConstructorAndAssignment)
+TEST(FieldViewTest, ConstructorAndAssignment)
 {
     // TODO: [fabianw@mavt.ethz.ch; 2019-09-20] revise
-    using FieldProxy = Cubism::BlockField::FieldProxy<FieldCell>;
+    using FieldView = Cubism::BlockField::FieldView<FieldCell>;
 
     FieldCell fc0; // memory carrier
 
-    FieldProxy fp0(fc0); // construct from field
+    FieldView fp0(fc0); // construct from field
     EXPECT_EQ(fp0.getBlockPtr(), fc0.getBlockPtr());
     EXPECT_EQ(fp0.getBlockBytes(), fc0.getBlockBytes());
 
-    // FieldProxy fp1(fc0.getBlockPtr()); // construct with block pointer
+    // FieldView fp1(fc0.getBlockPtr()); // construct with block pointer
     // EXPECT_EQ(fp1.getBlockPtr(), fc0.getBlockPtr());
     // EXPECT_EQ(fp1.getBlockBytes(), fc0.getBlockBytes());
 
-    FieldProxy fp2(fp0); // copy construct from other proxy
+    FieldView fp2(fp0); // copy construct from other view
     EXPECT_EQ(fp2.getBlockPtr(), fp0.getBlockPtr());
     EXPECT_EQ(fp2.getBlockBytes(), fp0.getBlockBytes());
 
     FieldCell fc1; // another carrier
     setFieldValue(fc1, 1);
-    FieldProxy fp3(fc1);
+    FieldView fp3(fc1);
     fp2 = fp3; // deep copy field pointed to by fp3 into field pointed to by fp2
     EXPECT_EQ(sumField(fp2), fp2.getBlockSize());
 
-    fp2 = fc1; // shallow copy field fc1 into proxy fp1
+    fp2 = fc1; // shallow copy field fc1 into view fp1
     EXPECT_EQ(sumField(fp2), fp2.getBlockSize());
 }
 
