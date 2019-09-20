@@ -14,18 +14,6 @@
 #include <cstring>
 #include <vector>
 
-NAMESPACE_BEGIN()
-// String literals used to add a descriptive tag to describe a possible data
-// mapping within a block.
-//
-// Undefined: No particular data layout (default)
-// Cell:      Data is represented at cell centers
-// Node:      Data is represented at cell nodes (vertices)
-// Face:      Data is represented at cell faces (any)
-constexpr std::array<const char *, 4> DATA_MAPPING = {
-    "Undefined", "Cell", "Node", "Face"};
-NAMESPACE_END()
-
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(BlockField)
 
@@ -100,9 +88,6 @@ public:
     using AllocType = BlockAlloc;
     using DataType = typename BlockAlloc::DataType;
 
-    // Name ID for data element mapping (cell, node, face)
-    static constexpr const char *const MapName =
-        DATA_MAPPING[static_cast<size_t>(DM)];
     static constexpr DataMapping MapClass = DM; // Data mapping class identifier
     static constexpr Cubism::Dir Dir = DIR;     // Direction indicator
 
@@ -264,9 +249,6 @@ protected:
         }
     }
 };
-
-template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
-constexpr const char *const Field<BlockAlloc, DM, DIR>::MapName;
 
 template <typename BlockAlloc, DataMapping DM, Cubism::Dir DIR>
 constexpr DataMapping Field<BlockAlloc, DM, DIR>::MapClass;

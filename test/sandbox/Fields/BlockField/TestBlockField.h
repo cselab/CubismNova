@@ -45,7 +45,6 @@ static void printStaticMember(std::ostream &s)
     s << name << "::BlockDimX = " << T::BlockDimX << '\n';
     s << name << "::BlockDimY = " << T::BlockDimY << '\n';
     s << name << "::BlockDimZ = " << T::BlockDimZ << '\n';
-    s << name << "::MapName   = " << T::MapName << '\n';
     s << name << "::MapClass  = " << static_cast<size_t>(T::MapClass) << '\n';
     s << name << "::Dir       = " << static_cast<size_t>(T::Dir) << '\n';
 }
