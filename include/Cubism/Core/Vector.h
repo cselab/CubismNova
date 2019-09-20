@@ -33,176 +33,17 @@ NAMESPACE_BEGIN(Cubism)
 template <typename T, size_t DIM>
 class Vector
 {
-private:
-    /// @brief Primitive data container based on arrays with aggregate
-    ///        initialization
-    ///
-    /// @tparam U (element data type)
-    /// @tparam D (data dimension)
-    template <typename U, size_t D>
-    class Primitive
-    {
-    public:
-        using ArrayType = std::array<U, D>;
-        using DataType = U;
-
-        static constexpr size_t Bytes = D * sizeof(U);
-        static constexpr size_t Dim = D;
-
-        /// @brief Default constructor
-        Primitive() : data_({0})
-        {
-            static_assert(Dim > 0, "Vector dimension must be > 0");
-        }
-
-        /// @brief Default copy constructor
-        Primitive(const Primitive &c) : data_(c.data_) {}
-
-        /// @brief Default move constructor
-        Primitive(Primitive &&c) noexcept : data_(std::move(c.data_)) {}
-
-        /// @brief Copy constructor for std::array
-        Primitive(const ArrayType &c) : data_(c) {}
-
-        /// @brief Move constructor for std::array
-        Primitive(ArrayType &&c) noexcept : data_(std::move(c)) {}
-
-        ~Primitive() = default;
-
-        /// @brief Default assignment operator
-        Primitive &operator=(const Primitive &c)
-        {
-            if (this != &c) {
-                data_ = c.data_;
-            }
-            return *this;
-        }
-
-        /// @brief Default move assignment operator
-        Primitive &operator=(Primitive &&c)
-        {
-            if (this != &c) {
-                data_ = std::move(c.data_);
-            }
-            return *this;
-        }
-
-        /// @brief Assignment operator for std::array
-        Primitive &operator=(const ArrayType &c)
-        {
-            if (&data_ != &c) {
-                data_ = c;
-            }
-            return *this;
-        }
-
-        /// @brief Move assignment operator for std::array
-        Primitive &operator=(ArrayType &&c)
-        {
-            if (&data_ != &c) {
-                data_ = std::move(c);
-            }
-            return *this;
-        }
-
-        /// @brief Swap this primitive with other primitive.  std::array does
-        ///        not exchange pointers, its complexity for swapping is linear.
-        void swap(Primitive &other)
-        {
-            using std::swap;
-            swap(data_, other.data_);
-        }
-
-        // Data access interface:
-        //
-        /// @brief Return size of vector
-        size_t size() const { return Dim; }
-
-        /// @brief Return raw data
-        DataType *data() { return data_.data(); }
-        const DataType *data() const { return data_.data(); }
-
-        /// @brief Return array
-        ArrayType &getArray() { return data_; }
-        const ArrayType &getArray() const { return data_; }
-
-        /// @brief Data access interface
-        DataType &operator[](const size_t i)
-        {
-            assert(i < Dim);
-            return data_[i];
-        }
-
-        /// @brief Data access interface
-        const DataType &operator[](const size_t i) const
-        {
-            assert(i < Dim);
-            return data_[i];
-        }
-
-        // Comparison operators:
-        //
-        /// @brief Equality operator.  A primitive is equal to another iff they
-        ///        are equal component-wise.
-        bool operator==(const Primitive &other) const
-        {
-            bool is_equal = true;
-            for (size_t i = 0; i < Dim; ++i) {
-                is_equal = is_equal && (!(data_[i] > other.data_[i]) &&
-                                        !(data_[i] < other.data_[i]));
-            }
-            return is_equal;
-        }
-        bool operator!=(const Primitive &other) const
-        {
-            return !(*this == other);
-        }
-
-        /// @brief Less than operator.  A primitive is smaller than another iff
-        ///        all comonents are less than the corresponding components of
-        ///        the other primitive.
-        bool operator<(const Primitive &other) const
-        {
-            bool is_less = true;
-            for (size_t i = 0; i < Dim; ++i) {
-                is_less = is_less && (data_[i] < other.data_[i]);
-            }
-            return is_less;
-        }
-        bool operator>(const Primitive &other) const { return (other < *this); }
-
-        /// @brief Less-equal than operator.  A primitive is smaller or equal
-        ///        than another iff all comonents are less or equal than the
-        ///        corresponding components of the other primitive.
-        bool operator<=(const Primitive &other) const
-        {
-            bool is_lesseq = true;
-            for (size_t i = 0; i < Dim; ++i) {
-                is_lesseq = is_lesseq && (data_[i] <= other.data_[i]);
-            }
-            return is_lesseq;
-        }
-        bool operator>=(const Primitive &other) const
-        {
-            return (other <= *this);
-        }
-
-    private:
-        ArrayType data_;
-    };
-
-    using BaseArray = Primitive<T, DIM>;
-
 public:
-    using ArrayType = typename BaseArray::ArrayType;
-    using DataType = typename BaseArray::DataType;
+    using ArrayType = std::array<T, DIM>;
+    using DataType = T;
+
+    static constexpr size_t Bytes = DIM * sizeof(T);
+    static constexpr size_t Dim = DIM;
 
     using iterator = typename ArrayType::iterator;
     using const_iterator = typename ArrayType::const_iterator;
     using reverse_iterator = typename ArrayType::reverse_iterator;
     using const_reverse_iterator = typename ArrayType::const_reverse_iterator;
-
-    static constexpr size_t Dim = BaseArray::Dim;
 
     template <size_t DIR>
     static Vector getUnitVector()
@@ -214,25 +55,26 @@ public:
     }
 
     /// @brief Default constructor
-    Vector() : array_() {}
+    Vector() : array_({0}) {}
 
     /// @brief Default copy constructor
     Vector(const Vector &c) : array_(c.array_) {}
 
-    /// @brief Default move constructor
+    /// @brief Default move constructor (linear complexity)
     Vector(Vector &&c) noexcept : array_(std::move(c.array_)) {}
 
     /// @brief Copy constructor to initialize data from std::array of same type
     Vector(const ArrayType &ary) : array_(ary) {}
 
     /// @brief Move constructor to initialize data from std::array of same type
+    ///        (linear complexity)
     Vector(ArrayType &&ary) noexcept : array_(std::move(ary)) {}
 
     // Arbitrary type constructors:
     //
     /// @brief Constructor for arbitrary Vector types
     template <typename U, size_t DIMU>
-    Vector(const Vector<U, DIMU> &c) : array_()
+    Vector(const Vector<U, DIMU> &c) : array_({0})
     {
         copyFromAddress_(c.data(), c.size());
     }
@@ -240,7 +82,7 @@ public:
     /// @brief Constructor for any scalar type U.  The type U must be castable
     ///        to DataType.
     template <typename U>
-    explicit Vector(const U scalar) : array_()
+    explicit Vector(const U scalar) : array_({0})
     {
         const DataType v = static_cast<DataType>(scalar);
         DataType *dst = this->data();
@@ -249,21 +91,21 @@ public:
 
     /// @brief Constructor for arbitrary list initialization
     template <typename U>
-    Vector(std::initializer_list<U> ilist) : array_()
+    Vector(std::initializer_list<U> ilist) : array_({0})
     {
         copyFromAddress_(ilist.begin(), ilist.size());
     }
 
     /// @brief Constructor to initialize data from std::vector
     template <typename U>
-    Vector(const std::vector<U> &vec) : array_()
+    Vector(const std::vector<U> &vec) : array_({0})
     {
         copyFromAddress_(vec.data(), vec.size());
     }
 
     /// @brief Constructor to initialize data from arbitrary std::array
     template <typename U, size_t DIMU>
-    Vector(const std::array<U, DIMU> &ary) : array_()
+    Vector(const std::array<U, DIMU> &ary) : array_({0})
     {
         copyFromAddress_(ary.data(), ary.size());
     }
@@ -271,7 +113,7 @@ public:
     /// @brief Constructor to initialize data from arbitrary pointer ptr.  The
     ///        number of elements n must be provided.
     template <typename U>
-    explicit Vector(const U *ptr, size_t n) : array_()
+    explicit Vector(const U *ptr, size_t n) : array_({0})
     {
         copyFromAddress_(ptr, n);
     }
@@ -288,7 +130,7 @@ public:
         return *this;
     }
 
-    /// @brief Default move assignment operator
+    /// @brief Default move assignment operator (linear complexity)
     Vector &operator=(Vector &&c)
     {
         if (this != &c) {
@@ -298,22 +140,24 @@ public:
     }
 
     /// @brief ArrayType assignment operator
-    Vector &operator=(const ArrayType &c)
+    Vector &operator=(const ArrayType &ary)
     {
-        // array_ takes care of address check
-        array_ = c;
+        if (&array_ != &ary) {
+            array_ = ary;
+        }
         return *this;
     }
 
-    /// @brief ArrayType move assignment operator
-    Vector &operator=(ArrayType &&c)
+    /// @brief ArrayType move assignment operator (linear complexity)
+    Vector &operator=(ArrayType &&ary)
     {
-        // array_ takes care of address check
-        array_ = std::move(c);
+        if (&array_ != &ary) {
+            array_ = std::move(ary);
+        }
         return *this;
     }
 
-    /// @brief Assignment operator for scalar
+    /// @brief Assignment operator for scalar c
     Vector &operator=(const DataType c)
     {
         DataType *dst = this->data();
@@ -341,7 +185,7 @@ public:
     }
 
     /// @brief Swap this vector with other vector
-    void swap(Vector &other) { array_.swap(other.array_); }
+    void swap(Vector &other) noexcept { array_.swap(other.array_); }
 
     /// @brief Return size of vector
     size_t size() const { return Dim; }
@@ -351,8 +195,8 @@ public:
     const DataType *data() const { return array_.data(); }
 
     /// @brief Return underlying std::array
-    ArrayType &getArray() { return array_.getArray(); }
-    const ArrayType &getArray() const { return array_.getArray(); }
+    ArrayType &getArray() { return array_; }
+    const ArrayType &getArray() const { return array_; }
 
     /// @brief Data access interface
     DataType &operator[](const size_t i) { return array_[i]; }
@@ -363,34 +207,69 @@ public:
     // Allowed casts:
     //
     /// @brief Cast vector to its underlying std::array type
-    explicit operator ArrayType() const { return array_.getArray(); }
+    explicit operator ArrayType() const { return array_; }
 
     /// @brief Cast vector to pointer, pointing to the first element of its data
     explicit operator DataType *() { return data(); }
 
     // iterators:
     //
-    iterator begin() noexcept { return getArray().begin(); }
-    iterator end() noexcept { return getArray().end(); }
-    reverse_iterator rbegin() noexcept { return getArray().rbegin(); }
-    reverse_iterator rend() noexcept { return getArray().rend(); }
+    iterator begin() noexcept { return array_.begin(); }
+    iterator end() noexcept { return array_.end(); }
+    reverse_iterator rbegin() noexcept { return array_.rbegin(); }
+    reverse_iterator rend() noexcept { return array_.rend(); }
 
-    const_iterator cbegin() const noexcept { return getArray().cbegin(); }
-    const_iterator cend() const noexcept { return getArray().cend(); }
-    const_reverse_iterator crbegin() const noexcept
-    {
-        return getArray().crbegin();
-    }
-    const_reverse_iterator crend() const noexcept { return getArray().crend(); }
+    const_iterator cbegin() const noexcept { return array_.cbegin(); }
+    const_iterator cend() const noexcept { return array_.cend(); }
+    const_reverse_iterator crbegin() const noexcept { return array_.crbegin(); }
+    const_reverse_iterator crend() const noexcept { return array_.crend(); }
 
     // Comparison operators:
     //
-    bool operator==(const Vector &rhs) const { return array_ == rhs.array_; }
-    bool operator!=(const Vector &rhs) const { return array_ != rhs.array_; }
-    bool operator<(const Vector &rhs) const { return array_ < rhs.array_; }
-    bool operator>(const Vector &rhs) const { return array_ > rhs.array_; }
-    bool operator<=(const Vector &rhs) const { return array_ <= rhs.array_; }
-    bool operator>=(const Vector &rhs) const { return array_ >= rhs.array_; }
+    /// @brief Equality operator.  A Vector is equal to another iff they
+    ///        are equal component-wise.
+    bool operator==(const Vector &other) const
+    {
+        bool is_equal = true;
+        for (size_t i = 0; i < Dim; ++i) {
+            is_equal = is_equal && (!(array_[i] > other.array_[i]) &&
+                                    !(array_[i] < other.array_[i]));
+        }
+        return is_equal;
+    }
+    bool operator!=(const Vector &other) const { return !(*this == other); }
+
+    /// @brief Less than operator.  A Vector is smaller than another iff
+    ///        all comonents are less than the corresponding components of
+    ///        the other Vector.
+    bool operator<(const Vector &other) const
+    {
+        bool is_less = true;
+        for (size_t i = 0; i < Dim; ++i) {
+            is_less = is_less && (array_[i] < other.array_[i]);
+        }
+        return is_less;
+    }
+    bool operator>(const Vector &other) const { return (other < *this); }
+
+    /// @brief Less-equal than operator.  A Vector is smaller or equal
+    ///        than another iff all comonents are less or equal than the
+    ///        corresponding components of the other Vector.
+    bool operator<=(const Vector &other) const
+    {
+        bool is_lesseq = true;
+        for (size_t i = 0; i < Dim; ++i) {
+            is_lesseq = is_lesseq && (array_[i] <= other.array_[i]);
+        }
+        return is_lesseq;
+    }
+    bool operator>=(const Vector &other) const { return (other <= *this); }
+
+    // lexicographic compare
+    bool lexLT(const Vector &other) const { return array_ < other.array_; }
+    bool lexLE(const Vector &other) const { return array_ <= other.array_; }
+    bool lexGT(const Vector &other) const { return array_ > other.array_; }
+    bool lexGE(const Vector &other) const { return array_ >= other.array_; }
 
     // Unitary operators:
     //
@@ -439,6 +318,7 @@ public:
         return *this;
     }
 
+    // The following use RVO on non-const lhs
     friend Vector operator+(Vector lhs, const Vector &rhs)
     {
         return (lhs += rhs);
@@ -520,6 +400,7 @@ public:
 
     friend Vector operator-(const DataType lhs, Vector rhs)
     {
+        // use single loop instead of two loops as in -(rhs -= lhs) [+ copy]
         for (size_t i = 0; i < Dim; ++i) {
             rhs[i] = lhs - rhs[i];
         }
@@ -678,7 +559,7 @@ public:
     }
 
 private:
-    BaseArray array_;
+    ArrayType array_;
 
     /// @brief Copy from arbitrary source type.  The data type U must be
     ///        castable to DataType.  If size_src < Dim, then the remaining
@@ -706,17 +587,9 @@ private:
     }
 };
 
-/// @brief Non-STL swap function for vector data arrays
-template <typename T, size_t DIM>
-void swap(typename Vector<T, DIM>::BaseArray &a,
-          typename Vector<T, DIM>::BaseArray &b)
-{
-    a.swap(b);
-}
-
 /// @brief Non-STL swap function for vectors
 template <typename T, size_t DIM>
-void swap(Vector<T, DIM> &va, Vector<T, DIM> &vb)
+void swap(Vector<T, DIM> &va, Vector<T, DIM> &vb) noexcept
 {
     va.swap(vb);
 }
