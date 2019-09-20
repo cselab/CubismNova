@@ -265,6 +265,12 @@ public:
     }
     bool operator>=(const Vector &other) const { return (other <= *this); }
 
+    // lexicographic compare
+    bool lexLT(const Vector &other) const { return array_ < other.array_; }
+    bool lexLE(const Vector &other) const { return array_ <= other.array_; }
+    bool lexGT(const Vector &other) const { return array_ > other.array_; }
+    bool lexGE(const Vector &other) const { return array_ >= other.array_; }
+
     // Unitary operators:
     //
     Vector operator-() const

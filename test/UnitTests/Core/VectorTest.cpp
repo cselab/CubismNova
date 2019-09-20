@@ -194,6 +194,7 @@ TEST(VectorTest, Logic)
     Vec3 v3_1 = {1, 0};
     Vec3 v3_2 = {2, 0};
     Vec3 v3_3 = {3, 3};
+    Vec3 v3_4 = {3, 3};
 
     EXPECT_NE(v3_0, v3_1);
     EXPECT_NE(v3_1, v3_2);
@@ -207,16 +208,19 @@ TEST(VectorTest, Logic)
     EXPECT_LE(v3_0, v3_1);
     EXPECT_LE(v3_1, v3_2);
     EXPECT_LE(v3_2, v3_3);
+    EXPECT_LE(v3_3, v3_4);
 
     EXPECT_GE(v3_1, v3_0);
     EXPECT_GE(v3_2, v3_1);
     EXPECT_GE(v3_3, v3_2);
+    EXPECT_GE(v3_3, v3_4);
 
     Vec2 v2_0 = v3_0;
     Vec2 v2_1 = v3_1;
     Vec2 v2_2 = v3_2;
     Vec2 v2_3 = v3_3;
-    EXPECT_LT(v2_0, v2_3); // less-than (all emenets must be less-than)
+    Vec2 v2_4 = v3_4;
+    EXPECT_LT(v2_0, v2_3); // less-than (all elements must be less-than)
     EXPECT_LT(v2_1, v2_3);
     EXPECT_LT(v2_2, v2_3);
     EXPECT_FALSE(v2_1 < v2_2);
@@ -226,9 +230,9 @@ TEST(VectorTest, Logic)
     EXPECT_GT(v2_3, v2_2);
     EXPECT_FALSE(v2_2 > v2_1);
 
-    v2_0 = 1;
-    v2_1 = 1;
-    EXPECT_EQ(v2_0, v2_1);
+    // equality
+    EXPECT_EQ(v2_3, v2_4);
+    EXPECT_EQ(v3_3, v3_4);
 
     // Use the std::array for lexicographical order
     using Arr3 = typename Vec3::ArrayType;
@@ -238,7 +242,9 @@ TEST(VectorTest, Logic)
     const Arr3 &a3_1 = v3_1.getArray();
     const Arr3 &a3_2 = v3_2.getArray();
     const Arr3 &a3_3 = v3_3.getArray();
+    const Arr3 &a3_4 = v3_4.getArray();
 
+    // std::array
     EXPECT_NE(a3_0, a3_1);
     EXPECT_NE(a3_1, a3_2);
     EXPECT_NE(a3_2, a3_3);
@@ -250,6 +256,7 @@ TEST(VectorTest, Logic)
     EXPECT_LE(a3_0, a3_1);
     EXPECT_LE(a3_1, a3_2);
     EXPECT_LE(a3_2, a3_3);
+    EXPECT_LE(a3_3, a3_4);
 
     EXPECT_GT(a3_1, a3_0);
     EXPECT_GT(a3_2, a3_1);
@@ -258,10 +265,27 @@ TEST(VectorTest, Logic)
     EXPECT_GE(a3_1, a3_0);
     EXPECT_GE(a3_2, a3_1);
     EXPECT_GE(a3_3, a3_2);
+    EXPECT_GE(a3_3, a3_4);
 
-    v3_0 = 1;
-    v3_1 = 1;
-    EXPECT_EQ(v3_0, v3_1);
+    // Cubism::Vector using lexicographic compare similar to
+    // std::lexicographical_compare
+    EXPECT_TRUE(v3_0.lexLT(v3_1));
+    EXPECT_TRUE(v3_1.lexLT(v3_2));
+    EXPECT_TRUE(v3_2.lexLT(v3_3));
+
+    EXPECT_TRUE(v3_0.lexLE(v3_1));
+    EXPECT_TRUE(v3_1.lexLE(v3_2));
+    EXPECT_TRUE(v3_2.lexLE(v3_3));
+    EXPECT_TRUE(v3_3.lexLE(v3_4));
+
+    EXPECT_TRUE(v3_1.lexGT(v3_0));
+    EXPECT_TRUE(v3_2.lexGT(v3_1));
+    EXPECT_TRUE(v3_3.lexGT(v3_2));
+
+    EXPECT_TRUE(v3_1.lexGE(v3_0));
+    EXPECT_TRUE(v3_2.lexGE(v3_1));
+    EXPECT_TRUE(v3_3.lexGE(v3_2));
+    EXPECT_TRUE(v3_4.lexGE(v3_3));
 }
 
 // Cast
