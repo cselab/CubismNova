@@ -128,8 +128,8 @@ public:
 
     size_t getBlockBytes() const override { return bytes_; }
 
-    DataType *data() { return block_; }
-    const DataType *data() const { return block_; }
+    DataType *getData() { return block_; }
+    const DataType *getData() const { return block_; }
 
     /// @brief Copy assignment operator
     Field &operator=(const Field &c)
@@ -278,13 +278,13 @@ public:
     /// @param owner of external memory
     FieldView(TField &owner) : TField(false)
     {
-        this->copyBlockShallow_(owner.data());
+        this->copyBlockShallow_(owner.getData());
     }
 
     /// @brief Copy constructor for a field view
     FieldView(FieldView &c) : TField(false)
     {
-        this->copyBlockShallow_(c.data());
+        this->copyBlockShallow_(c.getData());
     }
 
     /// @brief Move semantics are not permitted for a field view
@@ -297,7 +297,7 @@ public:
     FieldView &operator=(FieldView &c)
     {
         if (this != &c) {
-            this->copyBlockShallow_(c.data());
+            this->copyBlockShallow_(c.getData());
         }
         return *this;
     }
@@ -305,7 +305,7 @@ public:
     /// @brief Copy assignment operator for underlying field type
     FieldView &operator=(TField &c)
     {
-        this->copyBlockShallow_(c.data());
+        this->copyBlockShallow_(c.getData());
         return *this;
     }
 
@@ -500,6 +500,8 @@ private:
 
         field_views_.reserve(nblocks);
         for (size_t b = 0; b < nblocks; ++b) {
+            // TODO: [fabianw@mavt.ethz.ch; 2019-09-20] need constructor for
+            // view
             void *bptr = static_cast<void *>(block_ + b * block_size);
             FieldViewType fp(bptr);
             field_views_.push_back(fp);
