@@ -229,6 +229,20 @@ utilization.
  year          = {2018}
 }
 
+@article{rasthofer2019a,
+ author        = {Rasthofer, U. and Wermelinger, F. and Karnakov, P. and {\v{S}}ukys, J. and Koumoutsakos, P.},
+ doi           = {10.1103/PhysRevFluids.4.063602},
+ issue         = {6},
+ journal       = {Phys. Rev. Fluids},
+ numpages      = {30},
+ pages         = {063602},
+ publisher     = {American Physical Society},
+ title         = {Computational study of the collapse of a cloud with $12500$ gas bubbles in a liquid},
+ url           = {https://link.aps.org/doi/10.1103/PhysRevFluids.4.063602},
+ volume        = {4},
+ year          = {2019}
+}
+
 @inproceedings{karnakov2019a,
  author        = {Petr Karnakov and Fabian Wermelinger and Michail Chatzimanolakis and Sergey Litvinov and Petros Koumoutsakos},
  booktitle     = {Proceedings of the Platform for Advanced Scientific Computing Conference on - {PASC} {\textquotesingle}19},
