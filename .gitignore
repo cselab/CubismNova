@@ -8,4 +8,5 @@
 *.a
 *.pyc
 
+/build
 /sandbox
