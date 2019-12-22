@@ -43,7 +43,7 @@ T sumArray(const T *p, const size_t n)
 }
 
 // Construction of vectors
-TEST(VectorTest, Construction)
+TEST(Vector, Construction)
 {
     // fundamental constructors
     {
@@ -123,7 +123,7 @@ TEST(VectorTest, Construction)
 }
 
 // Assignment of vectors
-TEST(VectorTest, Assignment)
+TEST(Vector, Assignment)
 {
     using Vec3 = V_i<3>;
     using Arr3 = typename Vec3::ArrayType;
@@ -171,7 +171,7 @@ TEST(VectorTest, Assignment)
 }
 
 // Swap vectors
-TEST(VectorTest, Swap)
+TEST(Vector, Swap)
 {
     V_i<3> v0;
     V_i<3> v1{1, 1, 1};
@@ -184,7 +184,7 @@ TEST(VectorTest, Swap)
 }
 
 // Logic
-TEST(VectorTest, Logic)
+TEST(Vector, Logic)
 {
     using Vec3 = V_i<3>; // test with integers
     using Vec2 = V_i<2>;
@@ -289,7 +289,7 @@ TEST(VectorTest, Logic)
 }
 
 // Cast
-TEST(VectorTest, Cast)
+TEST(Vector, Cast)
 {
     using Vec = V_f<3>;
     using Arr = typename Vec::ArrayType;
@@ -307,7 +307,7 @@ TEST(VectorTest, Cast)
 }
 
 // Arithmetic operators
-TEST(VectorTest, Arithmetic)
+TEST(Vector, Arithmetic)
 {
     // it should be clear that some operators may yield undefined behavior for
     // unsigned types.
@@ -369,7 +369,7 @@ TEST(VectorTest, Arithmetic)
 }
 
 // Common vector operations (float and integral types)
-TEST(VectorTest, CommonVecOp)
+TEST(Vector, CommonVecOp)
 {
     using Vec = V_i<3>; // test with signed integers
     using DataType = typename Vec::DataType;
@@ -413,7 +413,7 @@ TEST(VectorTest, CommonVecOp)
 }
 
 // Common vector operations with floating point return type
-TEST(VectorTest, CommonVecOpReal)
+TEST(Vector, CommonVecOpReal)
 {
     using Vec = V_d<3>;
     using DataType = typename Vec::DataType;
@@ -431,7 +431,7 @@ TEST(VectorTest, CommonVecOpReal)
 }
 
 // Cross-product for 3D and 2D Cubism::Vector
-TEST(VectorTest, CrossProduct)
+TEST(Vector, CrossProduct)
 {
     using Vec2 = V_f<2>;
     using Vec3 = V_f<3>;
@@ -454,7 +454,7 @@ TEST(VectorTest, CrossProduct)
 }
 
 // Iterators
-TEST(VectorTest, Iterator)
+TEST(Vector, Iterator)
 {
     using Vec = V_d<16>;
     using DataType = typename Vec::DataType;

@@ -40,7 +40,7 @@ typename TField::DataType sumField(const TField &f)
 }
 
 // Static members
-TEST(FieldTest, Static)
+TEST(Field, Static)
 {
     ASSERT_EQ(FieldCell::BlockDimX, BSX);
     ASSERT_EQ(FieldCell::BlockDimY, BSY);
@@ -73,7 +73,7 @@ TEST(FieldTest, Static)
     ASSERT_EQ(FieldFaceZ::Dir, Cubism::Dir::Z);
 }
 
-TEST(FieldTest, ConstructorAndAssignment)
+TEST(Field, ConstructorAndAssignment)
 {
     FieldCell fc0; // default
     EXPECT_NE(fc0.getBlockPtr(), nullptr);
@@ -104,14 +104,14 @@ TEST(FieldTest, ConstructorAndAssignment)
     EXPECT_EQ(fc2.getBlockBytes(), 0);
 }
 
-TEST(FieldTest, BasePointer)
+TEST(Field, BasePointer)
 {
     FieldCell fc;
     const typename FieldCell::BaseType *pc = &fc;
     EXPECT_EQ(pc->getBlockSize(), fc.getBlockSize());
 }
 
-TEST(FieldViewTest, ConstructorAndAssignment)
+TEST(FieldView, ConstructorAndAssignment)
 {
     // TODO: [fabianw@mavt.ethz.ch; 2019-09-20] revise
     using FieldView = Cubism::BlockField::FieldView<FieldCell>;
