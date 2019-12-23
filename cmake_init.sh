@@ -9,6 +9,7 @@ set -e
 # 1. no arguments defaults to debug
 # 2. first argument given is used as build path without debug flags
 # 3. remaining arguments are passed to cmake
+COMPILER='-DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpic++'
 BUILD=debug
 OPT="-DCMAKE_BUILD_TYPE=Debug"
 if [[ $# -gt 0 ]]; then
@@ -19,4 +20,4 @@ fi
 ROOT="$(pwd -P)"
 rm -rf ${BUILD}
 mkdir -p ${BUILD}
-(cd ${BUILD}; cmake ${ROOT} ${OPT} "$@")
+(cd ${BUILD}; cmake ${ROOT} ${OPT} ${COMPILER} "$@")

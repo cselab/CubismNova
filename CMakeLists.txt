@@ -12,8 +12,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 
 # MPI
 find_package(MPI REQUIRED)
-set(CMAKE_C_COMPILER ${MPICC})
-set(CMAKE_CXX_COMPILER ${MPICXX})
+# FIXME: [fabianw@mavt.ethz.ch; 2019-12-23] creates infinite loop!
+# set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+# set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
 
 # warnings
 set(CMAKE_C_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_C_FLAGS}")
