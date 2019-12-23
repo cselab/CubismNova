@@ -20,6 +20,7 @@ set(CMAKE_C_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_CXX_FLAGS}")
 
 include_directories(include/Cubism)
+add_subdirectory(src)
 
 # third party
 set(THIRD_DIR third)

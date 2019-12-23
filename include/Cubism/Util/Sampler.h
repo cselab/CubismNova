@@ -105,6 +105,12 @@ public:
 
     const SampleMap &getSamples() const { return samples_; }
 
+    void clear()
+    {
+        samples_.clear();
+        std::stack<Timer>().swap(timer_stack_);
+    }
+
 protected:
     const bool active_;
     SampleMap samples_;
