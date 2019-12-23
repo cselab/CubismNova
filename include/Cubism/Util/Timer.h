@@ -1,31 +1,36 @@
 // File       : Timer.h
-// Created    : Mon Apr 01 2019 04:46:27 PM (+0200)
-// Author     : Diego Rossinelli
+// Created    : Mon Dec 23 2019 11:07:58 AM (+0100)
+// Author     : Fabian Wermelinger
+// Description: Simple timer
 // Copyright 2019 ETH Zurich. All Rights Reserved.
 #ifndef TIMER_H_1TOI9LUC
 #define TIMER_H_1TOI9LUC
 
-#include "Common.h"
-#include <sys/time.h>
+#include "Core/Common.h"
+
+#include <chrono>
 
 NAMESPACE_BEGIN(Cubism)
+NAMESPACE_BEGIN(Util)
 
 class Timer
 {
-    struct timeval t_start, t_end;
-    struct timezone t_zone;
+    using Clock = std::chrono::steady_clock;
 
 public:
-    void start() { gettimeofday(&t_start, &t_zone); }
+    Timer() : start_(clock_.now()) {}
 
-    double stop()
+    double getSeconds() const
     {
-        gettimeofday(&t_end, &t_zone);
-        return (t_end.tv_usec - t_start.tv_usec) * 1e-6 +
-               (t_end.tv_sec - t_start.tv_sec);
+        return std::chrono::duration<double>(clock_.now() - start_).count();
     }
+
+private:
+    Clock clock_;
+    Clock::time_point start_;
 };
 
+NAMESPACE_END(Util)
 NAMESPACE_END(Cubism)
 
 #endif /* TIMER_H_1TOI9LUC */
