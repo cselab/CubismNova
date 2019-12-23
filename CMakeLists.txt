@@ -31,3 +31,9 @@ add_subdirectory(${THIRD_DIR})
 set(TEST_DIR test)
 enable_testing()
 add_subdirectory(${TEST_DIR})
+
+# debugging
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    message("Debug Mode Enabled")
+    add_subdirectory(${TEST_DIR}/sandbox)
+endif (CMAKE_BUILD_TYPE MATCHES Debug)
