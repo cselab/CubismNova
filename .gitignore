@@ -9,4 +9,5 @@
 *.pyc
 
 /build
+/debug
 /sandbox
