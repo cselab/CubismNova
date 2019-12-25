@@ -117,6 +117,8 @@ public:
         c.setNull_(); // ensure that destructor of c has no effect
     }
 
+    // FIXME: [fabianw@mavt.ethz.ch; 2019-12-25] In that case the Field should
+    // not free the memory.
     /// @brief Constructor for externally allocated block memory using
     ///        AllocType.  Deallocation of memory is handled by this class.
     Field(DataType *block) : block_(block), bytes_(0)
