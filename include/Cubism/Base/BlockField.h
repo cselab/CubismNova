@@ -98,7 +98,7 @@ public:
     {
         if (owner) {
             allocBlock_();
-            clearBlock_();
+            clearBlock_(); // NUMA touch
         }
     }
 
@@ -115,6 +115,13 @@ public:
         deallocBlock_();
         copyBlockShallow_(c.block_);
         c.setNull_(); // ensure that destructor of c has no effect
+    }
+
+    /// @brief Constructor for externally allocated block memory using
+    ///        AllocType.  Deallocation of memory is handled by this class.
+    Field(DataType *block) : block_(block), bytes_(0)
+    {
+        bytes_ = blk_alloc_.getBytes(1);
     }
 
     ~Field() { deallocBlock_(); }
