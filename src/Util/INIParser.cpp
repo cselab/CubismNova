@@ -228,6 +228,39 @@ bool INIParser::hasValue(const std::string &section,
     return values_.count(key);
 }
 
+void INIParser::write(const std::string &filename) const
+{
+    std::ofstream out(filename);
+    std::map<std::string, std::string>::const_iterator it = values_.begin();
+    std::string key = it->first;
+    std::string active_section = key.substr(0, key.find_first_of("="));
+    std::string curr_section = active_section;
+    std::string curr_name = key.substr(key.find_first_of("=") + 1);
+    bool has_section = false;
+    auto now =
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    char buf[100];
+    std::strftime(buf, sizeof(buf), "%c", std::localtime(&now));
+    out << "# Generated: " << buf;
+    for (const auto &v : values_) {
+        key = v.first;
+        curr_section = key.substr(0, key.find_first_of("="));
+        if (curr_section == "include") {
+            continue;
+        }
+        curr_name = key.substr(key.find_first_of("=") + 1);
+        if (curr_section != active_section) {
+            active_section = curr_section;
+            has_section = false;
+        }
+        if (!has_section) {
+            out << "\n[" << curr_section << "]" << '\n';
+            has_section = true;
+        }
+        out << curr_name << " = " << v.second << '\n';
+    }
+}
+
 std::string INIParser::makeKey(const std::string &section,
                                const std::string &name)
 {

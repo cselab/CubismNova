@@ -150,6 +150,15 @@ public:
     /// @param name
     bool hasValue(const std::string &section, const std::string &name) const;
 
+    /// @brief Write currently loaded configuration to INI file format
+    ///
+    /// @param filename
+    void write(const std::string &filename = "runtime.ini") const;
+
+    /// @brief Redirection to ostream
+    ///
+    /// @param os
+    /// @param p
     friend std::ostream &operator<<(std::ostream &os, const INIParser &p);
 
 private:
