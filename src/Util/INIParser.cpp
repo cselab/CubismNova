@@ -8,7 +8,10 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <cstdlib>
+#include <ctime>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 
@@ -70,6 +73,8 @@ INIParser::getStringArray(const std::string &section,
         ret.push_back(val);
     }
     if (ret.empty()) {
+        // this code should never be executed since get() does not allow empty
+        // values
         throw std::runtime_error("getStringArray: empty container");
     }
     return ret;
@@ -109,6 +114,8 @@ std::vector<long> INIParser::getIntegerArray(const std::string &section,
         ret.push_back(n);
     }
     if (ret.empty()) {
+        // this code should never be executed since get() does not allow empty
+        // values
         throw std::runtime_error("getIntegerArray: empty container");
     }
     return ret;
@@ -146,6 +153,8 @@ std::vector<double> INIParser::getRealArray(const std::string &section,
         ret.push_back(n);
     }
     if (ret.empty()) {
+        // this code should never be executed since get() does not allow empty
+        // values
         throw std::runtime_error("getRealArray: empty container");
     }
     return ret;
@@ -187,12 +196,14 @@ std::vector<bool> INIParser::getBooleanArray(const std::string &section,
             bval = false;
         } else {
             throw std::runtime_error("getBooleanArray: can not convert '" +
-                                     valstr + "' to boolean for key=" + name +
+                                     val + "' to boolean for key=" + name +
                                      " in section=" + section);
         }
         ret.push_back(bval);
     }
     if (ret.empty()) {
+        // this code should never be executed since get() does not allow empty
+        // values
         throw std::runtime_error("getBooleanArray: empty container");
     }
     return ret;
@@ -220,11 +231,7 @@ bool INIParser::hasValue(const std::string &section,
 std::string INIParser::makeKey(const std::string &section,
                                const std::string &name)
 {
-    std::string key = section + "=" + name;
-    // TODO: [fabianw@mavt.ethz.ch; 2019-12-25] remove this
-    // // Convert to lower case to make section/name lookups case-insensitive
-    // std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-    return key;
+    return section + "=" + name;
 }
 
 int INIParser::valueHandler(void *user,

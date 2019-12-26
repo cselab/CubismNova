@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 namespace
@@ -15,18 +16,23 @@ TEST(INIParser, FileRead)
 {
     Cubism::Util::INIParser p("INIFiles/main.ini");
     ASSERT_FALSE(p.parseError());
-    std::cout << p;
 
     for (const auto e : p.fileErrors()) {
         ASSERT_EQ(e.second, 0);
     }
+}
+
+TEST(INIParser, Interface)
+{
+    Cubism::Util::INIParser p("INIFiles/main.ini");
+    std::cout << p;
 
     // defined sections
-    EXPECT_TRUE(p.hasSection("include"));
-    EXPECT_TRUE(p.hasSection("main"));
-    EXPECT_TRUE(p.hasSection("no_value"));
     EXPECT_TRUE(p.hasSection("inc_a"));
     EXPECT_TRUE(p.hasSection("inc_aaa"));
+    EXPECT_TRUE(p.hasSection("include"));
+    EXPECT_TRUE(p.hasSection("main"));
+    EXPECT_TRUE(p.hasSection("test"));
 
     // check if keys have values
     EXPECT_TRUE(p.hasValue("main", "A"));
@@ -39,7 +45,142 @@ TEST(INIParser, FileRead)
     EXPECT_TRUE(p.hasValue("inc_aaa", "special"));
 
     // check if has no value
-    EXPECT_FALSE(p.hasValue("no_value", "dummy"));
+    EXPECT_FALSE(p.hasSection("sparta"));      // section does not exist
+    EXPECT_FALSE(p.hasValue("sparta", "300")); // section and key do not exist
+
+    // runtime throws
+    {
+        EXPECT_THROW(
+            {
+                try {
+                    p.get("sparta", "300");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ(
+                        "get: key=300 in section=sparta does not exist",
+                        e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+
+        EXPECT_THROW(
+            {
+                try {
+                    p.get("test", "noval");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("get: key=noval in section=test has no value",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+
+        EXPECT_THROW(
+            {
+                try {
+                    p.get("test", "empty");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("get: key=empty in section=test has no value",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+
+        EXPECT_THROW(
+            {
+                try {
+                    p.get("test", "empty");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("get: key=empty in section=test has no value",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+
+        // scalar values
+        EXPECT_NO_THROW(p.getString("test", "good"));
+        EXPECT_NO_THROW(p.getString("test", "bad"));
+        EXPECT_NO_THROW(p.getInteger("test", "good"));
+        EXPECT_NO_THROW(p.getReal("test", "good"));
+        EXPECT_NO_THROW(p.getBoolean("test", "good"));
+        EXPECT_THROW(
+            {
+                try {
+                    p.getInteger("test", "bad");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("getInteger: can not convert 'ouch' to "
+                                 "integer for key=bad in section=test",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+        EXPECT_THROW(
+            {
+                try {
+                    p.getReal("test", "bad");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("getReal: can not convert 'ouch' to "
+                                 "floating point for key=bad in section=test",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+        EXPECT_THROW(
+            {
+                try {
+                    p.getBoolean("test", "bad");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("getBoolean: can not convert 'ouch' to "
+                                 "boolean for key=bad in section=test",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+
+        // arrays
+        EXPECT_NO_THROW(p.getStringArray("test", "array"));
+        EXPECT_THROW(
+            {
+                try {
+                    p.getIntegerArray("test", "array");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("getIntegerArray: can not convert 'ouch' to "
+                                 "integer for key=array in section=test",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+        EXPECT_THROW(
+            {
+                try {
+                    p.getRealArray("test", "array");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("getRealArray: can not convert 'ouch' to "
+                                 "floating point for key=array in section=test",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+        EXPECT_THROW(
+            {
+                try {
+                    p.getBooleanArray("test", "array");
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("getBooleanArray: can not convert '2' to "
+                                 "boolean for key=array in section=test",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+    }
 
     { // strings
         const auto str = p.getString("inc_aaa", "special");
