@@ -62,7 +62,6 @@ TEST(INIParser, Interface)
                 }
             },
             std::runtime_error);
-
         EXPECT_THROW(
             {
                 try {
@@ -74,19 +73,6 @@ TEST(INIParser, Interface)
                 }
             },
             std::runtime_error);
-
-        EXPECT_THROW(
-            {
-                try {
-                    p.get("test", "empty");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("get: key=empty in section=test has no value",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-
         EXPECT_THROW(
             {
                 try {
