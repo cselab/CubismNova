@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.12.0)
 
 project("CubismNova")
 
+# install destinations
+set(EXE_DIR bin)
+set(LIB_DIR lib)
+set(TEST_DIR test)
+
 # C++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -27,9 +32,11 @@ set(THIRD_DIR third)
 add_subdirectory(${THIRD_DIR})
 
 # testing
-set(TEST_DIR test)
 enable_testing()
 add_subdirectory(${TEST_DIR})
+
+# install files that are not built within the project
+install(PROGRAMS tools/histbin DESTINATION ${EXE_DIR})
 
 # debugging
 if (CMAKE_BUILD_TYPE MATCHES Debug)
