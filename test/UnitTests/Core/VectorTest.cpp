@@ -50,6 +50,9 @@ TEST(Vector, Construction)
         using Vec3 = V_f<3>;
         using Arr3 = typename Vec3::ArrayType;
 
+        EXPECT_EQ(12, Vec3::Bytes);
+        EXPECT_EQ(3, Vec3::Dim);
+
         Vec3 v0; // default construction
         EXPECT_EQ(3, v0.size());
         EXPECT_EQ(0, sumVector(v0));

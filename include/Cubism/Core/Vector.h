@@ -587,6 +587,12 @@ private:
     }
 };
 
+template <typename T, size_t DIM>
+constexpr size_t Vector<T, DIM>::Bytes;
+
+template <typename T, size_t DIM>
+constexpr size_t Vector<T, DIM>::Dim;
+
 /// @brief Non-STL swap function for vectors
 template <typename T, size_t DIM>
 void swap(Vector<T, DIM> &va, Vector<T, DIM> &vb) noexcept
