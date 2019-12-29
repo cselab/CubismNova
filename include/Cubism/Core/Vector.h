@@ -1,7 +1,7 @@
 // File       : Vector.h
 // Created    : Mon Apr 22 2019 11:36:26 AM (+0200)
 // Author     : Fabian Wermelinger
-// Description: Genereic vector class with support for common operations
+// Description: Generic vector class with support for common operations
 // Copyright 2019 ETH Zurich. All Rights Reserved.
 #ifndef VECTOR_H_8YBMEXHP
 #define VECTOR_H_8YBMEXHP
@@ -26,7 +26,7 @@ NAMESPACE_BEGIN(Cubism)
 /// @brief Vector class with support for common operations (wraps around
 ///        std::array)
 ///
-/// @tparam T   (underlying data type, must follow the rules of aggreagte
+/// @tparam T   (underlying data type, must follow the rules of aggregate
 ///             initialization)
 /// @tparam DIM (vector dimension, should be low-dimensional when used for
 ///             automatic variables on the stack)
@@ -165,7 +165,7 @@ public:
         return *this;
     }
 
-    /// @brief Assigment operator for any other Vector type.  The data type U
+    /// @brief Assignment operator for any other Vector type.  The data type U
     ///        must be castable to DataType.  This operation is less efficient
     ///        than assigning vectors of the same type.
     ///
@@ -240,7 +240,7 @@ public:
     bool operator!=(const Vector &other) const { return !(*this == other); }
 
     /// @brief Less than operator.  A Vector is smaller than another iff
-    ///        all comonents are less than the corresponding components of
+    ///        all components are less than the corresponding components of
     ///        the other Vector.
     bool operator<(const Vector &other) const
     {
@@ -253,7 +253,7 @@ public:
     bool operator>(const Vector &other) const { return (other < *this); }
 
     /// @brief Less-equal than operator.  A Vector is smaller or equal
-    ///        than another iff all comonents are less or equal than the
+    ///        than another iff all components are less or equal than the
     ///        corresponding components of the other Vector.
     bool operator<=(const Vector &other) const
     {
