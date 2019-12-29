@@ -4,6 +4,27 @@
 <!-- Description: Dynamic notebook; remove later -->
 <!-- Copyright 2019 ETH Zurich. All Rights Reserved. -->
 
+<!-- vim-markdown-toc GFM -->
+
+* [Thoughts](#thoughts)
+* [Memory management (low-level thoughts)](#memory-management-low-level-thoughts)
+  * [Hierarchy (compute node-level)](#hierarchy-compute-node-level)
+  * [Plans](#plans)
+  * [Field/Tensor](#fieldtensor)
+
+<!-- vim-markdown-toc -->
+
+# Thoughts
+
+* How are Face/Node fields handled in AMR? (are boundary elements treated as
+duplicates?)
+* Single indexer/range iterators for any field
+* Field data structures must support vectorization
+* Block compounds -> variant or dynamic cast (not favorable)
+* Geometry involves most of index conversion cell -> face -> node etc.
+* Geometry should it inherit from field or wrap
+* Geometry data compute on the fly or store in memory?
+
 # Memory management (low-level thoughts)
 
 * Legacy code: sizeX, sizeY and sizeZ is defined at user level -> AoS for
