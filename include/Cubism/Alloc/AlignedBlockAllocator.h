@@ -22,6 +22,7 @@ class AlignedBlockAllocator
 {
 public:
     using DataType = T;
+    static constexpr size_t Alignment = ALIGNAT;
 
     /// @brief Allocate block memory
     ///
@@ -47,6 +48,9 @@ public:
         }
     }
 };
+
+template <typename T, size_t ALIGNAT>
+constexpr size_t AlignedBlockAllocator<T, ALIGNAT>::Alignment;
 
 NAMESPACE_END(Cubism)
 
