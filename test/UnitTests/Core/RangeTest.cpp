@@ -1,7 +1,7 @@
-// File       : VectorTest.cpp
-// Created    : Tue Apr 30 2019 05:06:37 PM (+0200)
+// File       : RangeTest.cpp
+// Created    : Sun Dec 29 2019 09:31:34 PM (+0100)
 // Author     : Fabian Wermelinger
-// Description: Unit tests for Cubism/Core/Vector.h
+// Description: Generic ranges test
 // Copyright 2019 ETH Zurich. All Rights Reserved.
 #include "Core/Range.h"
 #include "gtest/gtest.h"

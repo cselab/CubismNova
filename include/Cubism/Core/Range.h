@@ -108,7 +108,7 @@ public:
     }
     bool operator!=(const Range &o) const { return !(*this == o); }
 
-private:
+protected:
     PointType begin_, end_;
 
     void check_(const std::string &where) const
