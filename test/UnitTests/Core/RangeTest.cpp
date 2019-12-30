@@ -110,6 +110,7 @@ TEST(Range, Utils)
     Range r3(p1, p3);
 
     EXPECT_TRUE(r0.contains(r1));
+    EXPECT_TRUE(r0.contains(p0));
     EXPECT_TRUE(r2.intersect(r1));
     EXPECT_TRUE(r3.intersect(r2));
 }

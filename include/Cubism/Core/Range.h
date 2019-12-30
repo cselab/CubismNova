@@ -23,18 +23,22 @@ public:
     // Construction
     explicit Range(const DataType e) : begin_(), end_(e)
     {
+        static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
     }
     explicit Range(const PointType &e) : begin_(), end_(e)
     {
+        static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
     }
     Range(const DataType b, const DataType e) : begin_(b), end_(e)
     {
+        static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
     }
     Range(const PointType &b, const PointType &e) : begin_(b), end_(e)
     {
+        static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
     }
 
@@ -90,6 +94,11 @@ public:
     {
         return begin_ <= o.begin_ && o.end_ <= end_;
     }
+
+    /// @brief Check if point is contained in this range
+    ///
+    /// @param p Point
+    bool contains(const PointType &p) const { return begin_ <= p && p <= end_; }
 
     /// @brief Check if other range intersects this range
     ///
