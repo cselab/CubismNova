@@ -15,11 +15,13 @@ TEST(Alloc, AlignedBlockAllocator)
 
     Alloc a;
     constexpr size_t N = 10;
-    const size_t bytes = N * sizeof(T);
+    size_t bytes = N * sizeof(T);
+    EXPECT_FALSE(bytes % Alloc::Alignment == 0);
 
     T *aptr = a.allocate(bytes);
 
     // test alignment
+    EXPECT_TRUE(bytes % Alloc::Alignment == 0);
     EXPECT_TRUE(reinterpret_cast<size_t>(aptr) % Alloc::Alignment == 0);
 
     // assign some values
