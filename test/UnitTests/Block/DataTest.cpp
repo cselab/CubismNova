@@ -15,19 +15,19 @@ namespace
 {
 using namespace Cubism;
 
-template <typename T, typename TAlloc, size_t DIM>
-using CellData = Block::Data<T, DataMapping::Cell, DIM, TAlloc>;
-template <typename T, typename TAlloc, size_t DIM>
-using NodeData = Block::Data<T, DataMapping::Node, DIM, TAlloc>;
+template <typename T, template <typename> class TAlloc, size_t DIM>
+using CellData = Block::Data<T, DataMapping::Cell, DIM, TAlloc<T>>;
+template <typename T, template <typename> class TAlloc, size_t DIM>
+using NodeData = Block::Data<T, DataMapping::Node, DIM, TAlloc<T>>;
 
-template <typename Alloc, size_t DIM>
+template <typename T, template <typename> class TAlloc, size_t DIM>
 void runTest()
 {
     using IRange = IndexRange<DIM>;
     using MIndex = typename IRange::MultiIndex;
 
-    using CData = CellData<typename Alloc::DataType, Alloc, DIM>;
-    using NData = NodeData<typename Alloc::DataType, Alloc, DIM>;
+    using CData = CellData<T, TAlloc, DIM>;
+    using NData = NodeData<T, TAlloc, DIM>;
 
     MIndex cells(16);
     MIndex nodes(16 + 1);
@@ -38,7 +38,7 @@ void runTest()
     NData ndata(node_domain);
 
     EXPECT_TRUE(cdata.getIndexRange() == cell_domain);
-    EXPECT_EQ(cdata.getDataElementBytes(), sizeof(typename Alloc::DataType));
+    EXPECT_EQ(cdata.getDataElementBytes(), sizeof(T));
 
     EXPECT_EQ(cdata.getBlockSize(), cells.prod());
     EXPECT_EQ(ndata.getBlockSize(), nodes.prod());
@@ -78,7 +78,7 @@ void runTest()
     // data access
     CData ref(cdata1, CData::MemoryOwner::No);
     for (size_t i = 0; i < ref.getBlockSize(); ++i) {
-        ref[i] = static_cast<typename Alloc::DataType>(i);
+        ref[i] = static_cast<T>(i);
     }
 
     CData test(cdata_move, CData::MemoryOwner::No);
@@ -86,8 +86,7 @@ void runTest()
     if (2 == DIM) { // test operator() for DIM == 2
         for (size_t j = 0; j < r.sizeDim(1); ++j) {
             for (size_t i = 0; i < r.sizeDim(0); ++i) {
-                const auto val =
-                    static_cast<typename Alloc::DataType>(i + r.sizeDim(0) * j);
+                const auto val = static_cast<T>(i + r.sizeDim(0) * j);
                 test(i, j) = val;
                 EXPECT_EQ(test(i, j), val); // const access
             }
@@ -95,7 +94,7 @@ void runTest()
     } else {
         for (size_t i = 0; i < test.getBlockSize(); ++i) {
             const MIndex p = r.getMultiIndex(i);
-            test(p) = static_cast<typename Alloc::DataType>(i);
+            test(p) = static_cast<T>(i);
         }
     }
     if (DIM > 3) {
@@ -133,8 +132,8 @@ void runTest()
 
 TEST(Data, AlignedBlockAllocator)
 {
-    runTest<AlignedBlockAllocator<float>, 1>();
-    runTest<AlignedBlockAllocator<double>, 2>();
-    runTest<AlignedBlockAllocator<int>, 4>();
+    runTest<float, AlignedBlockAllocator, 1>();
+    runTest<double, AlignedBlockAllocator, 2>();
+    runTest<int, AlignedBlockAllocator, 4>();
 }
 } // namespace

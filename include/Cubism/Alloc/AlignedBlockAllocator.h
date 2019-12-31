@@ -16,13 +16,12 @@ NAMESPACE_BEGIN(Cubism)
 /// @brief Simple aligned memory block allocator
 ///
 /// @tparam T Data type of single block element
-/// @tparam ALIGNAT Align at byte boundary
-template <typename T, size_t ALIGNAT = CUBISM_ALIGNMENT>
+template <typename T>
 class AlignedBlockAllocator
 {
 public:
     using DataType = T;
-    static constexpr size_t Alignment = ALIGNAT;
+    static constexpr size_t Alignment = CUBISM_ALIGNMENT;
 
     /// @brief Allocate block memory
     ///
@@ -32,9 +31,10 @@ public:
     DataType *allocate(size_t &bytes) const
     {
         void *block = nullptr;
-        // ensure byte block is an integer multiple of ALIGNAT
-        bytes = ((bytes + ALIGNAT - 1) / ALIGNAT) * ALIGNAT;
-        posix_memalign(&block, ALIGNAT, bytes);
+        // ensure byte block is an integer multiple of CUBISM_ALIGNMENT
+        bytes = ((bytes + CUBISM_ALIGNMENT - 1) / CUBISM_ALIGNMENT) *
+                CUBISM_ALIGNMENT;
+        posix_memalign(&block, CUBISM_ALIGNMENT, bytes);
         assert(block != nullptr && "posix_memalign returned NULL address");
         return static_cast<DataType *>(block);
     }
@@ -50,8 +50,8 @@ public:
     }
 };
 
-template <typename T, size_t ALIGNAT>
-constexpr size_t AlignedBlockAllocator<T, ALIGNAT>::Alignment;
+template <typename T>
+constexpr size_t AlignedBlockAllocator<T>::Alignment;
 
 NAMESPACE_END(Cubism)
 
