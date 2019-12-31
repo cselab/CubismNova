@@ -28,6 +28,10 @@ enum class Dir { X = 0, Y, Z, XX, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ, Any };
 enum class DataMapping { Undefined = 0, Cell, Node, Face };
 NAMESPACE_END(Cubism)
 
+#ifndef CUBISM_DIMENSION
+#define CUBISM_DIMENSION 3
+#endif /* CUBISM_DIMENSION */
+
 #ifndef CUBISM_ALIGNMENT
 #define CUBISM_ALIGNMENT 32
 #endif /* CUBISM_ALIGNMENT */
