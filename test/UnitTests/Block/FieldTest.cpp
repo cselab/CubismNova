@@ -191,7 +191,7 @@ TEST(Field, Iterator)
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
-    MIndex cells(16);
+    MIndex cells(8);
     IRange cell_domain(cells);
     CellField cf(cell_domain);
 
@@ -235,7 +235,7 @@ TEST(FieldContainer, Construction)
 
     using FV = Block::FieldView<NodeField>;
     using FC = Block::FieldContainer<NodeField>;
-    MIndex nodes(16);
+    MIndex nodes(8);
     IRange node_domain(nodes);
 
     { // default
@@ -429,7 +429,7 @@ TEST(FieldContainer, Iterator)
     using MIndex = typename IRange::MultiIndex;
 
     using FC = Block::FieldContainer<CellField>;
-    MIndex cells(16);
+    MIndex cells(8);
     IRange cell_domain(cells);
     FC field_container(8, cell_domain);
 
