@@ -633,4 +633,103 @@ TEST(FaceFieldAll, Construction)
     }
 }
 
+TEST(TensorField, Construction)
+{
+    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 3>>;
+    using TensorField = Block::TensorField<CellField, 2>; // Rank 2 tensor
+    using IRange = typename TensorField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    TensorField tf(cell_domain);
+
+    // If you like that better; must be castable to size_t and 0 for first index
+    enum MyIndex { XX = 0, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ };
+    EXPECT_EQ(tf[MyIndex::XY].getBlockSize(), cell_domain.size());
+
+    EXPECT_EQ(tf.size(), std::pow(IRange::Dim, TensorField::Rank));
+    size_t k = 0;
+    for (auto c : tf) {
+        EXPECT_EQ(c->getRank(), TensorField::Rank);
+        EXPECT_EQ(c->getComp(), k++);
+    }
+
+    { // low-level
+        std::vector<IRange> rl;
+        std::vector<typename CellField::DataType *> pl;
+        std::vector<size_t> bl;
+        std::vector<typename TensorField::FieldState *> sl;
+
+        TensorField tf_copy(tf,
+                            TensorField::FieldType::BaseType::MemoryOwner::Yes);
+        EXPECT_EQ(tf_copy.size(), tf.size());
+        for (size_t i = 0; i < tf.size(); ++i) {
+            rl.push_back(tf[i].getIndexRange());
+            pl.push_back(tf[i].getData());
+            bl.push_back(tf[i].getBlockBytes());
+            sl.push_back(&tf[i].getState());
+            EXPECT_NE(tf[i].getBlockPtr(), tf_copy[i].getBlockPtr());
+            EXPECT_NE(&tf[i].getState(), &tf_copy[i].getState());
+        }
+
+        TensorField tf_view(rl, pl, bl, sl);
+        for (size_t i = 0; i < tf.size(); ++i) {
+            EXPECT_EQ(tf[i].getBlockPtr(), tf_view[i].getBlockPtr());
+            EXPECT_EQ(&tf[i].getState(), &tf_view[i].getState());
+        }
+    }
+
+    { // copy construction
+        TensorField tf1(tf);
+        EXPECT_EQ(tf1.size(), tf.size());
+        for (size_t i = 0; i < tf.size(); ++i) {
+            EXPECT_NE(tf[i].getBlockPtr(), tf1[i].getBlockPtr());
+            EXPECT_NE(&tf[i].getState(), &tf1[i].getState());
+        }
+    }
+
+    { // copy assignment
+        TensorField tf1;
+        EXPECT_EQ(tf1.size(), 0);
+        tf1 = tf;
+        EXPECT_EQ(tf1.size(), tf.size());
+        for (size_t i = 0; i < tf.size(); ++i) {
+            EXPECT_NE(tf[i].getBlockPtr(), tf1[i].getBlockPtr());
+            EXPECT_NE(&tf[i].getState(), &tf1[i].getState());
+        }
+    }
+
+    { // move construction
+        using FieldView = Block::FieldView<TensorField>;
+        TensorField tf_copy(tf);
+        FieldView tv(tf);
+        TensorField tf1(std::move(tf));
+        EXPECT_EQ(tf.size(), 0);
+        EXPECT_EQ(tf1.size(), tv.size());
+        for (size_t i = 0; i < tf.size(); ++i) {
+            EXPECT_NE(tv[i].getBlockPtr(), tf1[i].getBlockPtr());
+            EXPECT_NE(&tv[i].getState(), &tf1[i].getState());
+        }
+
+        tf = tf_copy;
+    }
+
+    { // move assignment
+        using FieldView = Block::FieldView<TensorField>;
+        TensorField tf_copy(tf);
+        FieldView tv(tf);
+        TensorField tf1;
+        tf1 = std::move(tf);
+        EXPECT_EQ(tf.size(), 0);
+        EXPECT_EQ(tf1.size(), tv.size());
+        for (size_t i = 0; i < tf.size(); ++i) {
+            EXPECT_NE(tv[i].getBlockPtr(), tf1[i].getBlockPtr());
+            EXPECT_NE(&tv[i].getState(), &tf1[i].getState());
+        }
+
+        tf = tf_copy;
+    }
+}
+
 } // namespace
