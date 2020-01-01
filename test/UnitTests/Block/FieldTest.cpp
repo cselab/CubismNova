@@ -732,4 +732,52 @@ TEST(TensorField, Construction)
     }
 }
 
+TEST(FieldView, Construction)
+{
+    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 3>>;
+    using IRange = typename CellField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    using FieldView = Block::FieldView<CellField>;
+
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    CellField cf(cell_domain);
+    FieldView cf_view(cf);
+    EXPECT_TRUE(cf.isMemoryOwner());
+    EXPECT_FALSE(cf_view.isMemoryOwner());
+    EXPECT_EQ(cf.getBlockPtr(), cf_view.getBlockPtr());
+    EXPECT_EQ(&cf.getState(), &cf_view.getState());
+}
+
+TEST(FieldView, Copy)
+{
+    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 3>>;
+    using IRange = typename CellField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    using FieldView = Block::FieldView<CellField>;
+
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    CellField cf(cell_domain);
+    FieldView cf_view(cf);
+    EXPECT_TRUE(cf.isMemoryOwner());
+    EXPECT_FALSE(cf_view.isMemoryOwner());
+
+    { // copy constructor
+        typename FieldView::BaseType cf_copy = cf_view.copy();
+        EXPECT_TRUE(cf_copy.isMemoryOwner());
+        EXPECT_NE(cf.getBlockPtr(), cf_copy.getBlockPtr());
+        EXPECT_NE(&cf.getState(), &cf_copy.getState());
+    }
+
+    { // copy assignment (a move in this case)
+        CellField cf_copy(cell_domain);
+
+        cf_copy = cf_view.copy();
+        EXPECT_TRUE(cf_copy.isMemoryOwner());
+        EXPECT_NE(cf.getBlockPtr(), cf_copy.getBlockPtr());
+        EXPECT_NE(&cf.getState(), &cf_copy.getState());
+    }
+}
+
 } // namespace
