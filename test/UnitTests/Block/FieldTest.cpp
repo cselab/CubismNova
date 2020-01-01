@@ -226,4 +226,317 @@ TEST(Field, View)
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
 TEST(Field, Arithmetic) {}
 
+TEST(FieldContainer, Construction)
+{
+    using NodeField = Block::Field<NodeData<char, AlignedBlockAllocator, 5>>;
+    using FieldState = typename NodeField::FieldStateType;
+    using IRange = typename NodeField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    using FV = Block::FieldView<NodeField>;
+    using FC = Block::FieldContainer<NodeField>;
+    MIndex nodes(16);
+    IRange node_domain(nodes);
+
+    { // default
+        FC fc;
+        EXPECT_EQ(fc.size(), 0);
+
+        FC fc1(1);
+        EXPECT_EQ(fc1.size(), 1);
+    }
+
+    { // construct new (owns memory)
+        FC fc(2, node_domain);
+
+        for (size_t i = 0; i < fc.size(); ++i) {
+            NodeField &nf = fc[i];
+            EXPECT_TRUE(nf.isMemoryOwner());
+            std::fill(nf.begin(), nf.end(), 1);
+        }
+        int sum = 0;
+        for (size_t i = 0; i < fc.size(); ++i) {
+            for (const auto v : fc[i]) {
+                sum += v;
+            }
+        }
+        EXPECT_EQ(sum, 2 * node_domain.size());
+    }
+
+    { // construct from list of pointers (including FieldView types)
+        FC fc(3, node_domain); // owns all
+        FV fv0(fc[0]);
+
+        std::vector<typename FC::FieldType *> ptr_list;
+        ptr_list.push_back(&fv0);   // view
+        ptr_list.push_back(&fc[1]); // owner
+        ptr_list.push_back(&fc[2]); // owner
+        FC fc1(ptr_list);
+
+        EXPECT_EQ(fc1[0].getBlockPtr(), fc[0].getBlockPtr()); // the same
+        EXPECT_NE(fc1[1].getBlockPtr(), fc[1].getBlockPtr()); // copy
+        EXPECT_NE(fc1[2].getBlockPtr(), fc[2].getBlockPtr()); // copy
+
+        // view of a field container
+        using FVC = Block::FieldView<FC>;
+        FVC fvc(fc1);
+        EXPECT_FALSE(fvc[0].isMemoryOwner());
+        EXPECT_FALSE(fvc[1].isMemoryOwner());
+        EXPECT_FALSE(fvc[2].isMemoryOwner());
+        EXPECT_EQ(fc1[0].getBlockPtr(), fvc[0].getBlockPtr());
+        EXPECT_EQ(fc1[1].getBlockPtr(), fvc[1].getBlockPtr());
+        EXPECT_EQ(fc1[2].getBlockPtr(), fvc[2].getBlockPtr());
+        EXPECT_NE(&fc1[0], &fvc[0]);
+        EXPECT_NE(&fc1[1], &fvc[1]);
+        EXPECT_NE(&fc1[2], &fvc[2]);
+    }
+
+    // low-level constructors
+    {
+        FC fc(2, node_domain);
+        std::vector<IRange> rl;
+        std::vector<typename NodeField::DataType *> pl;
+        std::vector<size_t> bl;
+        std::vector<FieldState *> sl;
+        for (size_t i = 0; i < fc.size(); ++i) {
+            rl.push_back(fc[i].getIndexRange());
+            pl.push_back(fc[i].getData());
+            bl.push_back(fc[i].getBlockBytes());
+            sl.push_back(&fc[i].getState());
+        }
+        FC fc1(rl, pl, bl, sl); // never owns data
+        for (size_t i = 0; i < fc.size(); ++i) {
+            EXPECT_EQ(fc1[i].getRank(), 0);
+            EXPECT_EQ(fc1[i].getComp(), i);
+            EXPECT_FALSE(fc1[i].isMemoryOwner());
+            EXPECT_EQ(fc1[i].getBlockPtr(), fc[i].getBlockPtr());
+            EXPECT_NE(&fc1[i], &fc[i]);
+        }
+    }
+
+    {                          // copy construction
+        FC fc(4, node_domain); // owns all
+        FV fv0(fc[0]);         // view
+        FV fv1(fc[2]);         // view
+
+        {                   // copy homogeneous
+            FC fc_copy(fc); // deep copies
+            for (size_t i = 0; i < fc_copy.size(); ++i) {
+                EXPECT_TRUE(fc_copy[i].isMemoryOwner());
+                EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                EXPECT_NE(&fc_copy[i], &fc[i]);
+            }
+        }
+        { // copy mixed own/view
+            std::vector<typename FC::FieldType *> ptr_list;
+            ptr_list.push_back(&fv0);   // view
+            ptr_list.push_back(&fc[1]); // owner
+            ptr_list.push_back(&fv1);   // view
+            ptr_list.push_back(&fc[3]); // owner
+            FC fc1(ptr_list);
+            FC fc_copy(fc1); // mixed
+            for (size_t i = 0; i < fc_copy.size(); ++i) {
+                if (i % 2 == 0) {
+                    EXPECT_FALSE(fc_copy[i].isMemoryOwner());
+                    EXPECT_EQ(fc_copy[i].getBlockPtr(), fc1[i].getBlockPtr());
+                    EXPECT_EQ(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                } else {
+                    EXPECT_TRUE(fc_copy[i].isMemoryOwner());
+                    EXPECT_NE(fc_copy[i].getBlockPtr(), fc1[i].getBlockPtr());
+                    EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                }
+                EXPECT_NE(&fc_copy[i], &fc[i]);
+                EXPECT_NE(&fc_copy[i], &fc1[i]);
+            }
+        }
+    }
+
+    {                          // copy assignment
+        FC fc(4, node_domain); // owns all
+        FV fv0(fc[0]);         // view
+        FV fv1(fc[2]);         // view
+
+        {                 // copy homogeneous
+            FC fc_copy;   // empty
+            fc_copy = fc; // deep copies
+            for (size_t i = 0; i < fc_copy.size(); ++i) {
+                EXPECT_TRUE(fc_copy[i].isMemoryOwner());
+                EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                EXPECT_NE(&fc_copy[i], &fc[i]);
+            }
+        }
+        { // copy mixed own/view
+            std::vector<typename FC::FieldType *> ptr_list;
+            ptr_list.push_back(&fv0);   // view
+            ptr_list.push_back(&fc[1]); // owner
+            ptr_list.push_back(&fv1);   // view
+            ptr_list.push_back(&fc[3]); // owner
+            FC fc1(ptr_list);
+            FC fc_copy;    // empty
+            fc_copy = fc1; // mixed
+            for (size_t i = 0; i < fc_copy.size(); ++i) {
+                if (i % 2 == 0) {
+                    EXPECT_FALSE(fc_copy[i].isMemoryOwner());
+                    EXPECT_EQ(fc_copy[i].getBlockPtr(), fc1[i].getBlockPtr());
+                    EXPECT_EQ(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                } else {
+                    EXPECT_TRUE(fc_copy[i].isMemoryOwner());
+                    EXPECT_NE(fc_copy[i].getBlockPtr(), fc1[i].getBlockPtr());
+                    EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                }
+                EXPECT_NE(&fc_copy[i], &fc[i]);
+                EXPECT_NE(&fc_copy[i], &fc1[i]);
+            }
+        }
+    }
+
+    {                                     // move construction
+        FC fc(5, node_domain);            // owns all
+        using FVC = Block::FieldView<FC>; // view of a field container
+        FVC fvc(fc);
+        FC fc_move(std::move(fc));
+        EXPECT_EQ(fc.size(), 0);
+        EXPECT_EQ(fc_move.size(), fvc.size());
+        for (size_t i = 0; i < fc_move.size(); ++i) {
+            EXPECT_TRUE(fc_move[i].isMemoryOwner());
+            EXPECT_FALSE(fvc[i].isMemoryOwner());
+            EXPECT_EQ(fc_move[i].getBlockPtr(), fvc[i].getBlockPtr());
+            EXPECT_NE(&fc_move[i], &fvc[i]);
+        }
+    }
+
+    {                                     // move assignment
+        FC fc(5, node_domain);            // owns all
+        using FVC = Block::FieldView<FC>; // view of a field container
+        FVC fvc(fc);
+        FC fc_move;
+        fc_move = std::move(fc);
+        EXPECT_EQ(fc.size(), 0);
+        EXPECT_EQ(fc_move.size(), fvc.size());
+        for (size_t i = 0; i < fc_move.size(); ++i) {
+            EXPECT_TRUE(fc_move[i].isMemoryOwner());
+            EXPECT_FALSE(fvc[i].isMemoryOwner());
+            EXPECT_EQ(fc_move[i].getBlockPtr(), fvc[i].getBlockPtr());
+            EXPECT_NE(&fc_move[i], &fvc[i]);
+        }
+    }
+}
+
+TEST(FieldContainer, Iterator)
+{
+    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 5>>;
+    using IRange = typename CellField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    using FC = Block::FieldContainer<CellField>;
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    FC field_container(8, cell_domain);
+
+    // initialize
+    double val = 0.0;
+    for (auto block : field_container) {
+        std::fill(block->begin(), block->end(), val);
+        val += 1.0;
+    }
+
+    double sum = 0.0;
+    double ref = 0.0;
+    int count = 0;
+    for (auto block : field_container) {
+        auto &b = *block;
+        ref += count * b.getBlockSize();
+        ++count;
+        for (const auto v : b) {
+            sum += v;
+        }
+    }
+    EXPECT_EQ(sum, ref);
+}
+
+TEST(FieldContainer, Interface)
+{
+    using NodeField = Block::Field<NodeData<size_t, AlignedBlockAllocator, 5>>;
+    using IRange = typename NodeField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    using FC = Block::FieldContainer<NodeField>;
+    MIndex nodes(16);
+    IRange node_domain(nodes);
+
+    {
+        FC fc1(1);
+        EXPECT_EQ(fc1.size(), 1);
+        EXPECT_THROW(
+            {
+                try {
+                    fc1[0];
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
+                                 "(nullptr)",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+        EXPECT_THROW(
+            {
+                try {
+                    fc1[0] = NodeField(node_domain);
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
+                                 "(nullptr)",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+        EXPECT_THROW(
+            {
+                try {
+                    fc1[Dir::X];
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
+                                 "(nullptr)",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+        EXPECT_THROW(
+            {
+                try {
+                    fc1[Dir::X] = NodeField(node_domain);
+                } catch (const std::runtime_error &e) {
+                    EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
+                                 "(nullptr)",
+                                 e.what());
+                    throw;
+                }
+            },
+            std::runtime_error);
+    }
+
+    {
+        MIndex nodes(8);
+        IRange node_domain(nodes);
+        FC fc1(3, node_domain);
+        FC fc2(3, node_domain);
+        size_t k = 0;
+        for (auto f : fc1) {
+            std::fill(f->begin(), f->end(), k++);
+        }
+        fc2.copyData(fc1);
+        k = 0;
+        for (auto f : fc2) {
+            for (const auto n : *f) {
+                EXPECT_EQ(n, k);
+            }
+            ++k;
+        }
+    }
+}
+
+// TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
+TEST(FieldContainer, Arithmetic) {}
 } // namespace
