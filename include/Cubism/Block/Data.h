@@ -265,6 +265,11 @@ public:
         return this->operator[](range_.getFlatIndex(p));
     }
 
+    /// @brief Copies the data block in c to *this unconditionally
+    void copyData(const Data &c) { copyBlockDeep_(c); }
+
+    // TODO: [fabianw@mavt.ethz.ch; 2020-01-01] resize(IndexRangeType) method?
+
     /// @brief Returns index range that spans the block data
     IndexRangeType getIndexRange() const { return range_; }
 
