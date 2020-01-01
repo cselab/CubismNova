@@ -539,4 +539,98 @@ TEST(FieldContainer, Interface)
 
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
 TEST(FieldContainer, Arithmetic) {}
+
+TEST(FaceFieldAll, Construction)
+{
+    // CUBISM_DIMENSION-ional FaceField
+    using FaceField = Block::FaceFieldAll<double>;
+    using IRange = typename FaceField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    FaceField ff(cell_domain);
+    EXPECT_EQ(ff.size(), CUBISM_DIMENSION);
+    size_t k = 0;
+    for (auto f : ff) {
+        EXPECT_EQ(f->getRank(), 0);
+        EXPECT_EQ(f->getComp(), k++);
+    }
+
+    { // low-level
+        std::vector<IRange> rl;
+        std::vector<typename FaceField::DataType *> pl;
+        std::vector<size_t> bl;
+        std::vector<typename FaceField::FieldState *> sl;
+
+        FaceField ff_copy(ff, FaceField::FieldType::BaseType::MemoryOwner::Yes);
+        EXPECT_EQ(ff_copy.size(), ff.size());
+        for (size_t i = 0; i < ff.size(); ++i) {
+            rl.push_back(ff[i].getIndexRange());
+            pl.push_back(ff[i].getData());
+            bl.push_back(ff[i].getBlockBytes());
+            sl.push_back(&ff[i].getState());
+            EXPECT_NE(ff[i].getBlockPtr(), ff_copy[i].getBlockPtr());
+            EXPECT_NE(&ff[i].getState(), &ff_copy[i].getState());
+        }
+
+        FaceField ff_view(rl, pl, bl, sl);
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_EQ(ff[i].getBlockPtr(), ff_view[i].getBlockPtr());
+            EXPECT_EQ(&ff[i].getState(), &ff_view[i].getState());
+        }
+    }
+
+    { // copy construction
+        FaceField ff1(ff);
+        EXPECT_EQ(ff1.size(), ff.size());
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(ff[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(&ff[i].getState(), &ff1[i].getState());
+        }
+    }
+
+    { // copy assignment
+        FaceField ff1;
+        EXPECT_EQ(ff1.size(), 0);
+        ff1 = ff;
+        EXPECT_EQ(ff1.size(), ff.size());
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(ff[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(&ff[i].getState(), &ff1[i].getState());
+        }
+    }
+
+    { // move construction
+        using FieldView = Block::FieldView<FaceField>;
+        FaceField ff_copy(ff);
+        FieldView fv(ff);
+        FaceField ff1(std::move(ff));
+        EXPECT_EQ(ff.size(), 0);
+        EXPECT_EQ(ff1.size(), fv.size());
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(&fv[i].getState(), &ff1[i].getState());
+        }
+
+        ff = ff_copy;
+    }
+
+    { // move assignment
+        using FieldView = Block::FieldView<FaceField>;
+        FaceField ff_copy(ff);
+        FieldView fv(ff);
+        FaceField ff1;
+        ff1 = std::move(ff);
+        EXPECT_EQ(ff.size(), 0);
+        EXPECT_EQ(ff1.size(), fv.size());
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(&fv[i].getState(), &ff1[i].getState());
+        }
+
+        ff = ff_copy;
+    }
+}
+
 } // namespace
