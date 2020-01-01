@@ -19,7 +19,15 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
-template <typename TBlockData>
+struct FieldState {
+    size_t rank;      // field rank -- rank=0 (scalar), rank=1 (vector), ...
+    size_t comp;      // field component in rank dimension
+};
+
+// TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
+// class FieldUnit // for physical units of carried data
+
+template <typename TBlockData, typename TState = FieldState>
 class Field : public TBlockData
 {
 protected:
@@ -110,69 +118,99 @@ protected:
 
 public:
     using BaseType = TBlockData;
+    using FieldType = Field;
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
     using DataType = typename BaseType::DataType;
+    using FieldStateType = TState;
+
+    Field() = delete;
 
     explicit Field(const IndexRangeType &r,
-                   const size_t rank = 0,
-                   const size_t comp = 0)
-        : BaseType(r), nelements_(range_.size()), rank_(rank), comp_(comp)
+                   const FieldStateType &fs = FieldStateType())
+        : BaseType(r), state_(new FieldStateType())
     {
+        *state_ = fs;
     }
 
-    Field(const Field &f,
-          const typename BaseType::MemoryOwner o,
-          const size_t rank = 0,
-          const size_t comp = 0)
-        : BaseType(f, o), nelements_(range_.size()), rank_(rank), comp_(comp)
+    Field(const Field &f, const typename BaseType::MemoryOwner o)
+        : BaseType(f, o)
     {
+        if (this->isMemoryOwner()) {
+            state_ = new FieldStateType();
+        }
+        copyState_(f);
     }
 
     Field(const IndexRangeType &r,
           DataType *ptr,
           const size_t bytes,
-          const size_t rank = 0,
-          const size_t comp = 0)
-        : BaseType(r, ptr, bytes), nelements_(range_.size()), rank_(rank),
-          comp_(comp)
+          FieldStateType *sptr)
+        : BaseType(r, ptr, bytes), state_(sptr)
     {
     }
 
-    // The constructor
-    //
-    // Field(const IndexRangeType &r,
-    //       const std::vector<DataType *> &ptr_list,
-    //       const size_t bytes);
-    //
-    // is not implemented here on purpose.  It does not make sense for a scalar
-    // field and must yield a compile time error when called.
+    Field(const Field &c) : BaseType(c)
+    {
+        if (this->isMemoryOwner()) {
+            state_ = new FieldStateType();
+        }
+        copyState_(c);
+    }
 
-    Field() = delete;
-    Field(const Field &c) = default;
-    Field(Field &&c) noexcept = default;
-    Field &operator=(const Field &c) = default;
-    Field &operator=(Field &&c) = default;
-    ~Field() = default;
+    Field(Field &&c) noexcept
+        : BaseType(std::move(c)), state_(std::move(c.state_))
+    {
+        c.state_ = nullptr;
+    }
+
+    ~Field() { disposeState_(); }
+
+    Field &operator=(const Field &c)
+    {
+        assert(range_.size() == c.range_.size());
+        if (this != &c) {
+            copyState_(c);
+            BaseType::operator=(c);
+        }
+        return *this;
+    };
+
+    Field &operator=(Field &&c)
+    {
+        assert(range_.size() == c.range_.size());
+        if (this != &c) {
+            BaseType::operator=(std::move(c));
+            disposeState_();
+            state_ = std::move(c.state_);
+            c.state_ = nullptr;
+        }
+        return *this;
+    }
 
     using iterator = IteratorBase<DataType>;
     using const_iterator = IteratorBase<const DataType>;
-    iterator begin() { return iterator(block_); }
-    iterator end() { return iterator(block_ + range_.size()); }
-    const_iterator cbegin() const { return const_iterator(block_); }
-    const_iterator cend() const { return const_iterator(block_ + nelements_); }
+    iterator begin() noexcept { return iterator(block_); }
+    iterator end() noexcept { return iterator(block_ + range_.size()); }
+    const_iterator cbegin() const noexcept { return const_iterator(block_); }
+    const_iterator cend() const noexcept
+    {
+        return const_iterator(block_ + range_.size());
+    }
 
-    bool isScalar() const { return (0 == rank_); }
-    size_t getRank() const { return rank_; }
-    size_t getComp() const { return comp_; }
+    bool isScalar() const { return (0 == state_->rank); }
+    size_t getRank() const { return state_->rank; }
+    size_t getComp() const { return state_->comp; }
+    FieldStateType &getState() { return *state_; }
+    const FieldStateType &getState() const { return *state_; }
 
 // TODO: [fabianw@mavt.ethz.ch; 2019-12-31]
 #if 0
     Field operator-() const
     {
         Field f(*this);
-        // fieldMul(f.block_, -1, f.block_, nelements_);
-        for (size_t i = 0; i < nelements_; ++i) {
+        // fieldMul(f.block_, -1, f.block_, range_.size());
+        for (size_t i = 0; i < range_.size(); ++i) {
             f[i] = -f[i];
         }
         return f;
@@ -180,24 +218,24 @@ public:
 
     Field &operator+=(const Field &rhs)
     {
-        fieldAdd(block_, rhs.block_, block_, nelements_);
+        fieldAdd(block_, rhs.block_, block_, range_.size());
         return *this;
     }
     Field &operator-=(const Field &rhs)
     {
-        fieldSub(block_, rhs.block_, block_, nelements_);
+        fieldSub(block_, rhs.block_, block_, range_.size());
         return *this;
     }
     Field &operator*=(const Field &rhs)
     {
         // element-wise multiplication
-        fieldMul(block_, rhs.block_, block_, nelements_);
+        fieldMul(block_, rhs.block_, block_, range_.size());
         return *this;
     }
     Field &operator/=(const Field &rhs)
     {
         // element-wise division
-        fieldDiv(block_, rhs.block_, block_, nelements_);
+        fieldDiv(block_, rhs.block_, block_, range_.size());
         return *this;
     }
 
@@ -213,26 +251,26 @@ public:
     // Scalar rhs
     Field &operator+=(const DataType rhs)
     {
-        fieldAdd(block_, rhs, block_, nelements_);
+        fieldAdd(block_, rhs, block_, range_.size());
         return *this;
     }
 
     Field &operator-=(const DataType rhs)
     {
-        fieldSub(block_, rhs, block_, nelements_);
+        fieldSub(block_, rhs, block_, range_.size());
         return *this;
     }
 
     Field &operator*=(const DataType rhs)
     {
-        fieldMul(block_, rhs, block_, nelements_);
+        fieldMul(block_, rhs, block_, range_.size());
         return *this;
     }
 
     Field &operator/=(const DataType rhs)
     {
         assert(rhs > 0 || rhs < 0);
-        fieldDiv(block_, rhs, block_, nelements_);
+        fieldDiv(block_, rhs, block_, range_.size());
         return *this;
     }
 
@@ -274,25 +312,51 @@ public:
     friend Field operator/(const DataType lhs, Field rhs)
     {
         // reciprocal multiplied by lhs
-        fieldRcp(rhs.block_, lhs, rhs.block_, nelements_);
+        fieldRcp(rhs.block_, lhs, rhs.block_, range_.size());
         return rhs;
     }
 #endif
 
 private:
-    const size_t nelements_; // number of elements carried in block data
-    const size_t rank_; // field rank -- rank_=0 (scalar), rank_=1 (vector), ...
-    const size_t comp_; // field component in rank_ dimension
+    FieldStateType *state_; // Field state values/meta data
+
+    void disposeState_()
+    {
+        if (this->isMemoryOwner()) {
+            if (state_) {
+                delete state_;
+            }
+        }
+        state_ = nullptr;
+    }
+
+    void copyState_(const Field &c)
+    {
+        if (this->isMemoryOwner()) {
+            *state_ = *c.state_;
+        } else {
+            state_ = c.state_;
+        }
+    }
 };
 
-template <typename T, template <typename> class Alloc = AlignedBlockAllocator>
-using CellField = Field<Data<T, DataMapping::Cell, CUBISM_DIMENSION, Alloc<T>>>;
+template <typename T,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+using CellField =
+    Field<Data<T, DataMapping::Cell, CUBISM_DIMENSION, Alloc<T>>, State>;
 
-template <typename T, template <typename> class Alloc = AlignedBlockAllocator>
-using NodeField = Field<Data<T, DataMapping::Node, CUBISM_DIMENSION, Alloc<T>>>;
+template <typename T,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+using NodeField =
+    Field<Data<T, DataMapping::Node, CUBISM_DIMENSION, Alloc<T>>, State>;
 
-template <typename T, template <typename> class Alloc = AlignedBlockAllocator>
-using FaceField = Field<Data<T, DataMapping::Face, CUBISM_DIMENSION, Alloc<T>>>;
+template <typename T,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+using FaceField =
+    Field<Data<T, DataMapping::Face, CUBISM_DIMENSION, Alloc<T>>, State>;
 
 #define FIELD_CONTAINER_OP_FIELD(OP)                                           \
     do {                                                                       \
@@ -320,7 +384,7 @@ using FaceField = Field<Data<T, DataMapping::Face, CUBISM_DIMENSION, Alloc<T>>>;
         for (size_t i = 0; i < rhs.components_.size(); ++i) {                  \
             BaseType *RHS = rhs.components_[i];                                \
             if (RHS) {                                                         \
-                lhs / *RHS;                                                    \
+                *RHS = lhs / *RHS;                                             \
             }                                                                  \
         }                                                                      \
     } while (0)
@@ -328,26 +392,22 @@ using FaceField = Field<Data<T, DataMapping::Face, CUBISM_DIMENSION, Alloc<T>>>;
 template <typename TField>
 class FieldContainer
 {
-protected:
-    using MemoryOwner = typename TField::BaseType::MemoryOwner;
-
 public:
     using BaseType = TField;
+    using FieldType = typename BaseType::FieldType;
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
     using DataType = typename BaseType::DataType;
 
-    explicit FieldContainer(const size_t n = 0) : components_(n, nullptr) {}
+private:
+    using ContainerType = std::vector<BaseType *>;
+    using FieldState = typename FieldType::FieldStateType;
 
-    FieldContainer(const size_t n,
-                   const IndexRangeType &r,
-                   const size_t rank = 0)
-        : components_(n, nullptr)
-    {
-        for (size_t i = 0; i < n; ++i) {
-            components_[i] = new BaseType(r, rank, i);
-        }
-    }
+protected:
+    using MemoryOwner = typename TField::BaseType::MemoryOwner;
+
+public:
+    explicit FieldContainer(const size_t n = 0) : components_(n, nullptr) {}
 
     FieldContainer(const std::vector<BaseType *> &vf)
         : components_(vf.size(), nullptr)
@@ -360,48 +420,43 @@ public:
         }
     }
 
-    FieldContainer(const FieldContainer &fc,
-                   const MemoryOwner owner,
-                   const size_t rank = 0)
+    FieldContainer(const FieldContainer &fc, const MemoryOwner owner)
         : components_(fc.size(), nullptr)
     {
         for (size_t i = 0; i < fc.size(); ++i) {
             const BaseType *comp = fc.components_[i];
             if (comp) {
-                BaseType *copy_comp;
-                if (owner == MemoryOwner::Yes) {
-                    copy_comp = new BaseType(*comp, owner, rank, i);
-                } else {
-                    const IndexRangeType r = comp->getIndexRange();
-                    const size_t bytes = comp->getBlockBytes();
-                    copy_comp = new BaseType(r, comp, bytes, rank, i);
-                }
-                components_[i] = copy_comp;
+                components_[i] = new BaseType(*comp, owner);
             }
         }
     }
 
-    // The constructor
-    //
-    // FieldContainer(const IndexRangeType &r,
-    //                const DataType *ptr,
-    //                const size_t bytes);
-    //
-    // is not implemented here on purpose.  It does not make sense for a
-    // container.  A compile time error will occur when this constructor is
-    // called here.
-
-    FieldContainer(const IndexRangeType &r,
-                   const std::vector<DataType *> &ptr_list,
-                   const size_t bytes,
+    FieldContainer(const size_t n,
+                   const IndexRangeType &r,
                    const size_t rank = 0)
+        : components_(n, nullptr)
+    {
+        FieldState fs;
+        fs.rank = rank;
+        for (size_t i = 0; i < n; ++i) {
+            fs.comp = i;
+            components_[i] = new FieldType(r, fs);
+        }
+    }
+
+    FieldContainer(const std::vector<IndexRangeType> &range_list,
+                   const std::vector<DataType *> &ptr_list,
+                   const std::vector<size_t> &bytes_list,
+                   const std::vector<FieldState *> &state_list)
         : components_(ptr_list.size(), nullptr)
     {
+        assert(range_list.size() == ptr_list.size());
+        assert(ptr_list.size() == bytes_list.size());
         for (size_t i = 0; i < ptr_list.size(); ++i) {
-            const BaseType *comp = ptr_list[i];
-            if (comp) {
-                components_[i] = new BaseType(r, comp, bytes, rank, i);
-            }
+            DataType *data = ptr_list[i];
+            assert(data != nullptr);
+            components_[i] = new FieldType(
+                range_list[i], data, bytes_list[i], state_list[i]);
         }
     }
 
@@ -449,7 +504,43 @@ public:
         return *this;
     }
 
+    // WARNING: if you use an incomplete container (i.e. some components
+    // are nullptr), the iterators will just return nullptr -- no further checks
+    // are performed.
+    using iterator = typename ContainerType::iterator;
+    using const_iterator = typename ContainerType::const_iterator;
+    using reverse_iterator = typename ContainerType::reverse_iterator;
+    using const_reverse_iterator =
+        typename ContainerType::const_reverse_iterator;
+    iterator begin() noexcept { return components_.begin(); }
+    iterator end() noexcept { return components_.end(); }
+    reverse_iterator rbegin() noexcept { return components_.rbegin(); }
+    reverse_iterator rend() noexcept { return components_.rend(); }
+    const_iterator cbegin() const noexcept { return components_.cbegin(); }
+    const_iterator cend() const noexcept { return components_.cend(); }
+    const_reverse_iterator crbegin() const noexcept
+    {
+        return components_.crbegin();
+    }
+    const_reverse_iterator crend() const noexcept
+    {
+        return components_.crend();
+    }
+
     size_t size() const { return components_.size(); }
+
+    void copyData(const FieldContainer &rhs)
+    {
+        assert(components_.size() == rhs.components_.size());
+        for (size_t i = 0; i < components_.size(); ++i) {
+            BaseType *dst = components_[i];
+            BaseType *src = rhs.components_[i];
+            assert(dst && src);
+            dst->copyData(*src);
+        }
+    }
+
+    // TODO: [fabianw@mavt.ethz.ch; 2020-01-01] push_back, remove (?)
 
     BaseType &operator[](const size_t i) { return getComp_(i); }
     const BaseType &operator[](const size_t i) const { return getComp_(i); }
@@ -597,7 +688,7 @@ public:
 #endif
 
 protected:
-    std::vector<BaseType *> components_;
+    ContainerType components_;
 
 private:
     BaseType &getComp_(const size_t i)
@@ -641,24 +732,88 @@ private:
 #undef FIELD_CONTAINER_RCP
 
 template <typename T>
-class FaceFieldContainer : public FieldContainer<FaceField<T>>
+class FaceFieldAll : public FieldContainer<FaceField<T>>
 {
 public:
-    using FaceFieldType = FaceField<T>;
-    using BaseType = FieldContainer<FaceFieldType>;
+    using BaseType = FieldContainer<FaceField<T>>;
+    using FieldType = typename BaseType::FieldType;
+    using FieldState = typename FieldType::FieldStateType;
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
     using DataType = typename BaseType::DataType;
 
-    FaceFieldContainer() {}
-    ~FaceFieldContainer() {}
+private:
+    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
+
+public:
+    explicit FaceFieldAll(const IndexRangeType &cell_domain)
+        : BaseType(IndexRangeType::Dim)
+    {
+        const MultiIndex cells = cell_domain.getExtent(); // number of cells
+        FieldState fs;
+        fs.rank = 0;
+        for (size_t i = 0; i < cells.size(); ++i) {
+            // XXX: [fabianw@mavt.ethz.ch; 2020-01-01] Not most favorable for
+            // vectorization but more intuitive.  Will require some
+            // transposition in vectorized code.
+            const IndexRangeType ri(cells + MultiIndex::getUnitVector(i));
+            fs.comp = i;
+            components_[i] = new FieldType(ri, fs);
+            assert(components_[i] != nullptr);
+        }
+    }
+
+    // TODO: [fabianw@mavt.ethz.ch; 2020-01-01] ?
+    // explicit FaceFieldAll(const MIndex &p)
+
+    FaceFieldAll(const FaceFieldAll &ffc, const MemoryOwner owner)
+        : BaseType(ffc, owner)
+    {
+#ifndef NDEBUG
+        assert(this->components_.size() == IndexRangeType::Dim);
+        for (auto c : components_) {
+            assert(c != nullptr);
+        }
+#endif /* NDEBUG */
+    }
+
+    FaceFieldAll(const std::vector<IndexRangeType> &range_list,
+                 const std::vector<DataType *> &ptr_list,
+                 const std::vector<size_t> &bytes_list,
+                 const std::vector<FieldState *> &state_list)
+        : BaseType(range_list, ptr_list, bytes_list, state_list)
+    {
+#ifndef NDEBUG
+        assert(this->components_.size() == IndexRangeType::Dim);
+        for (auto c : components_) {
+            assert(c != nullptr);
+        }
+#endif /* NDEBUG */
+    }
+
+    FaceFieldAll() = default;
+    FaceFieldAll(const FaceFieldAll &c) = default;
+    FaceFieldAll(FaceFieldAll &&c) noexcept = default;
+    FaceFieldAll &operator=(const FaceFieldAll &c) = default;
+    FaceFieldAll &operator=(FaceFieldAll &&c) = default;
+    ~FaceFieldAll() = default;
 
 private:
+    using BaseType::components_;
 };
 
 template <typename TField, size_t RANK>
 class TensorField : public FieldContainer<TField>
 {
+public:
+    using BaseType = FieldContainer<TField>;
+    using FieldType = typename BaseType::FieldType;
+    using FieldState = typename FieldType::FieldStateType;
+    using IndexRangeType = typename BaseType::IndexRangeType;
+    using MultiIndex = typename BaseType::MultiIndex;
+    using DataType = typename BaseType::DataType;
+
+private:
     template <size_t B, size_t E>
     struct Power {
         static constexpr size_t value = B * Power<B, E - 1>::value;
@@ -667,36 +822,34 @@ class TensorField : public FieldContainer<TField>
     struct Power<B, 0> {
         static constexpr size_t value = 1;
     };
-
-    using MemoryOwner = typename TField::BaseType::MemoryOwner;
+    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
 public:
-    using BaseType = TField;
-    using IndexRangeType = typename BaseType::IndexRangeType;
-    using MultiIndex = typename BaseType::MultiIndex;
-    using DataType = typename BaseType::DataType;
-
     static constexpr size_t Rank = RANK;
     static constexpr size_t NComponents =
         Power<IndexRangeType::Dim, RANK>::value;
 
     explicit TensorField(const IndexRangeType &r)
-        : FieldContainer<TField>(NComponents, r, Rank)
+        : BaseType(NComponents, r, Rank)
     {
     }
 
-    TensorField(const TensorField &fc, const MemoryOwner owner)
-        : FieldContainer<TField>(fc, owner, Rank)
+    TensorField(const TensorField &ffc, const MemoryOwner owner)
+        : BaseType(ffc, owner)
     {
+        assert(this->components_.size() == NComponents);
     }
 
-    TensorField(const IndexRangeType &r,
+    TensorField(const std::vector<IndexRangeType> &range_list,
                 const std::vector<DataType *> &ptr_list,
-                const size_t bytes)
-        : FieldContainer<TField>(r, ptr_list, bytes, Rank)
+                const std::vector<size_t> &bytes_list,
+                const std::vector<FieldState *> &state_list)
+        : BaseType(range_list, ptr_list, bytes_list, state_list)
     {
+        assert(this->components_.size() == NComponents);
     }
 
+    TensorField() = default;
     TensorField(const TensorField &c) = default;
     TensorField(TensorField &&c) noexcept = default;
     TensorField &operator=(const TensorField &c) = default;
@@ -719,35 +872,28 @@ using VectorField = TensorField<TField, 1>;
 template <typename TField>
 class FieldView : public TField
 {
-    using MemoryOwner = typename TField::BaseType::MemoryOwner;
-
 public:
     using BaseType = TField;
+    using FieldType = typename BaseType::FieldType;
+    using FieldState = typename FieldType::FieldStateType;
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
     using DataType = typename BaseType::DataType;
 
+private:
+    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
+
+public:
     FieldView(const BaseType &f) : BaseType(f, MemoryOwner::No) {}
-
-    FieldView(const IndexRangeType &r, DataType *ptr, const size_t bytes)
-        : BaseType(r, ptr, bytes)
-    {
-    }
-
-    FieldView(const IndexRangeType &r,
-              const std::vector<DataType *> &ptr_list,
-              const size_t bytes)
-        : BaseType(r, ptr_list, bytes)
-    {
-    }
 
     FieldView() = delete;
     FieldView(const FieldView &c) = default;
-    FieldView(FieldView &&c) noexcept = default;
     FieldView &operator=(const FieldView &c) = default;
-    FieldView &operator=(FieldView &&c) = default;
-
+    FieldView(FieldView &&c) = delete;
+    FieldView &operator=(FieldView &&c) = delete;
     ~FieldView() = default;
+
+    BaseType copy() const { return BaseType(*this, MemoryOwner::Yes); }
 };
 
 NAMESPACE_END(Block)
