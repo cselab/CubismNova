@@ -6,8 +6,8 @@
 #ifndef VECTOR_H_8YBMEXHP
 #define VECTOR_H_8YBMEXHP
 
-#include "Core/Common.h"
-#include "Core/Math.h"
+#include "Common.h"
+#include "Math.h"
 
 #include <algorithm>
 #include <array>
@@ -22,6 +22,7 @@
 #include <vector>
 
 NAMESPACE_BEGIN(Cubism)
+NAMESPACE_BEGIN(Core)
 
 /// @brief Vector class with support for common operations (wraps around
 ///        std::array)
@@ -623,6 +624,7 @@ std::ostream &operator<<(std::ostream &stream, const Vector<T, DIM> &vec)
     return stream;
 }
 
+NAMESPACE_END(Core)
 NAMESPACE_END(Cubism)
 
 #endif /* VECTOR_H_8YBMEXHP */

@@ -10,13 +10,14 @@
 #include <string>
 
 NAMESPACE_BEGIN(Cubism)
+NAMESPACE_BEGIN(Core)
 
 template <typename T, size_t DIM>
 class Range
 {
 public:
     using DataType = T;
-    using PointType = Cubism::Vector<T, DIM>;
+    using PointType = Vector<T, DIM>;
 
     static constexpr size_t Dim = DIM;
 
@@ -132,6 +133,7 @@ protected:
 template <typename T, size_t DIM>
 constexpr size_t Range<T, DIM>::Dim;
 
+NAMESPACE_END(Core)
 NAMESPACE_END(Cubism)
 
 #endif /* RANGE_H_JDWNYXZA */

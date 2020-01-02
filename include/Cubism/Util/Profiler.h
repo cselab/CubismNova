@@ -6,7 +6,7 @@
 #ifndef PROFILER_H_LQ95Z7KM
 #define PROFILER_H_LQ95Z7KM
 
-#include "Core/Common.h"
+#include "Common.h"
 #include "Util/Sampler.h"
 
 #include <cassert>

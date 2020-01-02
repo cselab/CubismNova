@@ -23,7 +23,7 @@ using NodeData = Block::Data<T, DataMapping::Node, DIM, TAlloc<T>>;
 template <typename T, template <typename> class TAlloc, size_t DIM>
 void runTest()
 {
-    using IRange = IndexRange<DIM>;
+    using IRange = Core::IndexRange<DIM>;
     using MIndex = typename IRange::MultiIndex;
 
     using CData = CellData<T, TAlloc, DIM>;

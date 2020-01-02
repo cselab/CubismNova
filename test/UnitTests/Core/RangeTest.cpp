@@ -9,7 +9,7 @@
 namespace
 {
 // some test types
-using Range = Cubism::Range<float, 3>;
+using Range = Cubism::Core::Range<float, 3>;
 using Point = typename Range::PointType;
 
 // Construction of Ranges

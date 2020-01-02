@@ -7,7 +7,7 @@
 #ifndef INIPARSER_H_1WLRUC2B
 #define INIPARSER_H_1WLRUC2B
 
-#include "Core/Common.h"
+#include "Common.h"
 
 #include <map>
 #include <ostream>

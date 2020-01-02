@@ -6,7 +6,7 @@
 #ifndef HISTOGRAM_H_6SPETKCI
 #define HISTOGRAM_H_6SPETKCI
 
-#include "Core/Common.h"
+#include "Common.h"
 #include "Util/Sampler.h"
 
 #include <mpi.h>

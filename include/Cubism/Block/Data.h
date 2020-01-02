@@ -7,7 +7,7 @@
 #define DATA_H_W5KVJG9U
 
 #include "Alloc/AlignedBlockAllocator.h"
-#include "Core/Common.h"
+#include "Common.h"
 #include "Core/Index.h"
 
 #include <cassert>
@@ -71,7 +71,7 @@ class Data : public DataBase
 public:
     using BaseType = DataBase;
     using AllocType = BlockAlloc;
-    using IndexRangeType = IndexRange<DIM>;
+    using IndexRangeType = Core::IndexRange<DIM>;
     using MultiIndex = typename IndexRangeType::MultiIndex;
     using DataType = typename BlockAlloc::DataType;
     static_assert(std::is_same<DataType, T>::value,
@@ -150,6 +150,7 @@ public:
         c.setNull_(); // ensure that destructor of c has no effect
     }
 
+    /// @brief Virtual destructor
     ~Data() override
     {
         if (static_cast<bool>(owner_)) {

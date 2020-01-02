@@ -6,7 +6,7 @@
 #ifndef MATH_H_ODQVPXYD
 #define MATH_H_ODQVPXYD
 
-#include "Core/Common.h"
+#include "Common.h"
 
 #include <cmath>
 #include <cstdlib>

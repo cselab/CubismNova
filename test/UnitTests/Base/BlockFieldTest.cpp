@@ -4,7 +4,7 @@
 // Description: Unit tests for Cubism/Base/BlockField.h
 // Copyright 2019 ETH Zurich. All Rights Reserved.
 #include "Base/BlockField.h"
-#include "Core/Common.h"
+#include "Common.h"
 #include "gtest/gtest.h"
 
 namespace

@@ -11,6 +11,7 @@
 #include <cstddef>
 
 NAMESPACE_BEGIN(Cubism)
+NAMESPACE_BEGIN(Core)
 
 #ifdef CUBISM_32BIT_INDEX
 using Index = int;
@@ -20,7 +21,7 @@ using Index = std::ptrdiff_t;
 
 /// @brief Extension of generic Range to index space
 template <size_t DIM>
-class IndexRange : public Range<Index, DIM>
+class IndexRange : public Core::Range<Index, DIM>
 {
 public:
     using BaseType = Range<Index, DIM>;
@@ -95,6 +96,7 @@ private:
     PointType extent_;
 };
 
+NAMESPACE_END(Core)
 NAMESPACE_END(Cubism)
 
 #endif /* INDEX_H_CPAHO0UM */

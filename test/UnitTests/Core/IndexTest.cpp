@@ -8,7 +8,7 @@
 
 namespace
 {
-using IRange = Cubism::IndexRange<3>;
+using IRange = Cubism::Core::IndexRange<3>;
 using MIndex = IRange::PointType;
 
 TEST(Index, ExtendedInterface)

@@ -6,8 +6,8 @@
 #ifndef BLOCKFIELD_H_6LD9GMJA
 #define BLOCKFIELD_H_6LD9GMJA
 
+#include "Common.h"
 #include "Core/BlockAllocator.h"
-#include "Core/Common.h"
 
 #include <array>
 #include <cassert>

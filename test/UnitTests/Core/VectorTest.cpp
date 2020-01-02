@@ -14,16 +14,16 @@ namespace
 {
 // some test types
 template <size_t D>
-using V_f = Cubism::Vector<float, D>;
+using V_f = Cubism::Core::Vector<float, D>;
 template <size_t D>
-using V_d = Cubism::Vector<double, D>;
+using V_d = Cubism::Core::Vector<double, D>;
 template <size_t D>
-using V_i = Cubism::Vector<int, D>;
+using V_i = Cubism::Core::Vector<int, D>;
 template <size_t D>
-using V_m = Cubism::Vector<size_t, D>;
+using V_m = Cubism::Core::Vector<size_t, D>;
 
 template <typename T, size_t DIM>
-T sumVector(const Cubism::Vector<T, DIM> &v)
+T sumVector(const Cubism::Core::Vector<T, DIM> &v)
 {
     T sum = 0;
     for (size_t i = 0; i < v.size(); ++i) {
@@ -94,7 +94,7 @@ TEST(Vector, Construction)
         EXPECT_EQ(6, sumVector(v3));
         EXPECT_EQ(6, sumVector(v4));
 
-        // from arbitrary Cubism::Vector types
+        // from arbitrary Cubism::Core::Vector types
         V_d<4> v5{2, 3};
         V_i<9> v6(v5); // v6.size() > v5.size()
         V_m<1> v7(v5); // v7.szie() < v5.size()
@@ -192,7 +192,7 @@ TEST(Vector, Logic)
     using Vec3 = V_i<3>; // test with integers
     using Vec2 = V_i<2>;
 
-    // Cubism::Vector logic operators do not follow lexicographical order
+    // Cubism::Core::Vector logic operators do not follow lexicographical order
     Vec3 v3_0 = {0};
     Vec3 v3_1 = {1, 0};
     Vec3 v3_2 = {2, 0};
@@ -270,7 +270,7 @@ TEST(Vector, Logic)
     EXPECT_GE(a3_3, a3_2);
     EXPECT_GE(a3_3, a3_4);
 
-    // Cubism::Vector using lexicographic compare similar to
+    // Cubism::Core::Vector using lexicographic compare similar to
     // std::lexicographical_compare
     EXPECT_TRUE(v3_0.lexLT(v3_1));
     EXPECT_TRUE(v3_1.lexLT(v3_2));
@@ -433,14 +433,14 @@ TEST(Vector, CommonVecOpReal)
     EXPECT_EQ(v0.dist(v1), vOne.norm());
 }
 
-// Cross-product for 3D and 2D Cubism::Vector
+// Cross-product for 3D and 2D Cubism::Core::Vector
 TEST(Vector, CrossProduct)
 {
     using Vec2 = V_f<2>;
     using Vec3 = V_f<3>;
     using DataType = typename Vec3::DataType;
 
-    // 3D Cubism::Vector
+    // 3D Cubism::Core::Vector
     Vec3 v0{1, 0};
     Vec3 v1{0, 1};
     Vec3 v2 = v0.cross(v1);
@@ -450,7 +450,7 @@ TEST(Vector, CrossProduct)
     v2 = v0.cross(v1);
     EXPECT_EQ(v2, Vec3({0}));
 
-    // 2D Cubism::Vector
+    // 2D Cubism::Core::Vector
     Vec2 v3{1, 0};
     Vec2 v4{0, 1};
     EXPECT_EQ(v3.getCrossThird(v4), static_cast<DataType>(1));
