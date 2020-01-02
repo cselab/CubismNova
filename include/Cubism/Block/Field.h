@@ -277,7 +277,7 @@ public:
     Field operator-() const
     {
         Field f(*this);
-        // fieldMul(f.block_, -1, f.block_, range_.size());
+        // TODO: [fabianw@mavt.ethz.ch; 2020-01-02] bit-flip might be better
         for (size_t i = 0; i < range_.size(); ++i) {
             f[i] = -f[i];
         }
@@ -378,7 +378,9 @@ public:
         return (rhs *= lhs);
     }
 
-    void reciprocal(const DataType c)
+    // TODO: [fabianw@mavt.ethz.ch; 2020-01-02] reciprocal() should not perform
+    // the multiplication in fieldRcp.  Factor into specialization
+    void reciprocal(const DataType c = 1)
     {
         // reciprocal multiplied by c
         fieldRcp(block_, c, block_, range_.size());
@@ -859,7 +861,7 @@ public:
         return (rhs *= lhs);
     }
 
-    void reciprocal(const DataType c)
+    void reciprocal(const DataType c = 1)
     {
         for (size_t i = 0; i < components_.size(); ++i) {
             BaseType *comp = components_[i];

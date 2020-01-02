@@ -223,8 +223,160 @@ TEST(Field, View)
     EXPECT_FALSE(nfv.isMemoryOwner());
 }
 
-// TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
-TEST(Field, Arithmetic) {}
+TEST(Field, Arithmetic)
+{
+    using CellField = Block::Field<CellData<float, AlignedBlockAllocator, 3>>;
+    using IRange = typename CellField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    using DataType = typename CellField::DataType;
+
+    MIndex cells(8);
+    IRange cell_domain(cells);
+    CellField cf1(cell_domain);
+    CellField cf2(cell_domain);
+    const DataType s1 = 1;
+    const DataType s2 = 2;
+    std::fill(cf1.begin(), cf1.end(), s1);
+    std::fill(cf2.begin(), cf2.end(), s2);
+
+    // two field operands
+    { // += | +
+        auto cf(cf1);
+        cf += cf2;
+        for (const auto c : cf) {
+            EXPECT_EQ(c, 3);
+        }
+
+        auto cfp = cf1 + cf2;
+        for (const auto c : cfp) {
+            EXPECT_EQ(c, 3);
+        }
+    }
+    { // -= | -
+        auto cf(cf1);
+        cf -= cf2;
+        for (const auto c : cf) {
+            EXPECT_EQ(c, -1);
+        }
+
+        auto cfp = cf1 - cf2;
+        for (const auto c : cfp) {
+            EXPECT_EQ(c, -1);
+        }
+    }
+    { // *= | *
+        auto cf(cf1);
+        cf *= cf2;
+        for (const auto c : cf) {
+            EXPECT_EQ(c, 2);
+        }
+
+        auto cfp = cf1 * cf2;
+        for (const auto c : cfp) {
+            EXPECT_EQ(c, 2);
+        }
+    }
+    { // /= | /
+        auto cf(cf1);
+        cf /= cf2;
+        for (const auto c : cf) {
+            EXPECT_EQ(c, 0.5);
+        }
+
+        auto cfp = cf1 / cf2;
+        for (const auto c : cfp) {
+            EXPECT_EQ(c, 0.5);
+        }
+    }
+
+    // one field operand
+    { // += | +
+        auto cf(cf1);
+        cf += s2;
+        for (const auto c : cf) {
+            EXPECT_EQ(c, 3);
+        }
+
+        auto cfp = cf1 + s2;
+        for (const auto c : cfp) {
+            EXPECT_EQ(c, 3);
+        }
+
+        auto cfpr = s2 + cf1;
+        for (const auto c : cfpr) {
+            EXPECT_EQ(c, 3);
+        }
+    }
+    { // -= | -
+        auto cf(cf1);
+        cf -= s2;
+        for (const auto c : cf) {
+            EXPECT_EQ(c, -1);
+        }
+
+        auto cfp = cf1 - s2;
+        for (const auto c : cfp) {
+            EXPECT_EQ(c, -1);
+        }
+
+        auto cfpr = s2 - cf1;
+        for (const auto c : cfpr) {
+            EXPECT_EQ(c, 1);
+        }
+    }
+    { // *= | *
+        auto cf(cf1);
+        cf *= s2;
+        for (const auto c : cf) {
+            EXPECT_EQ(c, 2);
+        }
+
+        auto cfp = cf1 * s2;
+        for (const auto c : cfp) {
+            EXPECT_EQ(c, 2);
+        }
+
+        auto cfpr = s2 * cf1;
+        for (const auto c : cfpr) {
+            EXPECT_EQ(c, 2);
+        }
+    }
+    { // /= | /
+        auto cf(cf1);
+        cf /= s2;
+        for (const auto c : cf) {
+            EXPECT_EQ(c, 0.5);
+        }
+
+        auto cfp = cf1 / s2;
+        for (const auto c : cfp) {
+            EXPECT_EQ(c, 0.5);
+        }
+    }
+
+    // negation
+    {
+        auto cf(-cf1);
+        for (const auto c : cf) {
+            EXPECT_EQ(c, -1);
+        }
+    }
+
+    // reciprocal
+    {
+        auto cf(cf2);
+        cf.reciprocal(2);
+        for (const auto c : cf) {
+            EXPECT_EQ(c, 1);
+        }
+
+        cf = cf2;
+        cf.reciprocal();
+        for (const auto c : cf) {
+            EXPECT_EQ(c, 0.5);
+        }
+    }
+}
 
 TEST(FieldContainer, Construction)
 {
@@ -537,8 +689,209 @@ TEST(FieldContainer, Interface)
     }
 }
 
-// TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
-TEST(FieldContainer, Arithmetic) {}
+TEST(FieldContainer, Arithmetic)
+{
+    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 2>>;
+    using IRange = typename CellField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    using DataType = typename CellField::DataType;
+
+    using FC = Block::FieldContainer<CellField>;
+    MIndex cells(8);
+    IRange cell_domain(cells);
+    FC cf1(3, cell_domain);
+    FC cf2(3, cell_domain);
+    const DataType s1 = 1;
+    const DataType s2 = 2;
+    for (auto f : cf1) {
+        std::fill(f->begin(), f->end(), s1);
+    }
+    for (auto f : cf2) {
+        std::fill(f->begin(), f->end(), s2);
+    }
+
+    // two field operands
+    { // += | +
+        auto cf(cf1);
+        cf += cf2;
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 3);
+            }
+        }
+
+        auto cfp = cf1 + cf2;
+        for (auto f : cfp) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 3);
+            }
+        }
+    }
+    { // -= | -
+        auto cf(cf1);
+        cf -= cf2;
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, -1);
+            }
+        }
+
+        auto cfp = cf1 - cf2;
+        for (auto f : cfp) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, -1);
+            }
+        }
+    }
+    { // *= | *
+        auto cf(cf1);
+        cf *= cf2;
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 2);
+            }
+        }
+
+        auto cfp = cf1 * cf2;
+        for (auto f : cfp) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 2);
+            }
+        }
+    }
+    { // /= | /
+        auto cf(cf1);
+        cf /= cf2;
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 0.5);
+            }
+        }
+
+        auto cfp = cf1 / cf2;
+        for (auto f : cfp) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 0.5);
+            }
+        }
+    }
+
+    // one field operand
+    { // += | +
+        auto cf(cf1);
+        cf += s2;
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 3);
+            }
+        }
+
+        auto cfp = cf1 + s2;
+        for (auto f : cfp) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 3);
+            }
+        }
+
+        auto cfpr = s2 + cf1;
+        for (auto f : cfpr) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 3);
+            }
+        }
+    }
+    { // -= | -
+        auto cf(cf1);
+        cf -= s2;
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, -1);
+            }
+        }
+
+        auto cfp = cf1 - s2;
+        for (auto f : cfp) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, -1);
+            }
+        }
+
+        auto cfpr = s2 - cf1;
+        for (auto f : cfpr) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 1);
+            }
+        }
+    }
+    { // *= | *
+        auto cf(cf1);
+        cf *= s2;
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 2);
+            }
+        }
+
+        auto cfp = cf1 * s2;
+        for (auto f : cfp) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 2);
+            }
+        }
+
+        auto cfpr = s2 * cf1;
+        for (auto f : cfpr) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 2);
+            }
+        }
+    }
+    { // /= | /
+        auto cf(cf1);
+        cf /= s2;
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 0.5);
+            }
+        }
+
+        auto cfp = cf1 / s2;
+        for (auto f : cfp) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 0.5);
+            }
+        }
+    }
+
+    // negation
+    {
+        auto cf(-cf1);
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, -1);
+            }
+        }
+    }
+
+    // reciprocal
+    {
+        auto cf(cf2);
+        cf.reciprocal(2);
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 1);
+            }
+        }
+
+        cf = cf2;
+        cf.reciprocal();
+        for (auto f : cf) {
+            for (const auto c : *f) {
+                EXPECT_EQ(c, 0.5);
+            }
+        }
+    }
+}
 
 TEST(FaceFieldAll, Construction)
 {
