@@ -379,13 +379,12 @@ public:
         return (rhs *= lhs);
     }
 
-    friend Field operator/(const DataType lhs, Field rhs)
+    void reciprocal(const DataType c)
     {
-        // reciprocal multiplied by lhs
-        fieldRcp(rhs.block_, lhs, rhs.block_, range_.size());
-        return rhs;
+        // reciprocal multiplied by c
+        fieldRcp(block_, c, block_, range_.size());
+        return;
     }
-#endif
 
 private:
     FieldStateType *state_; // Field state values/meta data
@@ -467,16 +466,6 @@ using FaceField = Field<Data<T, DataMapping::Face, Dimension, Alloc<T>>, State>;
             BaseType *LHS = components_[i];                                    \
             if (LHS) {                                                         \
                 *LHS OP rhs;                                                   \
-            }                                                                  \
-        }                                                                      \
-    } while (0)
-
-#define FIELD_CONTAINER_RCP()                                                  \
-    do {                                                                       \
-        for (size_t i = 0; i < rhs.components_.size(); ++i) {                  \
-            BaseType *RHS = rhs.components_[i];                                \
-            if (RHS) {                                                         \
-                *RHS = lhs / *RHS;                                             \
             }                                                                  \
         }                                                                      \
     } while (0)
@@ -874,13 +863,16 @@ public:
         return (rhs *= lhs);
     }
 
-    friend FieldContainer operator/(const DataType lhs, FieldContainer rhs)
+    void reciprocal(const DataType c)
     {
-        // reciprocal multiplied by lhs
-        FIELD_CONTAINER_RCP();
-        return rhs;
+        for (size_t i = 0; i < components_.size(); ++i) {
+            BaseType *comp = components_[i];
+            if (comp) {
+                comp->reciprocal(c);
+            }
+        }
+        return;
     }
-#endif
 
 protected:
     ContainerType components_; // the stars of the show
@@ -935,7 +927,6 @@ private:
 
 #undef FIELD_CONTAINER_OP_FIELD
 #undef FIELD_CONTAINER_OP_SCALAR
-#undef FIELD_CONTAINER_RCP
 
 /// @brief Container class for all faces in a CUBISM_DIMENSION-ional problem.
 /// The underlying face fields are based on the FaceField template.  For
