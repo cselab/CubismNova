@@ -24,9 +24,9 @@
 #define CUBISM_ALIGNMENT 32
 #endif /* CUBISM_ALIGNMENT */
 
-// #ifndef CUBISM_32BIT_INDEX
-// #define CUBISM_32BIT_INDEX
-// #endif /* CUBISM_32BIT_INDEX */
+// Boolean compile switches for commandline:
+// CUBISM_32BIT_INDEX
+// CUBISM_OPTIMIZED_FIELD_OP
 
 static_assert(CUBISM_DIMENSION > 0, "CUBISM_DIMENSION must be > 0");
 

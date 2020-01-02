@@ -8,6 +8,7 @@
 
 #include "Alloc/AlignedBlockAllocator.h"
 #include "Block/Data.h"
+#include "Block/FieldOperator.h"
 #include "Common.h"
 
 #include <array>
@@ -63,7 +64,6 @@ protected:
             ptr_ = ptr;
             return *this;
         }
-
         bool operator==(const IteratorBase &rhs) const
         {
             return ptr_ == rhs.ptr_;
@@ -274,8 +274,6 @@ public:
     /// @return Const reference to state
     const FieldStateType &getState() const { return *state_; }
 
-// TODO: [fabianw@mavt.ethz.ch; 2019-12-31]
-#if 0
     Field operator-() const
     {
         Field f(*this);
@@ -285,6 +283,8 @@ public:
         }
         return f;
     }
+
+    // TODO: [fabianw@mavt.ethz.ch; 2020-01-02] Field FMA
 
     Field &operator+=(const Field &rhs)
     {
@@ -339,7 +339,6 @@ public:
 
     Field &operator/=(const DataType rhs)
     {
-        assert(rhs > 0 || rhs < 0);
         fieldDiv(block_, rhs, block_, range_.size());
         return *this;
     }
@@ -740,8 +739,6 @@ public:
         return getComp_(static_cast<size_t>(t));
     }
 
-#if 0
-    // arithmetic
     FieldContainer operator-() const
     {
         FieldContainer fc(*this);
@@ -823,7 +820,6 @@ public:
 
     FieldContainer &operator/=(const DataType rhs)
     {
-        assert(rhs > 0 || rhs < 0);
         FIELD_CONTAINER_OP_SCALAR(/=);
         return *this;
     }
