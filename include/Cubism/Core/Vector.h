@@ -216,8 +216,21 @@ public:
     //
     iterator begin() noexcept { return array_.begin(); }
     iterator end() noexcept { return array_.end(); }
+    const_iterator begin() const noexcept
+    {
+        return const_iterator(array_.begin());
+    }
+    const_iterator end() const noexcept { return const_iterator(array_.end()); }
     reverse_iterator rbegin() noexcept { return array_.rbegin(); }
     reverse_iterator rend() noexcept { return array_.rend(); }
+    const_reverse_iterator rbegin() const noexcept
+    {
+        return const_reverse_iterator(array_.rbegin());
+    }
+    const_reverse_iterator rend() const noexcept
+    {
+        return const_reverse_iterator(array_.rend());
+    }
 
     const_iterator cbegin() const noexcept { return array_.cbegin(); }
     const_iterator cend() const noexcept { return array_.cend(); }

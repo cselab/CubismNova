@@ -6,6 +6,7 @@
 #include "Core/Vector.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <vector>
@@ -465,9 +466,7 @@ TEST(Vector, Iterator)
     Vec v0;
 
     // forward
-    for (DataType &v : v0) {
-        v = 1;
-    }
+    std::fill(v0.begin(), v0.end(), 1);
     EXPECT_EQ(sumVector(v0), v0.size());
 
     DataType sum = 0;

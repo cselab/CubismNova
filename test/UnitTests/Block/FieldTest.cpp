@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <type_traits>
 #include <utility>
 
 namespace
@@ -247,7 +248,7 @@ TEST(Field, Arithmetic)
             EXPECT_EQ(c, 3);
         }
 
-        auto cfp = cf1 + cf2;
+        const auto cfp = cf1 + cf2;
         for (const auto c : cfp) {
             EXPECT_EQ(c, 3);
         }
@@ -259,7 +260,7 @@ TEST(Field, Arithmetic)
             EXPECT_EQ(c, -1);
         }
 
-        auto cfp = cf1 - cf2;
+        const auto cfp = cf1 - cf2;
         for (const auto c : cfp) {
             EXPECT_EQ(c, -1);
         }
@@ -271,7 +272,7 @@ TEST(Field, Arithmetic)
             EXPECT_EQ(c, 2);
         }
 
-        auto cfp = cf1 * cf2;
+        const auto cfp = cf1 * cf2;
         for (const auto c : cfp) {
             EXPECT_EQ(c, 2);
         }
@@ -283,7 +284,7 @@ TEST(Field, Arithmetic)
             EXPECT_EQ(c, 0.5);
         }
 
-        auto cfp = cf1 / cf2;
+        const auto cfp = cf1 / cf2;
         for (const auto c : cfp) {
             EXPECT_EQ(c, 0.5);
         }
@@ -297,12 +298,12 @@ TEST(Field, Arithmetic)
             EXPECT_EQ(c, 3);
         }
 
-        auto cfp = cf1 + s2;
+        const auto cfp = cf1 + s2;
         for (const auto c : cfp) {
             EXPECT_EQ(c, 3);
         }
 
-        auto cfpr = s2 + cf1;
+        const auto cfpr = s2 + cf1;
         for (const auto c : cfpr) {
             EXPECT_EQ(c, 3);
         }
@@ -314,12 +315,12 @@ TEST(Field, Arithmetic)
             EXPECT_EQ(c, -1);
         }
 
-        auto cfp = cf1 - s2;
+        const auto cfp = cf1 - s2;
         for (const auto c : cfp) {
             EXPECT_EQ(c, -1);
         }
 
-        auto cfpr = s2 - cf1;
+        const auto cfpr = s2 - cf1;
         for (const auto c : cfpr) {
             EXPECT_EQ(c, 1);
         }
@@ -331,12 +332,12 @@ TEST(Field, Arithmetic)
             EXPECT_EQ(c, 2);
         }
 
-        auto cfp = cf1 * s2;
+        const auto cfp = cf1 * s2;
         for (const auto c : cfp) {
             EXPECT_EQ(c, 2);
         }
 
-        auto cfpr = s2 * cf1;
+        const auto cfpr = s2 * cf1;
         for (const auto c : cfpr) {
             EXPECT_EQ(c, 2);
         }
@@ -348,7 +349,7 @@ TEST(Field, Arithmetic)
             EXPECT_EQ(c, 0.5);
         }
 
-        auto cfp = cf1 / s2;
+        const auto cfp = cf1 / s2;
         for (const auto c : cfp) {
             EXPECT_EQ(c, 0.5);
         }
@@ -356,7 +357,7 @@ TEST(Field, Arithmetic)
 
     // negation
     {
-        auto cf(-cf1);
+        const auto cf(-cf1);
         for (const auto c : cf) {
             EXPECT_EQ(c, -1);
         }
@@ -595,8 +596,8 @@ TEST(FieldContainer, Iterator)
     double sum = 0.0;
     double ref = 0.0;
     int count = 0;
-    for (auto block : field_container) {
-        auto &b = *block;
+    for (const auto block : field_container) {
+        const auto &b = *block;
         ref += count * b.getBlockSize();
         ++count;
         for (const auto v : b) {
@@ -680,7 +681,7 @@ TEST(FieldContainer, Interface)
         }
         fc2.copyData(fc1);
         k = 0;
-        for (auto f : fc2) {
+        for (const auto f : fc2) {
             for (const auto n : *f) {
                 EXPECT_EQ(n, k);
             }
@@ -714,14 +715,14 @@ TEST(FieldContainer, Arithmetic)
     { // += | +
         auto cf(cf1);
         cf += cf2;
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 3);
             }
         }
 
-        auto cfp = cf1 + cf2;
-        for (auto f : cfp) {
+        const auto cfp = cf1 + cf2;
+        for (const auto f : cfp) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 3);
             }
@@ -730,14 +731,14 @@ TEST(FieldContainer, Arithmetic)
     { // -= | -
         auto cf(cf1);
         cf -= cf2;
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, -1);
             }
         }
 
-        auto cfp = cf1 - cf2;
-        for (auto f : cfp) {
+        const auto cfp = cf1 - cf2;
+        for (const auto f : cfp) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, -1);
             }
@@ -746,14 +747,14 @@ TEST(FieldContainer, Arithmetic)
     { // *= | *
         auto cf(cf1);
         cf *= cf2;
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 2);
             }
         }
 
-        auto cfp = cf1 * cf2;
-        for (auto f : cfp) {
+        const auto cfp = cf1 * cf2;
+        for (const auto f : cfp) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 2);
             }
@@ -762,14 +763,14 @@ TEST(FieldContainer, Arithmetic)
     { // /= | /
         auto cf(cf1);
         cf /= cf2;
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 0.5);
             }
         }
 
-        auto cfp = cf1 / cf2;
-        for (auto f : cfp) {
+        const auto cfp = cf1 / cf2;
+        for (const auto f : cfp) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 0.5);
             }
@@ -780,21 +781,21 @@ TEST(FieldContainer, Arithmetic)
     { // += | +
         auto cf(cf1);
         cf += s2;
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 3);
             }
         }
 
-        auto cfp = cf1 + s2;
-        for (auto f : cfp) {
+        const auto cfp = cf1 + s2;
+        for (const auto f : cfp) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 3);
             }
         }
 
-        auto cfpr = s2 + cf1;
-        for (auto f : cfpr) {
+        const auto cfpr = s2 + cf1;
+        for (const auto f : cfpr) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 3);
             }
@@ -803,21 +804,21 @@ TEST(FieldContainer, Arithmetic)
     { // -= | -
         auto cf(cf1);
         cf -= s2;
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, -1);
             }
         }
 
-        auto cfp = cf1 - s2;
-        for (auto f : cfp) {
+        const auto cfp = cf1 - s2;
+        for (const auto f : cfp) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, -1);
             }
         }
 
-        auto cfpr = s2 - cf1;
-        for (auto f : cfpr) {
+        const auto cfpr = s2 - cf1;
+        for (const auto f : cfpr) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 1);
             }
@@ -826,21 +827,21 @@ TEST(FieldContainer, Arithmetic)
     { // *= | *
         auto cf(cf1);
         cf *= s2;
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 2);
             }
         }
 
-        auto cfp = cf1 * s2;
-        for (auto f : cfp) {
+        const auto cfp = cf1 * s2;
+        for (const auto f : cfp) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 2);
             }
         }
 
-        auto cfpr = s2 * cf1;
-        for (auto f : cfpr) {
+        const auto cfpr = s2 * cf1;
+        for (const auto f : cfpr) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 2);
             }
@@ -849,14 +850,14 @@ TEST(FieldContainer, Arithmetic)
     { // /= | /
         auto cf(cf1);
         cf /= s2;
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 0.5);
             }
         }
 
-        auto cfp = cf1 / s2;
-        for (auto f : cfp) {
+        const auto cfp = cf1 / s2;
+        for (const auto f : cfp) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 0.5);
             }
@@ -865,8 +866,8 @@ TEST(FieldContainer, Arithmetic)
 
     // negation
     {
-        auto cf(-cf1);
-        for (auto f : cf) {
+        const auto cf(-cf1);
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, -1);
             }
@@ -877,7 +878,7 @@ TEST(FieldContainer, Arithmetic)
     {
         auto cf(cf2);
         cf.reciprocal(2);
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 1);
             }
@@ -885,7 +886,7 @@ TEST(FieldContainer, Arithmetic)
 
         cf = cf2;
         cf.reciprocal();
-        for (auto f : cf) {
+        for (const auto f : cf) {
             for (const auto c : *f) {
                 EXPECT_EQ(c, 0.5);
             }
@@ -905,7 +906,7 @@ TEST(FaceFieldAll, Construction)
     FaceField ff(cell_domain);
     EXPECT_EQ(ff.size(), CUBISM_DIMENSION);
     size_t k = 0;
-    for (auto f : ff) {
+    for (const auto f : ff) {
         EXPECT_EQ(f->getRank(), 0);
         EXPECT_EQ(f->getComp(), k++);
     }
@@ -1003,7 +1004,7 @@ TEST(TensorField, Construction)
 
     EXPECT_EQ(tf.size(), std::pow(IRange::Dim, TensorField::Rank));
     size_t k = 0;
-    for (auto c : tf) {
+    for (const auto c : tf) {
         EXPECT_EQ(c->getRank(), TensorField::Rank);
         EXPECT_EQ(c->getComp(), k++);
     }

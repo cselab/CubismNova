@@ -236,10 +236,15 @@ public:
     ///
     /// @return Iterator
     iterator begin() noexcept { return iterator(block_); }
+    const_iterator begin() const noexcept { return const_iterator(block_); }
     /// @brief End of data
     ///
     /// @return Iterator
     iterator end() noexcept { return iterator(block_ + range_.size()); }
+    const_iterator end() const noexcept
+    {
+        return const_iterator(block_ + range_.size());
+    }
     /// @brief Begin of data
     ///
     /// @return Const iterator
@@ -644,18 +649,34 @@ public:
     ///
     /// @return Iterator
     iterator begin() noexcept { return components_.begin(); }
+    const_iterator begin() const noexcept
+    {
+        return const_iterator(components_.begin());
+    }
     /// @brief End of fields
     ///
     /// @return Iterator
     iterator end() noexcept { return components_.end(); }
+    const_iterator end() const noexcept
+    {
+        return const_iterator(components_.end());
+    }
     /// @brief Begin of reversed fields
     ///
     /// @return Reverse iterator
     reverse_iterator rbegin() noexcept { return components_.rbegin(); }
+    const_reverse_iterator rbegin() const noexcept
+    {
+        return const_reverse_iterator(components_.rbegin());
+    }
     /// @brief End of reversed fields
     ///
     /// @return Reverse iterator
     reverse_iterator rend() noexcept { return components_.rend(); }
+    const_reverse_iterator rend() const noexcept
+    {
+        return const_reverse_iterator(components_.rend());
+    }
     /// @brief Begin of fields
     ///
     /// @return Const iterator
