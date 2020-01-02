@@ -8,7 +8,7 @@
 
 #include "Alloc/AlignedBlockAllocator.h"
 #include "Block/Data.h"
-#include "Core/Common.h"
+#include "Common.h"
 
 #include <array>
 #include <cstddef>
@@ -19,6 +19,8 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
+/// @brief Meta data (state) of a block field.  Data carried in a field
+///        state is supposed to be static.
 struct FieldState {
     size_t rank;      // field rank -- rank=0 (scalar), rank=1 (vector), ...
     size_t comp;      // field component in rank dimension
@@ -27,6 +29,10 @@ struct FieldState {
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
 // class FieldUnit // for physical units of carried data
 
+/// @brief Block field base class
+///
+/// @tparam TBlockData Block data type
+/// @tparam TState Field state type
 template <typename TBlockData, typename TState = FieldState>
 class Field : public TBlockData
 {
@@ -34,6 +40,9 @@ protected:
     using TBlockData::block_;
     using TBlockData::range_;
 
+    /// @brief Generic iterator for block data
+    ///
+    /// @tparam T Iterator type
     template <typename T>
     class IteratorBase
     {
@@ -126,6 +135,10 @@ public:
 
     Field() = delete;
 
+    /// @brief Main field constructor
+    ///
+    /// @param r Index range that spans the data
+    /// @param fs Field state (optional)
     explicit Field(const IndexRangeType &r,
                    const FieldStateType &fs = FieldStateType())
         : BaseType(r), state_(new FieldStateType())
@@ -133,6 +146,10 @@ public:
         *state_ = fs;
     }
 
+    /// @brief Copy constructor for deep and shallow copies
+    ///
+    /// @param f Field to be copied
+    /// @param o Memory ownership (Data::MemoryOwner::Yes = copy deep)
     Field(const Field &f, const typename BaseType::MemoryOwner o)
         : BaseType(f, o)
     {
@@ -142,6 +159,12 @@ public:
         copyState_(f);
     }
 
+    /// @brief Low-level view constructor
+    ///
+    /// @param r Index range that is spanned by ptr
+    /// @param ptr Block data pointer
+    /// @param bytes Number of bytes in block data
+    /// @param sptr Field state pointer
     Field(const IndexRangeType &r,
           DataType *ptr,
           const size_t bytes,
@@ -150,6 +173,9 @@ public:
     {
     }
 
+    /// @brief Standard copy constructor
+    ///
+    /// @param c Field to copy from
     Field(const Field &c) : BaseType(c)
     {
         if (this->isMemoryOwner()) {
@@ -158,14 +184,23 @@ public:
         copyState_(c);
     }
 
+    /// @brief Standard move constructor
+    ///
+    /// @param c Field to move from
     Field(Field &&c) noexcept
         : BaseType(std::move(c)), state_(std::move(c.state_))
     {
         c.state_ = nullptr;
     }
 
-    ~Field() { disposeState_(); }
+    /// @brief Virtual destructor
+    ~Field() override { disposeState_(); }
 
+    /// @brief Standard copy assignment operator
+    ///
+    /// @param c Field to copy from
+    ///
+    /// @return This field with contents copied from c (data and state)
     Field &operator=(const Field &c)
     {
         assert(range_.size() == c.range_.size());
@@ -176,6 +211,11 @@ public:
         return *this;
     };
 
+    /// @brief Standard move assignment operator
+    ///
+    /// @param c Field to move from
+    ///
+    /// @return This field with contents moved from c (data and state)
     Field &operator=(Field &&c)
     {
         assert(range_.size() == c.range_.size());
@@ -188,20 +228,50 @@ public:
         return *this;
     }
 
+    /// @brief Iterator for underlying data
     using iterator = IteratorBase<DataType>;
+    /// @brief Const iterator for underlying data
     using const_iterator = IteratorBase<const DataType>;
+    /// @brief Begin of data
+    ///
+    /// @return Iterator
     iterator begin() noexcept { return iterator(block_); }
+    /// @brief End of data
+    ///
+    /// @return Iterator
     iterator end() noexcept { return iterator(block_ + range_.size()); }
+    /// @brief Begin of data
+    ///
+    /// @return Const iterator
     const_iterator cbegin() const noexcept { return const_iterator(block_); }
+    /// @brief End of data
+    ///
+    /// @return Const iterator
     const_iterator cend() const noexcept
     {
         return const_iterator(block_ + range_.size());
     }
 
+    /// @brief Test if field belongs to scalar class
+    ///
+    /// @return Boolean (true if scalar, false if higher rank tensor class)
     bool isScalar() const { return (0 == state_->rank); }
+    /// @brief Rank of field
+    ///
+    /// @return Rank of tensor field (0 = scalar, 1 = vector, ...)
     size_t getRank() const { return state_->rank; }
+    /// @brief Component ID if the field belongs to a set of fields (e.g. higher
+    /// rank tensor or field belongs to a field container)
+    ///
+    /// @return Component ID (integral type >= 0)
     size_t getComp() const { return state_->comp; }
+    /// @brief Access to field state
+    ///
+    /// @return Non-const reference to state
     FieldStateType &getState() { return *state_; }
+    /// @brief Access to field state
+    ///
+    /// @return Const reference to state
     const FieldStateType &getState() const { return *state_; }
 
 // TODO: [fabianw@mavt.ethz.ch; 2019-12-31]
@@ -320,6 +390,7 @@ public:
 private:
     FieldStateType *state_; // Field state values/meta data
 
+    /// @brief Deallocate state data
     void disposeState_()
     {
         if (this->isMemoryOwner()) {
@@ -330,6 +401,10 @@ private:
         state_ = nullptr;
     }
 
+    /// @brief Copy state data from field c (deep or shallow depending on
+    ///  ownership)
+    ///
+    /// @param c Field to copy state from
     void copyState_(const Field &c)
     {
         if (this->isMemoryOwner()) {
@@ -340,23 +415,40 @@ private:
     }
 };
 
+/// @brief Basic cell-centered data field
+///
+/// @tparam T Data type (must be POD)
+/// @tparam State State type
+/// @tparam Alloc Allocator type
 template <typename T,
           typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator>
-using CellField =
-    Field<Data<T, DataMapping::Cell, CUBISM_DIMENSION, Alloc<T>>, State>;
+          template <typename> class Alloc = AlignedBlockAllocator,
+          size_t Dimension = CUBISM_DIMENSION>
+using CellField = Field<Data<T, DataMapping::Cell, Dimension, Alloc<T>>, State>;
 
+/// @brief Basic node-centered data field
+///
+/// @tparam T Data type (must be POD)
+/// @tparam State State type
+/// @tparam Alloc Allocator type
 template <typename T,
           typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator>
-using NodeField =
-    Field<Data<T, DataMapping::Node, CUBISM_DIMENSION, Alloc<T>>, State>;
+          template <typename> class Alloc = AlignedBlockAllocator,
+          size_t Dimension = CUBISM_DIMENSION>
+using NodeField = Field<Data<T, DataMapping::Node, Dimension, Alloc<T>>, State>;
 
+/// @brief Basic face-centered data field.  Faces are stored individually for
+/// the dimensionality specified by CUBISM_DIMENSION at compile time.  See
+/// the FaceFieldAll type for a container of size CUBISM_DIMENSION.
+///
+/// @tparam T Data type (must be POD)
+/// @tparam State State type
+/// @tparam Alloc Allocator type
 template <typename T,
           typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator>
-using FaceField =
-    Field<Data<T, DataMapping::Face, CUBISM_DIMENSION, Alloc<T>>, State>;
+          template <typename> class Alloc = AlignedBlockAllocator,
+          size_t Dimension = CUBISM_DIMENSION>
+using FaceField = Field<Data<T, DataMapping::Face, Dimension, Alloc<T>>, State>;
 
 #define FIELD_CONTAINER_OP_FIELD(OP)                                           \
     do {                                                                       \
@@ -389,6 +481,10 @@ using FaceField =
         }                                                                      \
     } while (0)
 
+/// @brief Field container type (stores pointers to fields).  An incomplete
+/// container contains nullptr for some of its components.
+///
+/// @tparam TField Type of field
 template <typename TField>
 class FieldContainer
 {
@@ -407,8 +503,14 @@ protected:
     using MemoryOwner = typename TField::BaseType::MemoryOwner;
 
 public:
+    /// @brief Default constructor
+    ///
+    /// @param n Number of components in container
     explicit FieldContainer(const size_t n = 0) : components_(n, nullptr) {}
 
+    /// @brief Construct from a list of pointers
+    ///
+    /// @param vf Vector of pointers to underlying type (may be nullptr)
     FieldContainer(const std::vector<BaseType *> &vf)
         : components_(vf.size(), nullptr)
     {
@@ -420,17 +522,26 @@ public:
         }
     }
 
-    FieldContainer(const FieldContainer &fc, const MemoryOwner owner)
+    /// @brief Copy constructor for deep and shallow copies
+    ///
+    /// @param fc Field container to be copied
+    /// @param o Memory ownership (Data::MemoryOwner::Yes = copy deep)
+    FieldContainer(const FieldContainer &fc, const MemoryOwner o)
         : components_(fc.size(), nullptr)
     {
         for (size_t i = 0; i < fc.size(); ++i) {
             const BaseType *comp = fc.components_[i];
             if (comp) {
-                components_[i] = new BaseType(*comp, owner);
+                components_[i] = new BaseType(*comp, o);
             }
         }
     }
 
+    /// @brief Standard constructor for field container (allocates new fields)
+    ///
+    /// @param n Number of components
+    /// @param r Index range spanned by field data
+    /// @param rank Rank of field
     FieldContainer(const size_t n,
                    const IndexRangeType &r,
                    const size_t rank = 0)
@@ -444,6 +555,12 @@ public:
         }
     }
 
+    /// @brief Low-level constructor for views (never allocates new fields)
+    ///
+    /// @param range_list Vector of index ranges for each component
+    /// @param ptr_list Vector of block data pointer corresponding to range_list
+    /// @param bytes_list Number of bytes pointed to by pointer in ptr_list
+    /// @param state_list Vector of field state pointers for each component
     FieldContainer(const std::vector<IndexRangeType> &range_list,
                    const std::vector<DataType *> &ptr_list,
                    const std::vector<size_t> &bytes_list,
@@ -460,6 +577,9 @@ public:
         }
     }
 
+    /// @brief Standard copy constructor
+    ///
+    /// @param c Field container to copy from
     FieldContainer(const FieldContainer &c) : components_(c.size(), nullptr)
     {
         for (size_t i = 0; i < c.size(); ++i) {
@@ -470,14 +590,23 @@ public:
         }
     }
 
+    /// @brief Standard move constructor
+    ///
+    /// @param c Field container to move from
     FieldContainer(FieldContainer &&c) noexcept
         : components_(std::move(c.components_))
     {
         c.components_.clear();
     }
 
+    /// @brief Virtual destructor
     virtual ~FieldContainer() { dispose_(); }
 
+    /// @brief Standard copy assignment operator
+    ///
+    /// @param rhs Field container to assign from
+    ///
+    /// @return This field container with copied contents from rhs
     FieldContainer &operator=(const FieldContainer &rhs)
     {
         if (this != &rhs) {
@@ -494,6 +623,11 @@ public:
         return *this;
     }
 
+    /// @brief Standard move assignment operator
+    ///
+    /// @param rhs Field container to assign from
+    ///
+    /// @return This field container with moved contents from rhs
     FieldContainer &operator=(FieldContainer &&rhs)
     {
         if (this != &rhs) {
@@ -507,28 +641,63 @@ public:
     // WARNING: if you use an incomplete container (i.e. some components
     // are nullptr), the iterators will just return nullptr -- no further checks
     // are performed.
+    /// @brief Iterator for field pointers in ContainerType
     using iterator = typename ContainerType::iterator;
+    /// @brief Const iterator for field pointers in ContainerType
     using const_iterator = typename ContainerType::const_iterator;
+    /// @brief Reverse iterator for field pointers in ContainerType
     using reverse_iterator = typename ContainerType::reverse_iterator;
+    /// @brief Const reverse iterator for field pointers in ContainerType
     using const_reverse_iterator =
         typename ContainerType::const_reverse_iterator;
+    /// @brief Begin of fields
+    ///
+    /// @return Iterator
     iterator begin() noexcept { return components_.begin(); }
+    /// @brief End of fields
+    ///
+    /// @return Iterator
     iterator end() noexcept { return components_.end(); }
+    /// @brief Begin of reversed fields
+    ///
+    /// @return Reverse iterator
     reverse_iterator rbegin() noexcept { return components_.rbegin(); }
+    /// @brief End of reversed fields
+    ///
+    /// @return Reverse iterator
     reverse_iterator rend() noexcept { return components_.rend(); }
+    /// @brief Begin of fields
+    ///
+    /// @return Const iterator
     const_iterator cbegin() const noexcept { return components_.cbegin(); }
+    /// @brief End of fields
+    ///
+    /// @return Const iterator
     const_iterator cend() const noexcept { return components_.cend(); }
+    /// @brief Begin of reversed fields
+    ///
+    /// @return Const reverse iterator
     const_reverse_iterator crbegin() const noexcept
     {
         return components_.crbegin();
     }
+    /// @brief End of reversed fields
+    ///
+    /// @return Const reverse iterator
     const_reverse_iterator crend() const noexcept
     {
         return components_.crend();
     }
 
+    /// @brief Number of fields contained
+    ///
+    /// @return Size of container
     size_t size() const { return components_.size(); }
 
+    /// @brief Forced deep copy of underlying fields (to be used with views).
+    /// This copies FieldType::BaseType data only, not the state.
+    ///
+    /// @param rhs Field container to copy from
     void copyData(const FieldContainer &rhs)
     {
         assert(components_.size() == rhs.components_.size());
@@ -542,14 +711,40 @@ public:
 
     // TODO: [fabianw@mavt.ethz.ch; 2020-01-01] push_back, remove (?)
 
+    /// @brief Access to fields.  This method throws a std::runtime_error if the
+    /// component is a nullptr.
+    ///
+    /// @param i Component ID of field to be accessed
+    ///
+    /// @return Reference to component i
     BaseType &operator[](const size_t i) { return getComp_(i); }
+    /// @brief Access to fields.  This method throws a std::runtime_error if the
+    /// component is a nullptr.
+    ///
+    /// @param i Component ID of field to be accessed
+    ///
+    /// @return Const reference to component i
     const BaseType &operator[](const size_t i) const { return getComp_(i); }
 
+    /// @brief Generic access to fields.  This method throws a
+    /// std::runtime_error if the component is a nullptr.
+    ///
+    /// @tparam T Generic index type that defines casting to size_t
+    /// @param t Component ID of field to be accessed
+    ///
+    /// @return Reference to component t
     template <typename T>
     BaseType &operator[](const T &t)
     {
         return getComp_(static_cast<size_t>(t));
     }
+    /// @brief Generic access to fields.  This method throws a
+    /// std::runtime_error if the component is a nullptr.
+    ///
+    /// @tparam T Generic index type that defines casting to size_t
+    /// @param t Component ID of field to be accessed
+    ///
+    /// @return Const reference to component t
     template <typename T>
     const BaseType &operator[](const T &t) const
     {
@@ -688,9 +883,14 @@ public:
 #endif
 
 protected:
-    ContainerType components_;
+    ContainerType components_; // the stars of the show
 
 private:
+    /// @brief Return a component
+    ///
+    /// @param i Component ID
+    ///
+    /// @return Reference to component
     BaseType &getComp_(const size_t i)
     {
         assert(i < components_.size());
@@ -703,6 +903,11 @@ private:
         return *comp;
     }
 
+    /// @brief Return a component
+    ///
+    /// @param i Component ID
+    ///
+    /// @return Const reference to component
     const BaseType &getComp_(const size_t i) const
     {
         assert(i < components_.size());
@@ -715,6 +920,7 @@ private:
         return *comp;
     }
 
+    /// @brief Deallocation of underlying components
     void dispose_()
     {
         for (size_t i = 0; i < components_.size(); ++i) {
@@ -731,6 +937,13 @@ private:
 #undef FIELD_CONTAINER_OP_SCALAR
 #undef FIELD_CONTAINER_RCP
 
+/// @brief Container class for all faces in a CUBISM_DIMENSION-ional problem.
+/// The underlying face fields are based on the FaceField template.  For
+/// CUBISM_DIMENSION \in {1,2,3}, the face field for faces with normal in the X
+/// direction can be obtained with ff[0] or ff[Cubism::Dir::X] for example,
+/// where ff is of type FaceFieldAll.
+///
+/// @tparam T Data type of FaceField
 template <typename T>
 class FaceFieldAll : public FieldContainer<FaceField<T>>
 {
@@ -746,6 +959,9 @@ private:
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
 public:
+    /// @brief Main constructor to generate a face field given the cell_domain
+    ///
+    /// @param cell_domain Index range spanned by the cell domain
     explicit FaceFieldAll(const IndexRangeType &cell_domain)
         : BaseType(IndexRangeType::Dim)
     {
@@ -763,11 +979,12 @@ public:
         }
     }
 
-    // TODO: [fabianw@mavt.ethz.ch; 2020-01-01] ?
-    // explicit FaceFieldAll(const MIndex &p)
-
-    FaceFieldAll(const FaceFieldAll &ffc, const MemoryOwner owner)
-        : BaseType(ffc, owner)
+    /// @brief Copy constructor for deep and shallow copies
+    ///
+    /// @param ffc Face field container to be copied
+    /// @param o Memory ownership (Data::MemoryOwner::Yes = copy deep)
+    FaceFieldAll(const FaceFieldAll &ffc, const MemoryOwner o)
+        : BaseType(ffc, o)
     {
 #ifndef NDEBUG
         assert(this->components_.size() == IndexRangeType::Dim);
@@ -777,6 +994,12 @@ public:
 #endif /* NDEBUG */
     }
 
+    /// @brief Low-level constructor for views (never allocates new fields)
+    ///
+    /// @param range_list Vector of index ranges for each component
+    /// @param ptr_list Vector of block data pointer corresponding to range_list
+    /// @param bytes_list Number of bytes pointed to by pointer in ptr_list
+    /// @param state_list Vector of field state pointers for each component
     FaceFieldAll(const std::vector<IndexRangeType> &range_list,
                  const std::vector<DataType *> &ptr_list,
                  const std::vector<size_t> &bytes_list,
@@ -791,6 +1014,7 @@ public:
 #endif /* NDEBUG */
     }
 
+    /// @brief Default constructor generates an empty container
     FaceFieldAll() = default;
     FaceFieldAll(const FaceFieldAll &c) = default;
     FaceFieldAll(FaceFieldAll &&c) noexcept = default;
@@ -829,17 +1053,29 @@ public:
     static constexpr size_t NComponents =
         Power<IndexRangeType::Dim, RANK>::value;
 
+    /// @brief Main constructor to generate a tensor field
+    ///
+    /// @param r Index range spanned by the field data
     explicit TensorField(const IndexRangeType &r)
         : BaseType(NComponents, r, Rank)
     {
     }
 
-    TensorField(const TensorField &ffc, const MemoryOwner owner)
-        : BaseType(ffc, owner)
+    /// @brief Copy constructor for deep and shallow copies
+    ///
+    /// @param tfc Tensor field container to be copied
+    /// @param o Memory ownership (Data::MemoryOwner::Yes = copy deep)
+    TensorField(const TensorField &tfc, const MemoryOwner o) : BaseType(tfc, o)
     {
         assert(this->components_.size() == NComponents);
     }
 
+    /// @brief Low-level constructor for views (never allocates new fields)
+    ///
+    /// @param range_list Vector of index ranges for each component
+    /// @param ptr_list Vector of block data pointer corresponding to range_list
+    /// @param bytes_list Number of bytes pointed to by pointer in ptr_list
+    /// @param state_list Vector of field state pointers for each component
     TensorField(const std::vector<IndexRangeType> &range_list,
                 const std::vector<DataType *> &ptr_list,
                 const std::vector<size_t> &bytes_list,
@@ -849,6 +1085,7 @@ public:
         assert(this->components_.size() == NComponents);
     }
 
+    /// @brief Default constructor generates an empty container
     TensorField() = default;
     TensorField(const TensorField &c) = default;
     TensorField(TensorField &&c) noexcept = default;
@@ -863,12 +1100,15 @@ constexpr size_t TensorField<TField, RANK>::Rank;
 template <typename TField, size_t RANK>
 constexpr size_t TensorField<TField, RANK>::NComponents;
 
+/// @brief Convenience type for vector fields
+///
+/// @tparam TField Field type
 template <typename TField>
 using VectorField = TensorField<TField, 1>;
 
-/// @brief Field view type (never owns block memory)
+/// @brief Field view type (never owns memory)
 ///
-/// @tparam TField (underlying field type)
+/// @tparam TField Field type
 template <typename TField>
 class FieldView : public TField
 {
@@ -884,6 +1124,9 @@ private:
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
 public:
+    /// @brief Main constructor to generate a field view
+    ///
+    /// @param f Field for which to generate the view
     FieldView(const BaseType &f) : BaseType(f, MemoryOwner::No) {}
 
     FieldView() = delete;
@@ -893,6 +1136,9 @@ public:
     FieldView &operator=(FieldView &&c) = delete;
     ~FieldView() = default;
 
+    /// @brief Force a deep copy of the viewed field
+    ///
+    /// @return Copy (new memory) of field view
     BaseType copy() const { return BaseType(*this, MemoryOwner::Yes); }
 };
 
