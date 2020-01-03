@@ -57,12 +57,13 @@ using Vector = Dir;
 enum class Tensor { XX = 0, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ };
 #endif /* 1 == CUBISM_DIMENSION */
 
-/// @brief Data layout constants used to describe a special block-data layout.
-///        Undefined: no associated mapping (default)
-///        Cell: data mapped to cell centers
-///        Node: data mapped to cell nodes (vertices)
-///        Face: data mapped to cell faces
-enum class DataMapping { Undefined = 0, Cell, Node, Face };
+/// @brief Cubism entity type descriptor
+///        Cell: Cell entity, coordinates map to cell center (default)
+///        Node: Node entity (vertices)
+///        Face: Face entity that is spanned by nodes and is boundary of a cell.
+///              Coordinates map the face center.
+///        Undefined: No association
+enum class EntityType { Cell = 0, Node, Face, Undefined };
 NAMESPACE_END(Cubism)
 
 // FIXME: [fabianw@mavt.ethz.ch; 2019-04-01] Deprecated, will be removed

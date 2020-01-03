@@ -429,7 +429,7 @@ template <typename T,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator,
           size_t Dimension = CUBISM_DIMENSION>
-using CellField = Field<Data<T, DataMapping::Cell, Dimension, Alloc<T>>, State>;
+using CellField = Field<Data<T, EntityType::Cell, Dimension, Alloc<T>>, State>;
 
 /// @brief Basic node-centered data field
 ///
@@ -440,7 +440,7 @@ template <typename T,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator,
           size_t Dimension = CUBISM_DIMENSION>
-using NodeField = Field<Data<T, DataMapping::Node, Dimension, Alloc<T>>, State>;
+using NodeField = Field<Data<T, EntityType::Node, Dimension, Alloc<T>>, State>;
 
 /// @brief Basic face-centered data field.  Faces are stored individually for
 /// the dimensionality specified by CUBISM_DIMENSION at compile time.  See
@@ -453,7 +453,7 @@ template <typename T,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator,
           size_t Dimension = CUBISM_DIMENSION>
-using FaceField = Field<Data<T, DataMapping::Face, Dimension, Alloc<T>>, State>;
+using FaceField = Field<Data<T, EntityType::Face, Dimension, Alloc<T>>, State>;
 
 #define FIELD_CONTAINER_OP_FIELD(OP)                                           \
     do {                                                                       \

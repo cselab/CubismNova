@@ -45,31 +45,31 @@ TEST(Field, Static)
     ASSERT_EQ(FieldCell::BlockDimX, BSX);
     ASSERT_EQ(FieldCell::BlockDimY, BSY);
     ASSERT_EQ(FieldCell::BlockDimZ, BSZ);
-    ASSERT_EQ(FieldCell::MapClass, Cubism::DataMapping::Cell);
+    ASSERT_EQ(FieldCell::MapClass, Cubism::EntityType::Cell);
     ASSERT_EQ(FieldCell::Dir, Cubism::Dir::Any);
 
     ASSERT_EQ(FieldNode::BlockDimX, BSX + 1);
     ASSERT_EQ(FieldNode::BlockDimY, BSY + 1);
     ASSERT_EQ(FieldNode::BlockDimZ, BSZ + 1);
-    ASSERT_EQ(FieldNode::MapClass, Cubism::DataMapping::Node);
+    ASSERT_EQ(FieldNode::MapClass, Cubism::EntityType::Node);
     ASSERT_EQ(FieldNode::Dir, Cubism::Dir::Any);
 
     ASSERT_EQ(FieldFaceX::BlockDimX, BSX + 1);
     ASSERT_EQ(FieldFaceX::BlockDimY, BSY);
     ASSERT_EQ(FieldFaceX::BlockDimZ, BSZ);
-    ASSERT_EQ(FieldFaceX::MapClass, Cubism::DataMapping::Face);
+    ASSERT_EQ(FieldFaceX::MapClass, Cubism::EntityType::Face);
     ASSERT_EQ(FieldFaceX::Dir, Cubism::Dir::X);
 
     ASSERT_EQ(FieldFaceY::BlockDimX, BSX);
     ASSERT_EQ(FieldFaceY::BlockDimY, BSY + 1);
     ASSERT_EQ(FieldFaceY::BlockDimZ, BSZ);
-    ASSERT_EQ(FieldFaceY::MapClass, Cubism::DataMapping::Face);
+    ASSERT_EQ(FieldFaceY::MapClass, Cubism::EntityType::Face);
     ASSERT_EQ(FieldFaceY::Dir, Cubism::Dir::Y);
 
     ASSERT_EQ(FieldFaceZ::BlockDimX, BSX);
     ASSERT_EQ(FieldFaceZ::BlockDimY, BSY);
     ASSERT_EQ(FieldFaceZ::BlockDimZ, BSZ + 1);
-    ASSERT_EQ(FieldFaceZ::MapClass, Cubism::DataMapping::Face);
+    ASSERT_EQ(FieldFaceZ::MapClass, Cubism::EntityType::Face);
     ASSERT_EQ(FieldFaceZ::Dir, Cubism::Dir::Z);
 }
 

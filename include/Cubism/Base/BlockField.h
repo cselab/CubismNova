@@ -76,7 +76,7 @@ constexpr size_t BlockBase<DIMX, DIMY, DIMZ>::BlockDimZ;
 /// @tparam BlockAlloc (block allocator type)
 /// @tparam DM         (data mapping identifier)
 /// @tparam DIR        (direction indicator)
-template <typename BlockAlloc, Cubism::DataMapping DM, Cubism::Dir DIR>
+template <typename BlockAlloc, Cubism::EntityType DM, Cubism::Dir DIR>
 class Field : public BlockBase<BlockAlloc::BlockDimX,
                                BlockAlloc::BlockDimY,
                                BlockAlloc::BlockDimZ>
@@ -88,7 +88,7 @@ public:
     using AllocType = BlockAlloc;
     using DataType = typename BlockAlloc::DataType;
 
-    static constexpr Cubism::DataMapping MapClass = DM;
+    static constexpr Cubism::EntityType MapClass = DM;
     static constexpr Cubism::Dir Dir = DIR;
 
     /// @brief Base constructor for single block allocation
@@ -261,10 +261,10 @@ protected:
     }
 };
 
-template <typename BlockAlloc, Cubism::DataMapping DM, Cubism::Dir DIR>
-constexpr Cubism::DataMapping Field<BlockAlloc, DM, DIR>::MapClass;
+template <typename BlockAlloc, Cubism::EntityType DM, Cubism::Dir DIR>
+constexpr Cubism::EntityType Field<BlockAlloc, DM, DIR>::MapClass;
 
-template <typename BlockAlloc, Cubism::DataMapping DM, Cubism::Dir DIR>
+template <typename BlockAlloc, Cubism::EntityType DM, Cubism::Dir DIR>
 constexpr Cubism::Dir Field<BlockAlloc, DM, DIR>::Dir;
 
 /// @brief Field view type (never owns block memory).  Arithmetic operations
@@ -342,8 +342,7 @@ template <typename DataType,
           size_t BDY,
           size_t BDZ,
           typename BlockAlloc = AlignedBlockAllocator<DataType, BDX, BDY, BDZ>>
-using FieldCell =
-    Field<BlockAlloc, Cubism::DataMapping::Cell, Cubism::Dir::Any>;
+using FieldCell = Field<BlockAlloc, Cubism::EntityType::Cell, Cubism::Dir::Any>;
 
 /// @brief Node centered data field type for single block
 ///
@@ -358,8 +357,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX + 1, BDY + 1, BDZ + 1>>
-using FieldNode =
-    Field<BlockAlloc, Cubism::DataMapping::Node, Cubism::Dir::Any>;
+using FieldNode = Field<BlockAlloc, Cubism::EntityType::Node, Cubism::Dir::Any>;
 
 /// @brief X-Face centered data field type for single block
 ///
@@ -374,7 +372,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX + 1, BDY, BDZ>>
-using FieldFaceX = Field<BlockAlloc, Cubism::DataMapping::Face, Cubism::Dir::X>;
+using FieldFaceX = Field<BlockAlloc, Cubism::EntityType::Face, Cubism::Dir::X>;
 
 /// @brief Y-Face centered data field type for single block
 ///
@@ -389,7 +387,7 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX, BDY + 1, BDZ>>
-using FieldFaceY = Field<BlockAlloc, Cubism::DataMapping::Face, Cubism::Dir::Y>;
+using FieldFaceY = Field<BlockAlloc, Cubism::EntityType::Face, Cubism::Dir::Y>;
 
 /// @brief Z-Face centered data field type for single block
 ///
@@ -404,10 +402,10 @@ template <typename DataType,
           size_t BDZ,
           typename BlockAlloc =
               AlignedBlockAllocator<DataType, BDX, BDY, BDZ + 1>>
-using FieldFaceZ = Field<BlockAlloc, Cubism::DataMapping::Face, Cubism::Dir::Z>;
+using FieldFaceZ = Field<BlockAlloc, Cubism::EntityType::Face, Cubism::Dir::Z>;
 
 // XXX: [fabianw@mavt.ethz.ch; 2019-04-17] How to treat duplicate nodes and
-// faces for Cubism::DataMapping::Node or Cubism::DataMapping::Face? (Treat them
+// faces for Cubism::EntityType::Node or Cubism::EntityType::Face? (Treat them
 // differently in Labs is one possibility, means there is duplicate data.
 // Problematic for reduction operations)
 

@@ -19,11 +19,11 @@ namespace
 using namespace Cubism;
 
 template <typename T, template <typename> class TAlloc, size_t DIM>
-using CellData = Block::Data<T, DataMapping::Cell, DIM, TAlloc<T>>;
+using CellData = Block::Data<T, EntityType::Cell, DIM, TAlloc<T>>;
 template <typename T, template <typename> class TAlloc, size_t DIM>
-using NodeData = Block::Data<T, DataMapping::Node, DIM, TAlloc<T>>;
+using NodeData = Block::Data<T, EntityType::Node, DIM, TAlloc<T>>;
 template <typename T, template <typename> class TAlloc, size_t DIM>
-using FaceData = Block::Data<T, DataMapping::Face, DIM, TAlloc<T>>;
+using FaceData = Block::Data<T, EntityType::Face, DIM, TAlloc<T>>;
 
 TEST(Field, Construction)
 {

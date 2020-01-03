@@ -63,7 +63,7 @@ public:
 /// @tparam DIM Data dimensionality
 /// @tparam BlockAlloc Allocator type
 template <typename T,
-          Cubism::DataMapping DM,
+          Cubism::EntityType DM,
           size_t DIM,
           typename BlockAlloc = AlignedBlockAllocator<T>>
 class Data : public DataBase
@@ -79,7 +79,7 @@ public:
 
     enum class MemoryOwner { No = 0, Yes };
 
-    static constexpr Cubism::DataMapping DataMapping = DM;
+    static constexpr Cubism::EntityType DataMapping = DM;
 
     /// @brief Base constructor for single block allocation
     ///
@@ -350,8 +350,8 @@ protected:
     }
 };
 
-template <typename T, Cubism::DataMapping DM, size_t DIM, typename BlockAlloc>
-constexpr Cubism::DataMapping Data<T, DM, DIM, BlockAlloc>::DataMapping;
+template <typename T, Cubism::EntityType DM, size_t DIM, typename BlockAlloc>
+constexpr Cubism::EntityType Data<T, DM, DIM, BlockAlloc>::DataMapping;
 
 NAMESPACE_END(Block)
 NAMESPACE_END(Cubism)
