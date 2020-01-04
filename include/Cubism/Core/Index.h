@@ -272,7 +272,14 @@ public:
     MultiIndexIterator(const MultiIndexIterator &c) = default;
     ~MultiIndexIterator() = default;
 
-    MultiIndexIterator &operator=(const MultiIndexIterator &c) = default;
+    MultiIndexIterator &operator=(const MultiIndexIterator &c)
+    {
+        if (this != &c) {
+            data_.p = c.data_.p;
+            data_.i = c.data_.i;
+        }
+        return *this;
+    }
     MultiIndexIterator &operator=(const MultiIndex &p)
     {
         assert(data_.range.contains(p) && (p < data_.range.getEnd()));
@@ -281,10 +288,12 @@ public:
     }
     bool operator==(const MultiIndexIterator &rhs) const
     {
+        // relaxed comparison - type_ and dir_ is not considered only index
         return data_.i == rhs.data_.i;
     }
     bool operator!=(const MultiIndexIterator &rhs) const
     {
+        // relaxed comparison - type_ and dir_ is not considered only index
         return data_.i != rhs.data_.i;
     }
     MultiIndexIterator &operator++()
