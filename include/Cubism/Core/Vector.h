@@ -46,8 +46,10 @@ public:
     using reverse_iterator = typename ArrayType::reverse_iterator;
     using const_reverse_iterator = typename ArrayType::const_reverse_iterator;
 
-    static Vector getUnitVector(const size_t i)
+    template <typename Dir>
+    static Vector getUnitVector(const Dir d)
     {
+        const size_t i = static_cast<size_t>(d);
         assert(i < Dim);
         Vector u;
         u[i] = 1;
