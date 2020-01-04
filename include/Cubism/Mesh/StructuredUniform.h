@@ -61,6 +61,24 @@ public:
     {
     }
 
+    StructuredUniform(const PointType &gorigin,
+                      const RangeType &range,
+                      const IndexRangeType &crange,
+                      const IndexRangeType &nrange,
+                      const IndexRangeType &frange_base,
+                      const MeshHull type)
+        : BaseMesh(gorigin,
+                   range,
+                   crange,
+                   nrange,
+                   frange_base,
+                   type,
+                   MeshClass::Uniform),
+          mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
+          cell_volume_(mesh_spacing_.prod())
+    {
+    }
+
     StructuredUniform() = delete;
     StructuredUniform(const StructuredUniform &c) = default;
     StructuredUniform(StructuredUniform &&c) noexcept = default;

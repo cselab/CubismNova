@@ -119,6 +119,17 @@ public:
           frange_(DIM, nullptr)
     {
         initFaceRange_(crange_.getBegin());
+    StructuredBase(const PointType &gorigin,
+                   const RangeType &range,
+                   const IndexRangeType &crange,
+                   const IndexRangeType &nrange,
+                   const IndexRangeType &frange_base,
+                   const MeshHull type,
+                   const MeshClass cl)
+        : type_(type), class_(cl), range_(range), global_origin_(gorigin),
+          crange_(crange), nrange_(nrange), frange_(DIM, nullptr)
+    {
+        initFaceRange_(frange_base);
     }
 
     StructuredBase() = delete;
