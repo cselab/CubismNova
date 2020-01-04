@@ -428,9 +428,11 @@ TEST(Vector, CommonVecOpReal)
     Vec v0(two);
     Vec v1(tre);
     Vec vOne(one);
+    const Vec unit2 = v0 / std::sqrt(Vec::Dim * two * two);
 
     EXPECT_EQ(v0.normL2(), std::sqrt(v0.dot(v0)));
     EXPECT_EQ(v0.norm(), std::sqrt(v0.dot(v0))); // alias for normL2
+    EXPECT_EQ(v0.unit(), unit2);
     EXPECT_EQ(v0.dist(v1), vOne.norm());
 }
 

@@ -465,6 +465,9 @@ public:
         return res;
     }
 
+    /// @brief Unit vector
+    Vector unit() const { return (*this / norm()); }
+
     /// @brief Vector dot product
     DataType dot(const Vector &other) const { return sumProd_(other); }
 
