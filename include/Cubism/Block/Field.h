@@ -128,9 +128,9 @@ protected:
 public:
     using BaseType = TBlockData;
     using FieldType = Field;
-    using IndexRangeType = typename BaseType::IndexRangeType;
-    using MultiIndex = typename BaseType::MultiIndex;
-    using DataType = typename BaseType::DataType;
+    using typename BaseType::DataType;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
     using FieldStateType = TState;
 
     Field() = delete;
@@ -485,14 +485,14 @@ class FieldContainer
 {
 public:
     using BaseType = TField;
+    using DataType = typename BaseType::DataType;
     using FieldType = typename BaseType::FieldType;
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
-    using DataType = typename BaseType::DataType;
 
 private:
     using ContainerType = std::vector<BaseType *>;
-    using FieldState = typename FieldType::FieldStateType;
+    using FieldStateType = typename FieldType::FieldStateType;
 
 protected:
     using MemoryOwner = typename TField::BaseType::MemoryOwner;
@@ -542,7 +542,7 @@ public:
                    const size_t rank = 0)
         : components_(n, nullptr)
     {
-        FieldState fs;
+        FieldStateType fs;
         fs.rank = rank;
         for (size_t i = 0; i < n; ++i) {
             fs.comp = i;
@@ -559,7 +559,7 @@ public:
     FieldContainer(const std::vector<IndexRangeType> &range_list,
                    const std::vector<DataType *> &ptr_list,
                    const std::vector<size_t> &bytes_list,
-                   const std::vector<FieldState *> &state_list)
+                   const std::vector<FieldStateType *> &state_list)
         : components_(ptr_list.size(), nullptr)
     {
         assert(range_list.size() == ptr_list.size());
@@ -959,11 +959,11 @@ class FaceFieldAll : public FieldContainer<FaceField<T>>
 {
 public:
     using BaseType = FieldContainer<FaceField<T>>;
-    using FieldType = typename BaseType::FieldType;
-    using FieldState = typename FieldType::FieldStateType;
-    using IndexRangeType = typename BaseType::IndexRangeType;
-    using MultiIndex = typename BaseType::MultiIndex;
-    using DataType = typename BaseType::DataType;
+    using typename BaseType::DataType;
+    using typename BaseType::FieldType;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
+    using FieldStateType = typename FieldType::FieldStateType;
 
 private:
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
@@ -976,7 +976,7 @@ public:
         : BaseType(IndexRangeType::Dim)
     {
         const MultiIndex cells = cell_domain.getExtent(); // number of cells
-        FieldState fs;
+        FieldStateType fs;
         fs.rank = 0;
         for (size_t i = 0; i < cells.size(); ++i) {
             // XXX: [fabianw@mavt.ethz.ch; 2020-01-01] Not most favorable for
@@ -1013,7 +1013,7 @@ public:
     FaceFieldAll(const std::vector<IndexRangeType> &range_list,
                  const std::vector<DataType *> &ptr_list,
                  const std::vector<size_t> &bytes_list,
-                 const std::vector<FieldState *> &state_list)
+                 const std::vector<FieldStateType *> &state_list)
         : BaseType(range_list, ptr_list, bytes_list, state_list)
     {
 #ifndef NDEBUG
@@ -1041,11 +1041,11 @@ class TensorField : public FieldContainer<TField>
 {
 public:
     using BaseType = FieldContainer<TField>;
-    using FieldType = typename BaseType::FieldType;
-    using FieldState = typename FieldType::FieldStateType;
-    using IndexRangeType = typename BaseType::IndexRangeType;
-    using MultiIndex = typename BaseType::MultiIndex;
-    using DataType = typename BaseType::DataType;
+    using typename BaseType::DataType;
+    using typename BaseType::FieldType;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
+    using FieldStateType = typename FieldType::FieldStateType;
 
 private:
     template <size_t B, size_t E>
@@ -1089,7 +1089,7 @@ public:
     TensorField(const std::vector<IndexRangeType> &range_list,
                 const std::vector<DataType *> &ptr_list,
                 const std::vector<size_t> &bytes_list,
-                const std::vector<FieldState *> &state_list)
+                const std::vector<FieldStateType *> &state_list)
         : BaseType(range_list, ptr_list, bytes_list, state_list)
     {
         assert(this->components_.size() == NComponents);
@@ -1124,11 +1124,11 @@ class FieldView : public TField
 {
 public:
     using BaseType = TField;
-    using FieldType = typename BaseType::FieldType;
-    using FieldState = typename FieldType::FieldStateType;
-    using IndexRangeType = typename BaseType::IndexRangeType;
-    using MultiIndex = typename BaseType::MultiIndex;
-    using DataType = typename BaseType::DataType;
+    using typename BaseType::DataType;
+    using typename BaseType::FieldType;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
+    using FieldStateType = typename FieldType::FieldStateType;
 
 private:
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;

@@ -915,7 +915,7 @@ TEST(FaceFieldAll, Construction)
         std::vector<IRange> rl;
         std::vector<typename FaceField::DataType *> pl;
         std::vector<size_t> bl;
-        std::vector<typename FaceField::FieldState *> sl;
+        std::vector<typename FaceField::FieldStateType *> sl;
 
         FaceField ff_copy(ff, FaceField::FieldType::BaseType::MemoryOwner::Yes);
         EXPECT_EQ(ff_copy.size(), ff.size());
@@ -1013,7 +1013,7 @@ TEST(TensorField, Construction)
         std::vector<IRange> rl;
         std::vector<typename CellField::DataType *> pl;
         std::vector<size_t> bl;
-        std::vector<typename TensorField::FieldState *> sl;
+        std::vector<typename TensorField::FieldStateType *> sl;
 
         TensorField tf_copy(tf,
                             TensorField::FieldType::BaseType::MemoryOwner::Yes);

@@ -101,8 +101,8 @@ class IndexRange : public Core::Range<Index, DIM>
 {
 public:
     using BaseType = Core::Range<Index, DIM>;
-    using DataType = typename BaseType::DataType;
-    using PointType = typename BaseType::PointType;
+    using typename BaseType::DataType;
+    using typename BaseType::PointType;
     using MultiIndex = PointType;
 
     // Construction
