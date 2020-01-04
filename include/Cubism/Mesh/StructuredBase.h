@@ -28,7 +28,7 @@ public:
     using MultiIndex = typename IndexRangeType::MultiIndex;
     using EntityType = Cubism::EntityType;
 
-    enum class MeshType { FullMesh = 0, SubMesh };
+    enum class MeshHull { FullMesh = 0, SubMesh };
     enum class MeshClass { Uniform = 0, Stretched };
 
     static constexpr size_t Dim = DIM;
@@ -78,7 +78,7 @@ public:
     StructuredBase(const PointType &start,
                    const PointType &end,
                    const MultiIndex &cells,
-                   const MeshType type,
+                   const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(start, end),
           global_origin_(range_.getBegin()), crange_(cells), nrange_(cells + 1),
@@ -93,7 +93,7 @@ public:
     /// @param cells Number of cells in mesh
     StructuredBase(const PointType &end,
                    const MultiIndex &cells,
-                   const MeshType type,
+                   const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(end),
           global_origin_(range_.getBegin()), crange_(cells), nrange_(cells + 1),
@@ -112,7 +112,7 @@ public:
     StructuredBase(const PointType &gorigin,
                    const RangeType &range,
                    const IndexRangeType &crange,
-                   const MeshType type,
+                   const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(range), global_origin_(gorigin),
           crange_(crange), nrange_(crange_.getBegin() + 1),

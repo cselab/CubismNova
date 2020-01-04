@@ -19,7 +19,7 @@ public:
     using typename BaseMesh::EntityType;
     using typename BaseMesh::IndexRangeType;
     using typename BaseMesh::MeshClass;
-    using typename BaseMesh::MeshType;
+    using typename BaseMesh::MeshHull;
     using typename BaseMesh::MultiIndex;
     using typename BaseMesh::PointType;
     using typename BaseMesh::RangeType;
@@ -35,7 +35,7 @@ public:
     StructuredUniform(const PointType &start,
                       const PointType &end,
                       const MultiIndex &cells,
-                      const MeshType type)
+                      const MeshHull type)
         : BaseMesh(start, end, cells, type, MeshClass::Uniform),
           mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
           cell_volume_(mesh_spacing_.prod())
@@ -44,7 +44,7 @@ public:
 
     StructuredUniform(const PointType &end,
                       const MultiIndex &cells,
-                      const MeshType type)
+                      const MeshHull type)
         : BaseMesh(end, cells, type, MeshClass::Uniform),
           mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
           cell_volume_(mesh_spacing_.prod())
@@ -54,7 +54,7 @@ public:
     StructuredUniform(const PointType &gorigin,
                       const RangeType &range,
                       const IndexRangeType &crange,
-                      const MeshType type)
+                      const MeshHull type)
         : BaseMesh(gorigin, range, crange, type, MeshClass::Uniform),
           mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
           cell_volume_(mesh_spacing_.prod())
