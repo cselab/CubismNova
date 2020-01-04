@@ -82,8 +82,8 @@ public:
     StructuredUniform() = delete;
     StructuredUniform(const StructuredUniform &c) = default;
     StructuredUniform(StructuredUniform &&c) noexcept = default;
-    StructuredUniform &operator=(const StructuredUniform &c) = default;
-    StructuredUniform &operator=(StructuredUniform &&c) = default;
+    StructuredUniform &operator=(const StructuredUniform &c) = delete;
+    StructuredUniform &operator=(StructuredUniform &&c) = delete;
     ~StructuredUniform() = default;
 
 protected:
@@ -93,14 +93,14 @@ protected:
     {
         if (t == EntityType::Cell) {
             PointType c = PointType(p) + 0.5;
-            return c * mesh_spacing_;
+            return range_.getBegin() + c * mesh_spacing_;
         } else if (t == EntityType::Node) {
             PointType c(p);
-            return c * mesh_spacing_;
+            return range_.getBegin() + c * mesh_spacing_;
         } else if (t == EntityType::Face) {
             PointType c =
                 PointType(p) + 0.5 * (1.0 - PointType::getUnitVector(dir));
-            return c * mesh_spacing_;
+            return range_.getBegin() + c * mesh_spacing_;
         } else {
             throw std::runtime_error(
                 "StructuredBase::getIndexRange: Unknown entity type t");

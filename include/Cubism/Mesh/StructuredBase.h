@@ -81,10 +81,11 @@ public:
                    const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(start, end),
-          global_origin_(range_.getBegin()), crange_(cells), nrange_(cells + 1),
+          global_origin_(range_.getBegin()), crange_(cells),
+          nrange_(crange_.getBegin(), crange_.getEnd() + 1),
           frange_(DIM, nullptr)
     {
-        initFaceRange_(cells);
+        initFaceRange_(crange_);
     }
 
     /// @brief Standard mesh constructor (with physical origin at 0)
@@ -96,13 +97,14 @@ public:
                    const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(end),
-          global_origin_(range_.getBegin()), crange_(cells), nrange_(cells + 1),
+          global_origin_(range_.getBegin()), crange_(cells),
+          nrange_(crange_.getBegin(), crange_.getEnd() + 1),
           frange_(DIM, nullptr)
     {
-        initFaceRange_(cells);
+        initFaceRange_(crange_);
     }
 
-    /// @brief Most general
+    /// @brief
     ///
     /// @param gorigin
     /// @param range
@@ -115,10 +117,12 @@ public:
                    const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(range), global_origin_(gorigin),
-          crange_(crange), nrange_(crange_.getBegin() + 1),
+          crange_(crange), nrange_(crange_.getBegin(), crange_.getEnd() + 1),
           frange_(DIM, nullptr)
     {
-        initFaceRange_(crange_.getBegin());
+        initFaceRange_(crange_);
+    }
+
     StructuredBase(const PointType &gorigin,
                    const RangeType &range,
                    const IndexRangeType &crange,
@@ -133,32 +137,40 @@ public:
     }
 
     StructuredBase() = delete;
-    StructuredBase(const StructuredBase &c) = default;
     StructuredBase(StructuredBase &&c) noexcept = default;
-    StructuredBase &operator=(const StructuredBase &c) = default;
-    StructuredBase &operator=(StructuredBase &&c) = default;
-    virtual ~StructuredBase() { dispose_(); }
+    virtual ~StructuredBase() { disposeFaceRange_(); }
+
+    StructuredBase(const StructuredBase &c)
+        : type_(c.type_), class_(c.class_), range_(c.range_),
+          global_origin_(c.global_origin_), crange_(c.crange_),
+          nrange_(c.nrange_), frange_(DIM, nullptr)
+    {
+        copyFaceRange_(c);
+    }
+
+    StructuredBase &operator=(const StructuredBase &c) = delete;
+    StructuredBase &operator=(StructuredBase &&c) = delete;
 
     // iterators
-    using iterator = EntityIterator;
+    using iterator = typename EntityIterator::iterator;
 
-    iterator getIterator(const EntityType t, const size_t d = 0)
+    EntityIterator getIterator(const EntityType t, const size_t d = 0)
     {
         if (t == EntityType::Cell) {
-            return iterator(t, d, crange_);
+            return EntityIterator(t, d, crange_);
         } else if (t == EntityType::Node) {
-            return iterator(t, d, nrange_);
+            return EntityIterator(t, d, nrange_);
         } else if (t == EntityType::Face) {
-            return iterator(t, d, *frange_[d]);
+            return EntityIterator(t, d, *frange_[d]);
         } else {
             throw std::runtime_error(
                 "StructuredBase::getIterator: Unknown entity type t");
         }
-        return iterator();
+        return EntityIterator();
     }
 
     template <typename Dir>
-    iterator getIterator(const EntityType t, const Dir d)
+    EntityIterator getIterator(const EntityType t, const Dir d)
     {
         return getIterator(t, static_cast<size_t>(d));
     }
@@ -203,7 +215,7 @@ public:
     template <typename Dir>
     MultiIndex getSize(const EntityType t, const Dir d) const
     {
-        return size(t, static_cast<size_t>(d));
+        return getSize(t, static_cast<size_t>(d));
     }
 
     IndexRangeType getIndexRange(const EntityType t, const size_t d = 0) const
@@ -228,7 +240,7 @@ public:
     }
 
     PointType getExtent() const { return range_.getExtent(); }
-    RealType getVolume() const { return range_.size(); }
+    RealType getVolume() const { return range_.getVolume(); }
     PointType getOrigin() const { return range_.getBegin(); }
     PointType getGlobalOrigin() const { return global_origin_; }
     RangeType getRange() const { return range_; }
@@ -404,6 +416,8 @@ public:
         return getSurface_(p, ci, static_cast<size_t>(d));
     }
 
+    // FIXME: [fabianw@mavt.ethz.ch; 2020-01-04] I don't think this interface is
+    // very useful.  Removal candidate
     PointType getSurface(const iterator &it, const MultiIndex &ci) const
     {
         return getSurface_(*it, ci, it.getDirection());
@@ -442,9 +456,11 @@ public:
         return getSurface_(p, ci, static_cast<size_t>(d)).norm();
     }
 
-    RealType getSurfaceArea(const iterator &it) const
+    // FIXME: [fabianw@mavt.ethz.ch; 2020-01-04] I don't think this interface is
+    // very useful.  Removal candidate
+    RealType getSurfaceArea(const iterator &it, const MultiIndex &ci) const
     {
-        return getSurface_(*it, it.getDirection()).norm();
+        return getSurface_(*it, ci, it.getDirection()).norm();
     }
 
     PointType
@@ -482,13 +498,15 @@ public:
         return getSurface_(p, ci, static_cast<size_t>(d)).unit();
     }
 
+    // FIXME: [fabianw@mavt.ethz.ch; 2020-01-04] I don't think this interface is
+    // very useful.  Removal candidate
     PointType getSurfaceNormal(const iterator &it, const MultiIndex &ci) const
     {
         return getSurface_(*it, ci, it.getDirection()).unit();
     }
 
 protected:
-    const MeshType type_;   // type of range information contained in mesh
+    const MeshHull type_;   // mesh hull type (full mesh or sub-mesh)
     const MeshClass class_; // class category of mesh
     const RangeType range_; // range of mesh domain in physical space
     const PointType global_origin_; // origin in global mesh
@@ -507,15 +525,22 @@ protected:
                                   const size_t dir) const = 0;
 
 private:
-    void initFaceRange_(const MultiIndex &cells)
+    void initFaceRange_(const IndexRangeType &r)
     {
         for (size_t i = 0; i < frange_.size(); ++i) {
-            frange_[i] =
-                new IndexRangeType(cells + MultiIndex::getUnitVector(i));
+            frange_[i] = new IndexRangeType(
+                r.getBegin(), r.getEnd() + MultiIndex::getUnitVector(i));
         }
     }
 
-    void dispose_()
+    void copyFaceRange_(const StructuredBase &m)
+    {
+        for (size_t i = 0; i < frange_.size(); ++i) {
+            frange_[i] = new IndexRangeType(*m.frange_[i]);
+        }
+    }
+
+    void disposeFaceRange_()
     {
         for (auto fr : frange_) {
             if (fr) {
