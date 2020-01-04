@@ -19,12 +19,88 @@ using Index = int;
 using Index = std::ptrdiff_t;
 #endif
 
+template <size_t DIM>
+struct IndexConverter {
+    using MultiIndex = typename Core::Range<Index, DIM>::PointType;
+
+    size_t getFlatIndex(const MultiIndex &p, const MultiIndex &extent) const
+    {
+        size_t flat = 0;
+        for (size_t i = DIM - 1; i > 0; --i) {
+            flat = extent[i - 1] * (p[i] + flat);
+        }
+        return p[0] + flat;
+    }
+
+    MultiIndex
+    getMultiIndex(size_t i, MultiIndex p, const MultiIndex &extent) const
+    {
+        for (size_t k = 0; k < DIM; ++k) {
+            p[k] += i % extent[k];
+            i /= extent[k];
+        }
+        return p;
+    }
+};
+
+template <>
+struct IndexConverter<1> {
+    using MultiIndex = typename Core::Range<Index, 1>::PointType;
+
+    size_t getFlatIndex(const MultiIndex &p, const MultiIndex &) const
+    {
+        return p[0];
+    }
+
+    MultiIndex getMultiIndex(size_t i, MultiIndex p, const MultiIndex &) const
+    {
+        return p += i;
+    }
+};
+
+template <>
+struct IndexConverter<2> {
+    using MultiIndex = typename Core::Range<Index, 2>::PointType;
+
+    size_t getFlatIndex(const MultiIndex &p, const MultiIndex &extent) const
+    {
+        return p[0] + extent[0] * p[1];
+    }
+
+    MultiIndex
+    getMultiIndex(size_t i, MultiIndex p, const MultiIndex &extent) const
+    {
+        p[0] += i % extent[0];
+        p[1] += i / extent[0];
+        return p;
+    }
+};
+
+template <>
+struct IndexConverter<3> {
+    using MultiIndex = typename Core::Range<Index, 3>::PointType;
+
+    size_t getFlatIndex(const MultiIndex &p, const MultiIndex &extent) const
+    {
+        return p[0] + extent[0] * (p[1] + extent[1] * p[2]);
+    }
+
+    MultiIndex
+    getMultiIndex(size_t i, MultiIndex p, const MultiIndex &extent) const
+    {
+        p[0] += i % extent[0];
+        p[1] += (i / extent[0]) % extent[1];
+        p[2] += i / (extent[0] * extent[1]);
+        return p;
+    }
+};
+
 /// @brief Extension of generic Range to index space
 template <size_t DIM>
 class IndexRange : public Core::Range<Index, DIM>
 {
 public:
-    using BaseType = Range<Index, DIM>;
+    using BaseType = Core::Range<Index, DIM>;
     using DataType = typename BaseType::DataType;
     using PointType = typename BaseType::PointType;
     using MultiIndex = PointType;
@@ -73,27 +149,20 @@ public:
     size_t getFlatIndex(const MultiIndex &p) const
     {
         assert(MultiIndex(0) <= p && p < extent_);
-        size_t flat = 0;
-        for (size_t i = DIM - 1; i > 0; --i) {
-            flat = extent_[i - 1] * (p[i] + flat);
-        }
-        return p[0] + flat;
+        return convert_.getFlatIndex(p, extent_);
     }
 
     /// @brief Return MultiIndex from flat index
     MultiIndex getMultiIndex(size_t i) const
     {
-        assert(i < this->size());
-        MultiIndex p = this->begin_;
-        for (size_t k = 0; k < DIM; ++k) {
-            p[k] += i % extent_[k];
-            i /= extent_[k];
-        }
-        return p;
+        assert(i <= this->size());
+        return convert_.getMultiIndex(i, this->begin_, extent_);
     }
 
 private:
     PointType extent_;
+    IndexConverter<DIM> convert_;
+};
 };
 
 NAMESPACE_END(Core)
