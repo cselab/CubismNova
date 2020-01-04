@@ -163,6 +163,158 @@ private:
     PointType extent_;
     IndexConverter<DIM> convert_;
 };
+
+template <size_t DIM>
+struct MIIForward {
+    using IndexRangeType = IndexRange<DIM>;
+    using MultiIndex = typename IndexRangeType::MultiIndex;
+
+    const IndexRangeType &range;
+    MultiIndex p;
+    size_t i;
+    MIIForward(const IndexRangeType &r_, const size_t i_)
+        : range(r_), p(r_.getMultiIndex(i_)), i(i_)
+    {
+    }
+
+    void forwardMultiIndex() { p = range.getMultiIndex(i); }
+};
+
+template <>
+struct MIIForward<1> {
+    using IndexRangeType = IndexRange<1>;
+    using MultiIndex = typename IndexRangeType::MultiIndex;
+
+    const IndexRangeType &range;
+    MultiIndex p;
+    size_t i;
+    MIIForward(const IndexRangeType &r_, const size_t i_)
+        : range(r_), p(r_.getMultiIndex(i_)), i(i_)
+    {
+    }
+
+    void forwardMultiIndex() { p[0] = i; }
+};
+
+template <>
+struct MIIForward<2> {
+    using IndexRangeType = IndexRange<2>;
+    using MultiIndex = typename IndexRangeType::MultiIndex;
+
+    const IndexRangeType &range;
+    const MultiIndex bound;
+    MultiIndex p;
+    size_t i;
+    MIIForward(const IndexRangeType &r_, const size_t i_)
+        : range(r_), bound(r_.getExtent() - 1), p(r_.getMultiIndex(i_)), i(i_)
+    {
+    }
+
+    void forwardMultiIndex()
+    {
+        p[0] = (p[0] < bound[0]) ? p[0] + 1 : shift_1();
+    }
+    size_t shift_1()
+    {
+        p[1] = (p[1] < bound[1]) ? p[1] + 1 : 0;
+        return 0;
+    }
+};
+
+template <>
+struct MIIForward<3> {
+    using IndexRangeType = IndexRange<3>;
+    using MultiIndex = typename IndexRangeType::MultiIndex;
+
+    const IndexRangeType &range;
+    const MultiIndex bound;
+    MultiIndex p;
+    size_t i;
+    MIIForward(const IndexRangeType &r_, const size_t i_)
+        : range(r_), bound(r_.getExtent() - 1), p(r_.getMultiIndex(i_)), i(i_)
+    {
+    }
+
+    void forwardMultiIndex()
+    {
+        p[0] = (p[0] < bound[0]) ? p[0] + 1 : shift_1();
+    }
+    size_t shift_1()
+    {
+        p[1] = (p[1] < bound[1]) ? p[1] + 1 : shift_2();
+        return 0;
+    }
+    size_t shift_2()
+    {
+        p[2] = (p[2] < bound[2]) ? p[2] + 1 : 0;
+        return 0;
+    }
+};
+
+template <size_t DIM>
+class MultiIndexIterator
+{
+    using IndexRangeType = IndexRange<DIM>;
+    using MultiIndex = typename IndexRangeType::MultiIndex;
+    using Entity = Cubism::EntityType;
+
+public:
+    MultiIndexIterator(const Entity t,
+                       const size_t d,
+                       const IndexRangeType &r,
+                       const size_t i)
+        : type_(t), dir_(d), data_(r, i)
+    {
+        assert(data_.i <= data_.range.size());
+        assert(dir_ < DIM);
+    }
+    MultiIndexIterator() = delete;
+    MultiIndexIterator(const MultiIndexIterator &c) = default;
+    ~MultiIndexIterator() = default;
+
+    MultiIndexIterator &operator=(const MultiIndexIterator &c) = default;
+    MultiIndexIterator &operator=(const MultiIndex &p)
+    {
+        assert(data_.range.contains(p) && (p < data_.range.getEnd()));
+        data_.p = p;
+        data_.i = data_.range.getFlatIndex(p);
+    }
+    bool operator==(const MultiIndexIterator &rhs) const
+    {
+        return data_.i == rhs.data_.i;
+    }
+    bool operator!=(const MultiIndexIterator &rhs) const
+    {
+        return data_.i != rhs.data_.i;
+    }
+    MultiIndexIterator &operator++()
+    {
+        ++data_.i;
+        data_.forwardMultiIndex();
+        return *this;
+    }
+    MultiIndexIterator operator++(int)
+    {
+        MultiIndexIterator tmp(*this);
+        ++data_.i;
+        data_.forwardMultiIndex();
+        return tmp;
+    }
+    MultiIndex operator-(const MultiIndexIterator &rhs)
+    {
+        return rhs.data_.p - data_.p;
+    }
+    const MultiIndex &operator*() const { return data_.p; }
+    size_t getFlatIndex() const { return data_.i; }
+    MultiIndex getMultiIndex() const { return data_.p; }
+    Entity getEntity() const { return type_; }
+    size_t getDirection() const { return dir_; }
+    const IndexRangeType &getIndexRange() const { return data_.range; }
+
+private:
+    const Entity type_;
+    const size_t dir_;
+    MIIForward<DIM> data_;
 };
 
 NAMESPACE_END(Core)
