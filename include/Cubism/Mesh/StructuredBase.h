@@ -320,6 +320,8 @@ public:
     PointType getGlobalOrigin() const { return global_origin_; }
     RangeType getRange() const { return range_; }
 
+    bool isSubMesh() const { return type_ == MeshHull::SubMesh; }
+
     MultiIndex
     getMultiIndex(const size_t i, const EntityType t, const size_t d = 0) const
     {

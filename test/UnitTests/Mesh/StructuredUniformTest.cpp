@@ -291,6 +291,9 @@ TEST(StructuredUniform, BasicInterface)
         EXPECT_EQ(m.getRange().getBegin(), start);
         EXPECT_EQ(m.getRange().getEnd(), end);
     }
+    { // mesh hull
+        EXPECT_FALSE(m.isSubMesh());
+    }
     { // MultiIndex
         const MIndex ref{2, 1};
         size_t iref = ref[0] + m.getSize(Entity::Cell)[0] * ref[1];
