@@ -7,6 +7,7 @@ target_sources(${EXE} PRIVATE Block/FieldTest.cpp)
 target_sources(${EXE} PRIVATE Core/IndexTest.cpp)
 target_sources(${EXE} PRIVATE Core/RangeTest.cpp)
 target_sources(${EXE} PRIVATE Core/VectorTest.cpp)
+target_sources(${EXE} PRIVATE Mesh/BlockMeshTest.cpp)
 target_sources(${EXE} PRIVATE Mesh/StructuredUniformTest.cpp)
 
 # target_sources(${EXE} PRIVATE Base/BlockFieldTest.cpp)

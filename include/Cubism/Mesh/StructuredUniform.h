@@ -65,15 +65,10 @@ public:
                       const RangeType &range,
                       const IndexRangeType &crange,
                       const IndexRangeType &nrange,
-                      const IndexRangeType &frange_base,
+                      const std::vector<IndexRangeType> &frange,
                       const MeshHull type)
-        : BaseMesh(gorigin,
-                   range,
-                   crange,
-                   nrange,
-                   frange_base,
-                   type,
-                   MeshClass::Uniform),
+        : BaseMesh(
+              gorigin, range, crange, nrange, frange, type, MeshClass::Uniform),
           mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
           cell_volume_(mesh_spacing_.prod())
     {

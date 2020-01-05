@@ -187,13 +187,16 @@ public:
                    const RangeType &range,
                    const IndexRangeType &crange,
                    const IndexRangeType &nrange,
-                   const IndexRangeType &frange_base,
+                   const std::vector<IndexRangeType> &frange,
                    const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(range), global_origin_(gorigin),
           crange_(crange), nrange_(nrange), frange_(DIM, nullptr)
     {
-        initFaceRange_(frange_base);
+        for (size_t i = 0; i < frange_.size(); ++i) {
+            frange_[i] =
+                new IndexRangeType(frange[i].getBegin(), frange[i].getEnd());
+        }
     }
 
     StructuredBase() = delete;

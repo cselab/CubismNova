@@ -9,7 +9,6 @@
 
 #include <iostream>
 
-
 namespace
 {
 using namespace Cubism;
@@ -23,7 +22,6 @@ TEST(StructuredUniform, Construction)
     using PointType = typename Mesh::PointType;
     using Entity = typename Mesh::EntityType;
     using Range = typename Mesh::RangeType;
-    using IRange = typename Mesh::IndexRangeType;
 
     std::cout << "sizeof(Mesh::StructuredUniform) = " << sizeof(Mesh)
               << std::endl;
@@ -73,12 +71,13 @@ TEST(StructuredUniform, Construction)
     { // low-level
         const PointType gorigin = start;
         const Range phys_domain(MIndex(0), end);
-        Mesh m(gorigin,
-               phys_domain,
-               IRange(cells),     // cells
-               IRange(cells + 1), // nodes
-               IRange(cells),     // faces base domain
-               MeshHull::FullMesh);
+        Mesh m(
+            gorigin,
+            phys_domain,
+            IRange(cells),                                 // cells
+            IRange(cells + 1),                             // nodes
+            std::vector<IRange>(Mesh::Dim, IRange(cells)), // faces base domain
+            MeshHull::FullMesh);
         EXPECT_EQ(m.getExtent(), extent / 2);
         EXPECT_EQ(m.getOrigin(), MIndex(0));
         EXPECT_EQ(m.getGlobalOrigin(), start);
