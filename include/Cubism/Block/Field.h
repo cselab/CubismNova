@@ -720,7 +720,11 @@ public:
         }
     }
 
-    // TODO: [fabianw@mavt.ethz.ch; 2020-01-01] push_back, remove (?)
+    /// @brief Append new component at the end of container.  The destructor of
+    /// FieldContainer calls the destructor of p when the object is destroyed.
+    ///
+    /// @param p Pointer to new component
+    void pushBack(BaseType *p) { components_.push_back(p); }
 
     /// @brief Access to fields.  This method throws a std::runtime_error if the
     /// component is a nullptr.

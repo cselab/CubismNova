@@ -688,6 +688,17 @@ TEST(FieldContainer, Interface)
             ++k;
         }
     }
+
+    {
+        MIndex nodes(8);
+        IRange node_domain(nodes);
+        FC fc;
+        EXPECT_EQ(fc.size(), 0);
+        for (size_t i = 1; i < 4; ++i) {
+            fc.pushBack(new NodeField(node_domain));
+            EXPECT_EQ(fc.size(), i);
+        }
+    }
 }
 
 TEST(FieldContainer, Arithmetic)
