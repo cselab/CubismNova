@@ -229,6 +229,31 @@ TEST(StructuredUniform, BasicInterface)
         EXPECT_EQ(*it++, i0 + 4 * ix + 1 * iy);
         EXPECT_EQ(it, ite);
     }
+    { // high-level mesh iteration
+        // cells
+        for (const auto &c : m[Entity::Cell]) {
+            const auto p = m.getGlobalIndex(c, Entity::Cell);
+            EXPECT_EQ(p, c);
+        }
+
+        // nodes
+        for (const auto &n : m[Entity::Node]) {
+            const auto p = m.getGlobalIndex(n, Entity::Node);
+            EXPECT_EQ(p, n);
+        }
+
+        // faces (variants)
+        for (const auto &f : m[Entity::Face][Dir::Y]) {
+            const auto p = m.getGlobalIndex(f, Entity::Face, Dir::Y);
+            EXPECT_EQ(p, f);
+        }
+        for (size_t d = 0; d < Mesh::Dim; ++d) {
+            for (const auto &f : m[Entity::Face][d]) {
+                const auto p = m.getGlobalIndex(f, Entity::Face, d);
+                EXPECT_EQ(p, f);
+            }
+        }
+    }
     { // sizes
         EXPECT_EQ(m.size(Entity::Cell), 4 * 2);
         EXPECT_EQ(m.size(Entity::Node), (4 + 1) * (2 + 1));

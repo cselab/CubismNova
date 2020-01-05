@@ -69,6 +69,66 @@ private:
         const IndexRangeType range_;
     };
 
+    class Entity
+    {
+    public:
+        Entity(const EntityType t, const IndexRangeType r = IndexRangeType())
+            : ranges_(1, r), entities_(1, t)
+        {
+        }
+        Entity(const EntityType t, const std::vector<const IndexRangeType *> &r)
+            : ranges_(), entities_(r.size(), t)
+        {
+            for (const auto p : r) {
+                ranges_.push_back(*p);
+            }
+        }
+        Entity() = default;
+        Entity(const Entity &c) = default;
+        ~Entity() = default;
+        Entity &operator=(const Entity &c) = default;
+
+        using iterator = Core::MultiIndexIterator<DIM>;
+        iterator begin() noexcept
+        {
+            assert(ranges_.size() > 0);
+            return iterator(entities_[0], 0, ranges_[0], 0);
+        }
+        iterator begin() const noexcept
+        {
+            assert(ranges_.size() > 0);
+            return iterator(entities_[0], 0, ranges_[0], 0);
+        }
+        iterator end() noexcept
+        {
+            assert(ranges_.size() > 0);
+            return iterator(entities_[0], 0, ranges_[0], ranges_[0].size());
+        }
+        iterator end() const noexcept
+        {
+            assert(ranges_.size() > 0);
+            return iterator(entities_[0], 0, ranges_[0], ranges_[0].size());
+        }
+        // TODO: [fabianw@mavt.ethz.ch; 2020-01-03] reverse iterator?
+
+        EntityIterator operator[](const size_t dir) const
+        {
+            assert(ranges_.size() > 0);
+            assert(dir < DIM);
+            return EntityIterator(entities_[dir], dir, ranges_[dir]);
+        }
+
+        template <typename Dir>
+        EntityIterator operator[](const Dir d) const
+        {
+            return this->operator[](static_cast<size_t>(d));
+        }
+
+    private:
+        std::vector<IndexRangeType> ranges_;
+        std::vector<EntityType> entities_;
+    };
+
 public:
     /// @brief Standard mesh constructor
     ///
@@ -195,6 +255,21 @@ public:
     size_t size(const EntityType t, const Dir d) const
     {
         return size(t, static_cast<size_t>(d));
+    }
+
+    Entity operator[](const EntityType t) const
+    {
+        if (t == EntityType::Cell) {
+            return Entity(t, crange_);
+        } else if (t == EntityType::Node) {
+            return Entity(t, nrange_);
+        } else if (t == EntityType::Face) {
+            return Entity(t, frange_);
+        } else {
+            throw std::runtime_error(
+                "StructuredBase::operator[]: Unknown entity type t");
+        }
+        return Entity();
     }
 
     MultiIndex getSize(const EntityType t, const size_t d = 0) const
