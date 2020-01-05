@@ -165,6 +165,9 @@ private:
 };
 
 template <size_t DIM>
+using MultiIndex = typename IndexRange<DIM>::PointType;
+
+template <size_t DIM>
 struct MIIForward {
     using IndexRangeType = IndexRange<DIM>;
     using MultiIndex = typename IndexRangeType::MultiIndex;
