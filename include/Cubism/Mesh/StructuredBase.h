@@ -200,7 +200,7 @@ public:
     }
 
     StructuredBase() = delete;
-    StructuredBase(StructuredBase &&c) noexcept = default;
+    StructuredBase(StructuredBase &&c) = default;
     virtual ~StructuredBase() { disposeFaceRange_(); }
 
     StructuredBase(const StructuredBase &c)

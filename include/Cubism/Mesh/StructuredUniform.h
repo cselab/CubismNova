@@ -76,7 +76,7 @@ public:
 
     StructuredUniform() = delete;
     StructuredUniform(const StructuredUniform &c) = default;
-    StructuredUniform(StructuredUniform &&c) noexcept = default;
+    StructuredUniform(StructuredUniform &&c) = default;
     StructuredUniform &operator=(const StructuredUniform &c) = delete;
     StructuredUniform &operator=(StructuredUniform &&c) = delete;
     ~StructuredUniform() = default;
