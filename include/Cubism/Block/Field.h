@@ -422,7 +422,7 @@ private:
     }
 };
 
-template <typename TBlockData, typename TState = FieldState>
+template <typename TBlockData, typename TState>
 constexpr size_t Field<TBlockData, TState>::NComponents;
 
 /// @brief Basic cell-centered data field
@@ -1055,8 +1055,8 @@ private:
 };
 
 template <typename T,
-          typename State = FieldState,
-          size_t Dimension = CUBISM_DIMENSION,
+          typename State,
+          size_t Dimension,
           template <typename>
           class Alloc>
 constexpr size_t FaceFieldAll<T, State, Dimension, Alloc>::NComponents;
