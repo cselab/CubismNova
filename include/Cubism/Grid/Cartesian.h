@@ -15,18 +15,15 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Grid)
 
-template <typename TFieldData,
+template <typename TData,
           typename TMesh,
           typename TEntity = Cubism::EntityType::Cell,
-          size_t RANK = 0>
+          size_t RANK = 0,
+          template <typename> class TAlloc = AlignedBlockAllocator>
 class Cartesian
 {
 public:
-    using BaseType = TField;
     using MeshType = TMesh;
-    using FieldType = typename BaseType::FieldType;
-    using FieldView = Block::FieldView<BaseType>;
-    using FieldContainer = Block::FieldContainer<FieldView>;
     using IndexRangeType = typename MeshType::IndexRangeType;
     using MultiIndex = typename IndexRangeType::MultiIndex;
     using RangeType = typename MeshType::RangeType;
@@ -39,10 +36,37 @@ public:
         MeshType *mesh;
     };
 
+private:
+    template <typename TE>
+    struct ScalarFieldBase {
+        using Type =
+            Block::Field<Block::Data<TData, TE, MeshType::Dim>, FieldState>;
+    };
+
+    template <>
+    struct ScalarFieldBase<Cubism::EntityType::Face> {
+        using Type = Block::FaceFieldAll<TData, FieldState, MeshType::Dim>;
+    };
+
+    template <size_t R>
+    struct TensorFieldBase {
+        using Type =
+            Block::TensorField<typename ScalarFieldBase<TEntity>::Type, R>;
+    };
+
+    template <>
+    struct TensorFieldBase<0> {
+        using Type = typename ScalarFieldBase<TEntity>::Type;
+    };
+
 protected:
     using MeshHull = typename MeshType::MeshHull;
 
 public:
+    using FieldType = TensorFieldBase<RANK>;
+    using FieldView = Block::FieldView<FieldType>;
+    using FieldContainer = Block::FieldContainer<FieldView>;
+
     Cartesian(const MultiIndex &nblocks,
               const MultiIndex &block_cells,
               const PointType &start = PointType(0),
@@ -99,11 +123,11 @@ public:
                 dl.push_back(static_cast<DataType *>(
                     src + c * component_bytes_ + i * block_bytes_));
                 bl.push_back(block_bytes_);
-                if (BlockData::DataMapping == EntityType::Cell) {
+                if (BlockData::EntityType == EntityType::Cell) {
                     rl.push_back(cell_range);
-                } else if (BlockData::DataMapping == EntityType::Node) {
+                } else if (BlockData::EntityType == EntityType::Node) {
                     rl.push_back(node_range);
-                } else if (BlockData::DataMapping == EntityType::Face) {
+                } else if (BlockData::EntityType == EntityType::Face) {
                     // XXX: [fabianw@mavt.ethz.ch; 2020-01-05] does not work
                     // like that!
                     rl.push_back(face_ranges[c]);
@@ -133,6 +157,7 @@ private:
     const MultiIndex block_cells_;
     DataType *data_;
     size_t block_elements_;
+    size_t nfaces_;
     size_t block_bytes_;
     size_t component_bytes_;
     size_t all_bytes_;
@@ -140,21 +165,40 @@ private:
 
     void alloc_()
     {
-        if (BlockData::DataMapping == EntityType::Cell) {
+        if (BlockData::EntityType == EntityType::Cell) {
             block_elements_ = block_cells_.prod();
-        } else if (BlockData::DataMapping == EntityType::Node) {
+        } else if (BlockData::EntityType == EntityType::Node) {
             block_elements_ = (block_cells_ + MultiIndex(1)).prod();
-        } else if (BlockData::DataMapping == EntityType::Face) {
+        } else if (BlockData::EntityType == EntityType::Face) {
             // XXX: [fabianw@mavt.ethz.ch; 2020-01-05] slightly more than needed
             // but easier for alignment
             block_elements_ = (block_cells_ + MultiIndex(1)).prod();
         }
-        all_bytes_ = block_elements_;
+        all_bytes_ = block_elements_ * sizeof(DataType);
+
+        // align at CUBISM_ALIGNMENT byte boundary
         all_bytes_ = ((all_bytes_ + CUBISM_ALIGNMENT - 1) / CUBISM_ALIGNMENT) *
                      CUBISM_ALIGNMENT;
-        block_bytes_ = all_bytes_ * sizeof(DataType);
+
+        // aligned block bytes (may be larger than the minimum number of bytes
+        // needed)
+        block_bytes_ = all_bytes_;
+
+        // number of bytes for a single component slice of all blocks in the
+        // Cartesian topology
         component_bytes_ = block_bytes_ * nblocks_.prod();
-        all_bytes_ = component_bytes_ * FieldType::NComponents;
+
+        // if the EntityType of this Cartesian grid is Face, we need to take
+        // that into account for the allocated data
+        nfaces_ = 1;
+        if (BlockData::EntityType == EntityType::Face) {
+            nfaces_ = MeshType::Dim;
+        }
+
+        // total number of bytes
+        all_bytes_ = nfaces_ * component_bytes_ * FieldType::NComponents;
+
+        // get the allocation
         assert(all_bytes_ > 0);
         blk_alloc_.allocate(all_bytes_);
     }
