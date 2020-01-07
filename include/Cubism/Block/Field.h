@@ -133,6 +133,8 @@ public:
     using typename BaseType::MultiIndex;
     using FieldStateType = TState;
 
+    static constexpr size_t NComponents = 1;
+
     Field() = delete;
 
     /// @brief Main field constructor
@@ -420,26 +422,31 @@ private:
     }
 };
 
+template <typename TBlockData, typename TState = FieldState>
+constexpr size_t Field<TBlockData, TState>::NComponents;
+
 /// @brief Basic cell-centered data field
 ///
 /// @tparam T Data type (must be POD)
 /// @tparam State State type
+/// @tparam Dimension
 /// @tparam Alloc Allocator type
 template <typename T,
           typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator,
-          size_t Dimension = CUBISM_DIMENSION>
+          size_t Dimension = CUBISM_DIMENSION,
+          template <typename> class Alloc = AlignedBlockAllocator>
 using CellField = Field<Data<T, EntityType::Cell, Dimension, Alloc<T>>, State>;
 
 /// @brief Basic node-centered data field
 ///
 /// @tparam T Data type (must be POD)
 /// @tparam State State type
+/// @tparam Dimension
 /// @tparam Alloc Allocator type
 template <typename T,
           typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator,
-          size_t Dimension = CUBISM_DIMENSION>
+          size_t Dimension = CUBISM_DIMENSION,
+          template <typename> class Alloc = AlignedBlockAllocator>
 using NodeField = Field<Data<T, EntityType::Node, Dimension, Alloc<T>>, State>;
 
 /// @brief Basic face-centered data field.  Faces are stored individually for
@@ -448,11 +455,12 @@ using NodeField = Field<Data<T, EntityType::Node, Dimension, Alloc<T>>, State>;
 ///
 /// @tparam T Data type (must be POD)
 /// @tparam State State type
+/// @tparam Dimension
 /// @tparam Alloc Allocator type
 template <typename T,
           typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator,
-          size_t Dimension = CUBISM_DIMENSION>
+          size_t Dimension = CUBISM_DIMENSION,
+          template <typename> class Alloc = AlignedBlockAllocator>
 using FaceField = Field<Data<T, EntityType::Face, Dimension, Alloc<T>>, State>;
 
 #define FIELD_CONTAINER_OP_FIELD(OP)                                           \
@@ -958,11 +966,15 @@ private:
 /// where ff is of type FaceFieldAll.
 ///
 /// @tparam T Data type of FaceField
-template <typename T>
-class FaceFieldAll : public FieldContainer<FaceField<T>>
+template <typename T,
+          typename State = FieldState,
+          size_t Dimension = CUBISM_DIMENSION,
+          template <typename> class Alloc = AlignedBlockAllocator>
+class FaceFieldAll
+    : public FieldContainer<FaceField<T, State, Dimension, Alloc>>
 {
 public:
-    using BaseType = FieldContainer<FaceField<T>>;
+    using BaseType = FieldContainer<FaceField<T, State, Dimension, Alloc>>;
     using typename BaseType::DataType;
     using typename BaseType::FieldType;
     using typename BaseType::IndexRangeType;
@@ -973,6 +985,8 @@ private:
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
 public:
+    static constexpr size_t NComponents = FieldType::NComponents;
+
     /// @brief Main constructor to generate a face field given the cell_domain
     ///
     /// @param cell_domain Index range spanned by the cell domain
@@ -1039,6 +1053,13 @@ public:
 private:
     using BaseType::components_;
 };
+
+template <typename T,
+          typename State = FieldState,
+          size_t Dimension = CUBISM_DIMENSION,
+          template <typename>
+          class Alloc>
+constexpr size_t FaceFieldAll<T, State, Dimension, Alloc>::NComponents;
 
 template <typename TField, size_t RANK>
 class TensorField : public FieldContainer<TField>
