@@ -41,9 +41,9 @@
     } while (0)
 
 template <typename DataType>
-void fieldAdd(const DataType *__restrict src0,
-              const DataType *__restrict src1,
-              DataType *__restrict dst,
+void fieldAdd(const DataType *src0,
+              const DataType *src1,
+              DataType *dst,
               const size_t n)
 {
     OP_FIELD(src0, src1, dst, n, +);
@@ -51,9 +51,9 @@ void fieldAdd(const DataType *__restrict src0,
 }
 
 template <typename DataType>
-void fieldSub(const DataType *__restrict src0,
-              const DataType *__restrict src1,
-              DataType *__restrict dst,
+void fieldSub(const DataType *src0,
+              const DataType *src1,
+              DataType *dst,
               const size_t n)
 {
     OP_FIELD(src0, src1, dst, n, -);
@@ -61,9 +61,9 @@ void fieldSub(const DataType *__restrict src0,
 }
 
 template <typename DataType>
-void fieldMul(const DataType *__restrict src0,
-              const DataType *__restrict src1,
-              DataType *__restrict dst,
+void fieldMul(const DataType *src0,
+              const DataType *src1,
+              DataType *dst,
               const size_t n)
 {
     OP_FIELD(src0, src1, dst, n, *);
@@ -71,9 +71,9 @@ void fieldMul(const DataType *__restrict src0,
 }
 
 template <typename DataType>
-void fieldDiv(const DataType *__restrict src0,
-              const DataType *__restrict src1,
-              DataType *__restrict dst,
+void fieldDiv(const DataType *src0,
+              const DataType *src1,
+              DataType *dst,
               const size_t n)
 {
 #ifndef NDEBUG
@@ -84,9 +84,9 @@ void fieldDiv(const DataType *__restrict src0,
 }
 
 template <typename DataType>
-void fieldAdd(const DataType *__restrict src0,
+void fieldAdd(const DataType *src0,
               const DataType src1,
-              DataType *__restrict dst,
+              DataType *dst,
               const size_t n)
 {
     OP_SCALAR(src0, src1, dst, n, +);
@@ -94,9 +94,9 @@ void fieldAdd(const DataType *__restrict src0,
 }
 
 template <typename DataType>
-void fieldSub(const DataType *__restrict src0,
+void fieldSub(const DataType *src0,
               const DataType src1,
-              DataType *__restrict dst,
+              DataType *dst,
               const size_t n)
 {
     OP_SCALAR(src0, src1, dst, n, -);
@@ -104,9 +104,9 @@ void fieldSub(const DataType *__restrict src0,
 }
 
 template <typename DataType>
-void fieldMul(const DataType *__restrict src0,
+void fieldMul(const DataType *src0,
               const DataType src1,
-              DataType *__restrict dst,
+              DataType *dst,
               const size_t n)
 {
     OP_SCALAR(src0, src1, dst, n, *);
@@ -114,9 +114,9 @@ void fieldMul(const DataType *__restrict src0,
 }
 
 template <typename DataType>
-void fieldDiv(const DataType *__restrict src0,
+void fieldDiv(const DataType *src0,
               const DataType src1,
-              DataType *__restrict dst,
+              DataType *dst,
               const size_t n)
 {
 #ifndef NDEBUG
@@ -129,9 +129,9 @@ void fieldDiv(const DataType *__restrict src0,
 }
 
 template <typename DataType>
-void fieldRcp(const DataType *__restrict src0,
+void fieldRcp(const DataType *src0,
               const DataType src1,
-              DataType *__restrict dst,
+              DataType *dst,
               const size_t n)
 {
 #ifndef NDEBUG
@@ -154,10 +154,8 @@ void fieldRcp(const DataType *__restrict src0,
     extern "C" void TARGET_NAME(OP, TYPE)(                                     \
         const TYPE *, const TYPE *, TYPE *, const size_t);                     \
     template <>                                                                \
-    void CALLER_NAME(OP)(const TYPE *__restrict src0,                          \
-                         const TYPE *__restrict src1,                          \
-                         TYPE *__restrict dst,                                 \
-                         const size_t n)                                       \
+    void CALLER_NAME(OP)(                                                      \
+        const TYPE *src0, const TYPE *src1, TYPE *dst, const size_t n)         \
     {                                                                          \
         TARGET_NAME(OP, TYPE)(src0, src1, dst, n);                             \
         return;                                                                \
@@ -185,10 +183,8 @@ OPTIMIZED_FIELD(Div, float)
     extern "C" void TARGET_NAME(OP, TYPE)(                                     \
         const TYPE *, const TYPE, TYPE *, const size_t);                       \
     template <>                                                                \
-    void CALLER_NAME(OP)(const TYPE *__restrict src0,                          \
-                         const TYPE src1,                                      \
-                         TYPE *__restrict dst,                                 \
-                         const size_t n)                                       \
+    void CALLER_NAME(OP)(                                                      \
+        const TYPE *src0, const TYPE src1, TYPE *dst, const size_t n)          \
     {                                                                          \
         TARGET_NAME(OP, TYPE)(src0, src1, dst, n);                             \
         return;                                                                \
@@ -217,10 +213,8 @@ OPTIMIZED_SCALAR(Div, float)
     extern "C" void TARGET_NAME(TYPE)(                                         \
         const TYPE *, const TYPE, TYPE *, const size_t);                       \
     template <>                                                                \
-    void fieldRcp(const TYPE *__restrict src0,                                 \
-                  const TYPE src1,                                             \
-                  TYPE *__restrict dst,                                        \
-                  const size_t n)                                              \
+    void fieldRcp(                                                             \
+        const TYPE *src0, const TYPE src1, TYPE *dst, const size_t n)          \
     {                                                                          \
         TARGET_NAME(TYPE)(src0, src1, dst, n);                                 \
         return;                                                                \
