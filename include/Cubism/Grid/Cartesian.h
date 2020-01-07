@@ -16,6 +16,39 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Grid)
 
+template <Cubism::EntityType TEntity,
+          typename TData,
+          typename TState,
+          size_t DIM>
+struct ScalarFieldBase {
+    using Type =
+        Cubism::Block::Field<Cubism::Block::Data<TData, TEntity, DIM>, TState>;
+};
+
+template <typename TData, typename TState, size_t DIM>
+struct ScalarFieldBase<Cubism::EntityType::Face, TData, TState, DIM> {
+    using Type = Cubism::Block::FaceFieldAll<TData, TState, DIM>;
+};
+
+template <size_t RANK,
+          Cubism::EntityType TEntity,
+          typename TData,
+          typename TState,
+          size_t DIM>
+struct TensorFieldBase {
+    using Type = Cubism::Block::TensorField<
+        typename ScalarFieldBase<TEntity, TData, TState, DIM>::Type,
+        RANK>;
+};
+
+template <Cubism::EntityType TEntity,
+          typename TData,
+          typename TState,
+          size_t DIM>
+struct TensorFieldBase<0, TEntity, TData, TState, DIM> {
+    using Type = typename ScalarFieldBase<TEntity, TData, TState, DIM>::Type;
+};
+
 template <typename TData,
           typename TMesh,
           Cubism::EntityType TEntity = Cubism::EntityType::Cell,
@@ -35,29 +68,7 @@ public:
         size_t comp;
         MultiIndex idx;
         MeshType *mesh;
-    };
-
-private:
-    template <Cubism::EntityType TE>
-    struct ScalarFieldBase {
-        using Type =
-            Block::Field<Block::Data<TData, TE, MeshType::Dim>, FieldState>;
-    };
-
-    template <>
-    struct ScalarFieldBase<Cubism::EntityType::Face> {
-        using Type = Block::FaceFieldAll<TData, FieldState, MeshType::Dim>;
-    };
-
-    template <size_t R>
-    struct TensorFieldBase {
-        using Type =
-            Block::TensorField<typename ScalarFieldBase<TEntity>::Type, R>;
-    };
-
-    template <>
-    struct TensorFieldBase<0> {
-        using Type = typename ScalarFieldBase<TEntity>::Type;
+        FieldState() : rank(0), comp(0), idx(0), mesh(nullptr) {}
     };
 
 protected:
@@ -65,7 +76,11 @@ protected:
 
 public:
     /// @brief Block (tensor) field type
-    using FieldType = TensorFieldBase<RANK>;
+    using FieldType = typename TensorFieldBase<RANK,
+                                               TEntity,
+                                               TData,
+                                               FieldState,
+                                               MeshType::Dim>::Type;
     /// @brief View type for block fields
     using FieldView = Block::FieldView<FieldType>;
     /// @brief Container type for field views
@@ -200,11 +215,11 @@ private:
             global_mesh_->getExtent() / PointType(nblocks_);
         const IndexRangeType block_range(nblocks_);
 
-        char *const src = static_cast<char *>(data_);
+        char *const src = reinterpret_cast<char *>(data_);
         for (size_t i = 0; i < block_range.size(); ++i) {
             // initialize the field state
-            field_states_.push_back(FieldState{0});
-            FieldState &fs = &field_states_.back();
+            field_states_.push_back(FieldState());
+            FieldState &fs = field_states_.back();
 
             // compute block mesh
             const MultiIndex bi = block_range.getMultiIndex(i);
@@ -230,6 +245,7 @@ private:
                                                  node_range,
                                                  face_ranges,
                                                  MeshHull::SubMesh));
+            fs.rank = Rank;
             fs.idx = bi;
             fs.mesh = field_meshes_.back();
 
@@ -242,7 +258,7 @@ private:
                     for (size_t d = 0; d < MeshType::Dim; ++d) {
                         char *dst =
                             src + i * block_bytes_ + d * component_bytes_;
-                        dl.push_back(static_cast<DataType *>(dst));
+                        dl.push_back(reinterpret_cast<DataType *>(dst));
                         bl.push_back(block_bytes_);
                         sl.push_back(&fs); // all point to the same state
                     }
@@ -250,23 +266,26 @@ private:
                     tensor_fields_.push_back(sf);
                 } else if (EntityType == Cubism::EntityType::Node) {
                     char *dst = src + i * block_bytes_;
-                    FieldType *sf = new FieldType(node_range,
-                                                  static_cast<DataType *>(dst),
-                                                  block_bytes_,
-                                                  &fs);
+                    FieldType *sf =
+                        new FieldType(node_range,
+                                      reinterpret_cast<DataType *>(dst),
+                                      block_bytes_,
+                                      &fs);
                     tensor_fields_.push_back(sf);
                 } else if (EntityType == Cubism::EntityType::Cell) {
                     char *dst = src + i * block_bytes_;
-                    FieldType *sf = new FieldType(cell_range,
-                                                  static_cast<DataType *>(dst),
-                                                  block_bytes_,
-                                                  &fs);
+                    FieldType *sf =
+                        new FieldType(cell_range,
+                                      reinterpret_cast<DataType *>(dst),
+                                      block_bytes_,
+                                      &fs);
                     tensor_fields_.push_back(sf);
                 }
             } else { // tensor field: FieldType != FieldBaseType
                 FieldType *tf = new FieldType(); // empty tensor field
                 tensor_fields_.push_back(tf);
                 for (size_t c = 0; c < NComponents; ++c) {
+                    fs.comp = c;
                     if (EntityType == Cubism::EntityType::Face) {
                         std::vector<DataType *> dl;
                         std::vector<size_t> bl;
@@ -275,7 +294,7 @@ private:
                             char *dst = src +
                                         c * MeshType::Dim * component_bytes_ +
                                         d * component_bytes_ + i * block_bytes_;
-                            dl.push_back(static_cast<DataType *>(dst));
+                            dl.push_back(reinterpret_cast<DataType *>(dst));
                             bl.push_back(block_bytes_);
                             sl.push_back(&fs); // all point to the same state
                         }
@@ -287,7 +306,7 @@ private:
                             src + c * component_bytes_ + i * block_bytes_;
                         FieldBaseType *sf =
                             new FieldBaseType(node_range,
-                                              static_cast<DataType *>(dst),
+                                              reinterpret_cast<DataType *>(dst),
                                               block_bytes_,
                                               &fs);
                         tf->pushBack(sf);
@@ -296,7 +315,7 @@ private:
                             src + c * component_bytes_ + i * block_bytes_;
                         FieldBaseType *sf =
                             new FieldBaseType(cell_range,
-                                              static_cast<DataType *>(dst),
+                                              reinterpret_cast<DataType *>(dst),
                                               block_bytes_,
                                               &fs);
                         tf->pushBack(sf);
