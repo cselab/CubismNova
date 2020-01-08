@@ -513,13 +513,11 @@ public:
     using FieldType = typename BaseType::FieldType;
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
+    using MemoryOwner = typename TField::BaseType::MemoryOwner;
 
 private:
     using ContainerType = std::vector<BaseType *>;
     using FieldStateType = typename FieldType::FieldStateType;
-
-protected:
-    using MemoryOwner = typename TField::BaseType::MemoryOwner;
 
 public:
     /// @brief Default constructor
@@ -994,7 +992,6 @@ private:
 
 #undef FIELD_CONTAINER_OP_FIELD
 #undef FIELD_CONTAINER_OP_SCALAR
-
 /// @brief Container class for all faces in a CUBISM_DIMENSION-ional problem.
 /// The underlying face fields are based on the FaceField template.  For
 /// CUBISM_DIMENSION \in {1,2,3}, the face field for faces with normal in the X
@@ -1016,8 +1013,6 @@ public:
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
     using FieldStateType = typename FieldType::FieldStateType;
-
-private:
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
 public:
@@ -1101,7 +1096,7 @@ public:
     /// @brief Default constructor generates an empty container
     FaceFieldAll() = default;
     FaceFieldAll(const FaceFieldAll &c) = default;
-    FaceFieldAll(FaceFieldAll &&c) noexcept = default;
+    FaceFieldAll(FaceFieldAll &&c) = default;
     FaceFieldAll &operator=(const FaceFieldAll &c) = default;
     FaceFieldAll &operator=(FaceFieldAll &&c) = default;
     ~FaceFieldAll() = default;
@@ -1127,6 +1122,7 @@ public:
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
     using FieldStateType = typename FieldType::FieldStateType;
+    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
 private:
     template <size_t B, size_t E>
@@ -1137,7 +1133,7 @@ private:
     struct Power<B, 0> {
         static constexpr size_t value = 1;
     };
-    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
+    using BaseType::components_;
 
 public:
     static constexpr size_t Rank = RANK;
@@ -1179,7 +1175,7 @@ public:
     /// @brief Default constructor generates an empty container
     TensorField() = default;
     TensorField(const TensorField &c) = default;
-    TensorField(TensorField &&c) noexcept = default;
+    TensorField(TensorField &&c) = default;
     TensorField &operator=(const TensorField &c) = default;
     TensorField &operator=(TensorField &&c) = default;
     ~TensorField() = default;
@@ -1210,8 +1206,6 @@ public:
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
     using FieldStateType = typename FieldType::FieldStateType;
-
-private:
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
 public:
