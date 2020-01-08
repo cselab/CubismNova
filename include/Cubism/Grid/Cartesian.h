@@ -91,13 +91,13 @@ public:
         // allocate the memory
         alloc_();
         // allocate the global mesh (gorigin and start may be different)
-        global_mesh_ = new MeshType(gorigin,
-                                    RangeType(start, end),
-                                    IndexRangeType(nblocks_ * block_cells_),
-                                    MeshHull::FullMesh);
+        mesh_ = new MeshType(gorigin,
+                             RangeType(start, end),
+                             IndexRangeType(nblocks_ * block_cells_),
+                             MeshHull::FullMesh);
         // assemble the block fields
         assembler_.assemble(data_,
-                            *global_mesh_,
+                            *mesh_,
                             nblocks_,
                             block_cells_,
                             block_bytes_,
@@ -230,7 +230,7 @@ protected:
     const MultiIndex nblocks_;
     const MultiIndex block_cells_;
     const IndexRangeType block_range_;
-    MeshType *global_mesh_;
+    MeshType *mesh_;
     FieldContainer fields_;
     Assembler assembler_;
 
