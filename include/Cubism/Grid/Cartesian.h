@@ -182,6 +182,12 @@ public:
         return block_range_.getBegin() + bi;
     }
 
+    /// @brief Returns index range of blocks
+    IndexRangeType getBlockRange() const { return block_range_; }
+
+    /// @brief Return the mesh associated to the Cartesian block topology
+    const MeshType &getMesh() const { return *mesh_; }
+
     /// @brief Get container of fields
     FieldContainer &getFields() { return fields_; }
 
