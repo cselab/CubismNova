@@ -175,6 +175,22 @@ public:
     {
     }
 
+    /// @brief Low-level view constructor
+    ///
+    /// @param range_list Vector of index range
+    /// @param ptr_list Vector of block data pointer
+    /// @param bytes_list Number of bytes pointed to by pointer in ptr_list
+    /// @param state_list Vector of field state pointer
+    Field(const std::vector<IndexRangeType> &range_list,
+          const std::vector<DataType *> &ptr_list,
+          const std::vector<size_t> &bytes_list,
+          const std::vector<FieldStateType *> &state_list)
+        : BaseType(range_list[0], ptr_list[0], bytes_list[0]),
+          state_(state_list[0])
+    {
+        assert(range_list.size() == 1);
+    }
+
     /// @brief Standard copy constructor
     ///
     /// @param c Field to copy from
@@ -555,6 +571,26 @@ public:
         for (size_t i = 0; i < n; ++i) {
             fs.comp = i;
             components_[i] = new FieldType(r, fs);
+        }
+    }
+
+    /// @brief Low-level view constructor
+    ///
+    /// @param r Index range that is spanned by ptr
+    /// @param ptr Block data pointer
+    /// @param bytes Number of bytes in block data
+    /// @param sptr Field state pointer
+    /// @param size Size of container
+    FieldContainer(const IndexRangeType &r,
+                   DataType *ptr,
+                   const size_t bytes,
+                   FieldStateType *sptr,
+                   const size_t size)
+        : components_(size, nullptr)
+    {
+        for (size_t i = 0; i < components_.size(); ++i) {
+            assert(ptr != nullptr);
+            components_[i] = new FieldType(r, ptr, bytes, sptr);
         }
     }
 
@@ -1013,6 +1049,26 @@ public:
     /// @param o Memory ownership (Data::MemoryOwner::Yes = copy deep)
     FaceFieldAll(const FaceFieldAll &ffc, const MemoryOwner o)
         : BaseType(ffc, o)
+    {
+#ifndef NDEBUG
+        assert(this->components_.size() == IndexRangeType::Dim);
+        for (auto c : components_) {
+            assert(c != nullptr);
+        }
+#endif /* NDEBUG */
+    }
+
+    /// @brief Low-level view constructor
+    ///
+    /// @param r Index range that is spanned by ptr
+    /// @param ptr Block data pointer
+    /// @param bytes Number of bytes in block data
+    /// @param sptr Field state pointer
+    FaceFieldAll(const IndexRangeType &r,
+                 DataType *ptr,
+                 const size_t bytes,
+                 FieldStateType *sptr)
+        : BaseType(r, ptr, bytes, sptr, IndexRangeType::Dim)
     {
 #ifndef NDEBUG
         assert(this->components_.size() == IndexRangeType::Dim);
