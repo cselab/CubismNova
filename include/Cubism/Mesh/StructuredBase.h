@@ -34,6 +34,8 @@ public:
     static constexpr size_t Dim = DIM;
 
 private:
+    /// @brief Defines iterator classes for a Cubism::EntityType which are used
+    ///        in range-based operators like for-loops
     class EntityIterator
     {
     public:
@@ -69,6 +71,10 @@ private:
         const IndexRangeType range_;
     };
 
+    /// @brief Iterator entity for entity in Cubism::EntityType (for operator[])
+    ///
+    /// Faces are treated per dimension, which can be accessed with
+    /// Cubism::Dir::X for example.
     class Entity
     {
     public:
@@ -135,6 +141,8 @@ public:
     /// @param start Lower left point of physical domain
     /// @param end Upper right point of physical domain
     /// @param cells Number of cells in mesh
+    /// @param type Mesh hull type (full mesh or sub-mesh)
+    /// @param cl Class of mesh (uniform, stretched)
     StructuredBase(const PointType &start,
                    const PointType &end,
                    const MultiIndex &cells,
@@ -152,6 +160,8 @@ public:
     ///
     /// @param end Upper right point of physical domain
     /// @param cells Number of cells in mesh
+    /// @param type Mesh hull type (full mesh or sub-mesh)
+    /// @param cl Class of mesh (uniform, stretched)
     StructuredBase(const PointType &end,
                    const MultiIndex &cells,
                    const MeshHull type,
@@ -164,13 +174,13 @@ public:
         initFaceRange_(crange_);
     }
 
-    /// @brief
+    /// @brief Standard mesh constructor (useful for MPI subdomains)
     ///
-    /// @param gorigin
-    /// @param range
-    /// @param crange
-    /// @param type
-    /// @param cl
+    /// @param gorigin Global domain origin
+    /// @param range Domain range spanned by this mesh
+    /// @param crange Cell range spanned by this mesh
+    /// @param type Mesh hull type (full mesh or sub-mesh)
+    /// @param cl Class of mesh (uniform, stretched)
     StructuredBase(const PointType &gorigin,
                    const RangeType &range,
                    const IndexRangeType &crange,
@@ -183,6 +193,16 @@ public:
         initFaceRange_(crange_);
     }
 
+    /// @brief Low-level mesh constructor (useful for grid topology classes and
+    ///        sub-meshes)
+    ///
+    /// @param gorigin Global domain origin
+    /// @param range Domain range spanned by this mesh
+    /// @param crange Cell range spanned by this mesh
+    /// @param nrange Node range spanned by this mesh
+    /// @param frange Face range spanned by this mesh
+    /// @param type Mesh hull type (full mesh or sub-mesh)
+    /// @param cl Class of mesh (uniform, stretched)
     StructuredBase(const PointType &gorigin,
                    const RangeType &range,
                    const IndexRangeType &crange,
@@ -217,6 +237,10 @@ public:
     // iterators
     using iterator = typename EntityIterator::iterator;
 
+    /// @brief Returns iterator over Cubism::EntityType
+    ///
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     EntityIterator getIterator(const EntityType t, const size_t d = 0)
     {
         if (t == EntityType::Cell) {
@@ -232,34 +256,24 @@ public:
         return EntityIterator();
     }
 
+    /// @brief Returns iterator over Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     EntityIterator getIterator(const EntityType t, const Dir d)
     {
         return getIterator(t, static_cast<size_t>(d));
     }
 
-    // Basic mesh interface
-    size_t size(const EntityType t, const size_t d = 0) const
-    {
-        if (t == EntityType::Cell) {
-            return crange_.size();
-        } else if (t == EntityType::Node) {
-            return nrange_.size();
-        } else if (t == EntityType::Face) {
-            return frange_[d]->size();
-        } else {
-            throw std::runtime_error(
-                "StructuredBase::size: Unknown entity type t");
-        }
-        return 0;
-    }
-
-    template <typename Dir>
-    size_t size(const EntityType t, const Dir d) const
-    {
-        return size(t, static_cast<size_t>(d));
-    }
-
+    /// @brief Returns an entity iterator for Cubism::EntityType
+    ///
+    /// @param t Cubism::EntityType
+    ///
+    /// Examples:
+    ///  - for (auto c : m[EntityType::Cell])
+    ///  - for (auto f : m[EntityType::Face][Dir::X])
     Entity operator[](const EntityType t) const
     {
         if (t == EntityType::Cell) {
@@ -275,6 +289,43 @@ public:
         return Entity();
     }
 
+    /// @brief Returns the number of elements in the mesh for a
+    ///        Cubism::EntityType
+    ///
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
+    size_t size(const EntityType t, const size_t d = 0) const
+    {
+        if (t == EntityType::Cell) {
+            return crange_.size();
+        } else if (t == EntityType::Node) {
+            return nrange_.size();
+        } else if (t == EntityType::Face) {
+            return frange_[d]->size();
+        } else {
+            throw std::runtime_error(
+                "StructuredBase::size: Unknown entity type t");
+        }
+        return 0;
+    }
+
+    /// @brief Returns the total number of elements in the mesh for a
+    ///        Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
+    template <typename Dir>
+    size_t size(const EntityType t, const Dir d) const
+    {
+        return size(t, static_cast<size_t>(d));
+    }
+
+    /// @brief Returns the number of elements in the mesh for a
+    ///        Cubism::EntityType for each dimension
+    ///
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     MultiIndex getSize(const EntityType t, const size_t d = 0) const
     {
         if (t == EntityType::Cell) {
@@ -290,12 +341,22 @@ public:
         return MultiIndex();
     }
 
+    /// @brief Returns the number of elements in the mesh for a
+    ///        Cubism::EntityType for each dimension
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     MultiIndex getSize(const EntityType t, const Dir d) const
     {
         return getSize(t, static_cast<size_t>(d));
     }
 
+    /// @brief Returns the index range for a Cubism::EntityType
+    ///
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     IndexRangeType getIndexRange(const EntityType t, const size_t d = 0) const
     {
         if (t == EntityType::Cell) {
@@ -311,26 +372,50 @@ public:
         return IndexRangeType();
     }
 
+    /// @brief Returns the index range for a Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     IndexRangeType getIndexRange(const EntityType t, const Dir d) const
     {
         return getIndexRange(t, static_cast<size_t>(d));
     }
 
+    /// @brief Returns the physical mesh extent in each dimension
     PointType getExtent() const { return range_.getExtent(); }
+    /// @brief Returns the volume of the mesh
     RealType getVolume() const { return range_.getVolume(); }
+    /// @brief Returns the local origin of the mesh
     PointType getOrigin() const { return range_.getBegin(); }
+    /// @brief Returns the global origin of the mesh
     PointType getGlobalOrigin() const { return global_origin_; }
+    /// @brief Returns the physical domain range spanned by the mesh
     RangeType getRange() const { return range_; }
 
+    /// @brief Returns true if this is a sub-mesh (subset of some main mesh)
     bool isSubMesh() const { return type_ == MeshHull::SubMesh; }
 
+    /// @brief Converts a local flat index to a local multi-dimensional index
+    ///        for a Cubism::EntityType
+    ///
+    /// @param i Local flat index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     MultiIndex
     getMultiIndex(const size_t i, const EntityType t, const size_t d = 0) const
     {
         return getMultiIndex_(i, t, d);
     }
 
+    /// @brief Converts a local flat index to a local multi-dimensional index
+    ///        for a Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param i Local flat index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     MultiIndex
     getMultiIndex(const size_t i, const EntityType t, const Dir d) const
@@ -338,12 +423,25 @@ public:
         return getMultiIndex_(i, t, static_cast<size_t>(d));
     }
 
+    /// @brief Converts a local flat index to a global multi-dimensional index
+    ///        for a Cubism::EntityType
+    ///
+    /// @param i Local flat index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     MultiIndex
     getGlobalIndex(const size_t i, const EntityType t, const size_t d = 0) const
     {
         return getGlobalIndex(getMultiIndex_(i, t, d), t, d);
     }
 
+    /// @brief Converts a local flat index to a global multi-dimensional index
+    ///        for a Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param i Local flat index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     MultiIndex
     getGlobalIndex(const size_t i, const EntityType t, const Dir d) const
@@ -352,6 +450,12 @@ public:
         return getGlobalIndex(getMultiIndex_(i, t, di), t, di);
     }
 
+    /// @brief Converts a local multi-dimensional index to a global
+    ///        multi-dimensional index for a Cubism::EntityType
+    ///
+    /// @param p Local multi-dimensional index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     MultiIndex getGlobalIndex(const MultiIndex &p,
                               const EntityType t,
                               const size_t d = 0) const
@@ -369,6 +473,13 @@ public:
         return p;
     }
 
+    /// @brief Converts a local multi-dimensional index to a global
+    ///        multi-dimensional index for a Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param p Local multi-dimensional index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     MultiIndex
     getGlobalIndex(const MultiIndex &p, const EntityType t, const Dir d) const
@@ -376,6 +487,12 @@ public:
         return getGlobalIndex(p, t, static_cast<size_t>(d));
     }
 
+    /// @brief Converts a local flat index to global coordinates for a
+    ///        Cubism::EntityType
+    ///
+    /// @param i Local flat index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     PointType getGlobalCoords(const size_t i,
                               const EntityType t,
                               const size_t d = 0) const
@@ -383,6 +500,13 @@ public:
         return global_origin_ + getCoords(i, t, d);
     }
 
+    /// @brief Converts a local flat index to global coordinates for a
+    ///        Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param i Local flat index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     PointType
     getGlobalCoords(const size_t i, const EntityType t, const Dir d) const
@@ -390,6 +514,12 @@ public:
         return global_origin_ + getCoords(i, t, d);
     }
 
+    /// @brief Converts a local multi-dimensional index to global coordinates
+    ///        for a Cubism::EntityType
+    ///
+    /// @param p Local multi-dimensional index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     PointType getGlobalCoords(const MultiIndex &p,
                               const EntityType t,
                               const size_t d = 0) const
@@ -397,6 +527,13 @@ public:
         return global_origin_ + getCoords(p, t, d);
     }
 
+    /// @brief Converts a local multi-dimensional index to global coordinates
+    ///        for a Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param p Local multi-dimensional index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     PointType
     getGlobalCoords(const MultiIndex &p, const EntityType t, const Dir d) const
@@ -404,17 +541,33 @@ public:
         return global_origin_ + getCoords(p, t, d);
     }
 
+    /// @brief Converts an entity iterator to global coordinates
+    ///
+    /// @param it Entity iterator
     PointType getGlobalCoords(const iterator &it) const
     {
         return global_origin_ + getCoords(it);
     }
 
+    /// @brief Converts a local flat index to local coordinates for a
+    ///        Cubism::EntityType
+    ///
+    /// @param i Local flat index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     PointType
     getCoords(const size_t i, const EntityType t, const size_t d = 0) const
     {
         return getCoords_(getMultiIndex_(i, t, d), t, d);
     }
 
+    /// @brief Converts a local flat index to local coordinates for a
+    ///        Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param i Local flat index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     PointType getCoords(const size_t i, const EntityType t, const Dir d) const
     {
@@ -422,12 +575,25 @@ public:
         return getCoords_(getMultiIndex_(i, t, di), t, di);
     }
 
+    /// @brief Converts a local multi-dimensional index to local coordinates for
+    ///        a Cubism::EntityType
+    ///
+    /// @param p Local multi-dimensional index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     PointType
     getCoords(const MultiIndex &p, const EntityType t, const size_t d = 0) const
     {
         return getCoords_(p, t, d);
     }
 
+    /// @brief Converts a local multi-dimensional index to local coordinates for
+    ///        a Cubism::EntityType
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param p Local multi-dimensional index
+    /// @param t Cubism::EntityType
+    /// @param d Direction indicator (for Face types only)
     template <typename Dir>
     PointType
     getCoords(const MultiIndex &p, const EntityType t, const Dir d) const
@@ -435,38 +601,66 @@ public:
         return getCoords_(p, t, static_cast<size_t>(d));
     }
 
+    /// @brief Converts an entity iterator to local coordinates
+    ///
+    /// @param it Entity iterator
     PointType getCoords(const iterator &it) const
     {
         return getCoords_(*it, it.getEntity(), it.getDirection());
     }
 
+    /// @brief Returns cell volume for local flat index
+    ///
+    /// @param i Local flat index
     RealType getCellVolume(const size_t i) const
     {
         return getCellVolume_(getMultiIndex_(i, EntityType::Cell));
     }
 
-    RealType getCellVolume(const MultiIndex &pi) const
+    /// @brief Returns cell volume for local multi-dimensional index
+    ///
+    /// @param p Local multi-dimensional index
+    RealType getCellVolume(const MultiIndex &p) const
     {
-        return getCellVolume_(pi);
+        return getCellVolume_(p);
     }
 
+    /// @brief Returns cell volume for an entity iterator
+    ///
+    /// @param it Entity iterator
     RealType getCellVolume(const iterator &it) const
     {
         return getCellVolume_(*it);
     }
 
+    /// @brief Returns cell size along all dimensions for local flat index
+    ///
+    /// @param i Local flat index
     PointType getCellSize(const size_t i) const
     {
         return getCellSize_(getMultiIndex_(i, EntityType::Cell));
     }
 
+    /// @brief Returns cell size along all dimensions for local
+    ///        multi-dimensional index
+    ///
+    /// @param p Local multi-dimensional index
     PointType getCellSize(const MultiIndex &p) const { return getCellSize_(p); }
 
+    /// @brief Returns cell size along all dimensions for an entity iterator
+    ///
+    /// @param it Entity iterator
     PointType getCellSize(const iterator &it) const
     {
         return getCellSize_(*it);
     }
 
+    /// @brief Returns the surface vector for a face.  Vector points outwards of
+    ///        specified reference cell
+    ///
+    /// @param i Local flat index of face
+    /// @param ci Local flat index of reference cell (determines orientation)
+    /// @param d Direction of face
     PointType getSurface(const size_t i, const size_t ci, const size_t d) const
     {
         return getSurface_(getMultiIndex_(i, EntityType::Face, d),
@@ -474,6 +668,13 @@ public:
                            d);
     }
 
+    /// @brief Returns the surface vector for a face.  Vector points outwards of
+    ///        specified reference cell
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param i Local flat index of face
+    /// @param ci Local flat index of reference cell (determines orientation)
+    /// @param d Direction of face
     template <typename Dir>
     PointType getSurface(const size_t i, const size_t ci, const Dir d) const
     {
@@ -483,12 +684,27 @@ public:
                            di);
     }
 
+    /// @brief Returns the surface vector for a face.  Vector points outwards of
+    ///        specified reference cell
+    ///
+    /// @param p Local multi-dimensional index of face
+    /// @param ci Local multi-dimensional index of reference cell (determines
+    ///           orientation)
+    /// @param d Direction of face
     PointType
     getSurface(const MultiIndex &p, const MultiIndex &ci, const size_t d) const
     {
         return getSurface_(p, ci, d);
     }
 
+    /// @brief Returns the surface vector for a face.  Vector points outwards of
+    ///        specified reference cell
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param p Local multi-dimensional index of face
+    /// @param ci Local multi-dimensional index of reference cell (determines
+    ///           orientation)
+    /// @param d Direction of face
     template <typename Dir>
     PointType
     getSurface(const MultiIndex &p, const MultiIndex &ci, const Dir d) const
@@ -503,6 +719,11 @@ public:
         return getSurface_(*it, ci, it.getDirection());
     }
 
+    /// @brief Returns the surface area for a face relative to a reference cell
+    ///
+    /// @param i Local flat index of face
+    /// @param ci Local flat index of reference cell
+    /// @param d Direction of face
     RealType
     getSurfaceArea(const size_t i, const size_t ci, const size_t d) const
     {
@@ -512,6 +733,12 @@ public:
             .norm();
     }
 
+    /// @brief Returns the surface area for a face relative to a reference cell
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param i Local flat index of face
+    /// @param ci Local flat index of reference cell
+    /// @param d Direction of face
     template <typename Dir>
     RealType getSurfaceArea(const size_t i, const size_t ci, const Dir d) const
     {
@@ -522,6 +749,11 @@ public:
             .norm();
     }
 
+    /// @brief Returns the surface area for a face relative to a reference cell
+    ///
+    /// @param p Local multi-dimensional index of face
+    /// @param ci Local multi-dimensional index of reference cell
+    /// @param d Direction of face
     RealType getSurfaceArea(const MultiIndex &p,
                             const MultiIndex &ci,
                             const size_t d) const
@@ -529,6 +761,12 @@ public:
         return getSurface_(p, ci, d).norm();
     }
 
+    /// @brief Returns the surface area for a face relative to a reference cell
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param p Local multi-dimensional index of face
+    /// @param ci Local multi-dimensional index of reference cell
+    /// @param d Direction of face
     template <typename Dir>
     RealType
     getSurfaceArea(const MultiIndex &p, const MultiIndex &ci, const Dir d) const
@@ -543,6 +781,12 @@ public:
         return getSurface_(*it, ci, it.getDirection()).norm();
     }
 
+    /// @brief Returns the surface normal vector for a face.  Vector points
+    ///        outwards of specified reference cell
+    ///
+    /// @param i Local flat index of face
+    /// @param ci Local flat index of reference cell (determines orientation)
+    /// @param d Direction of face
     PointType
     getSurfaceNormal(const size_t i, const size_t ci, const size_t d) const
     {
@@ -552,6 +796,13 @@ public:
             .unit();
     }
 
+    /// @brief Returns the surface normal vector for a face.  Vector points
+    ///        outwards of specified reference cell
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param i Local flat index of face
+    /// @param ci Local flat index of reference cell (determines orientation)
+    /// @param d Direction of face
     template <typename Dir>
     PointType
     getSurfaceNormal(const size_t i, const size_t ci, const Dir d) const
@@ -563,6 +814,13 @@ public:
             .unit();
     }
 
+    /// @brief Returns the surface normal vector for a face.  Vector points
+    ///        outwards of specified reference cell
+    ///
+    /// @param p Local multi-dimensional index of face
+    /// @param ci Local multi-dimensional index of reference cell (determines
+    ///           orientation)
+    /// @param d Direction of face
     PointType getSurfaceNormal(const MultiIndex &p,
                                const MultiIndex &ci,
                                const size_t d) const
@@ -570,6 +828,14 @@ public:
         return getSurface_(p, ci, d).unit();
     }
 
+    /// @brief Returns the surface normal vector for a face.  Vector points
+    ///        outwards of specified reference cell
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param p Local multi-dimensional index of face
+    /// @param ci Local multi-dimensional index of reference cell (determines
+    ///           orientation)
+    /// @param d Direction of face
     template <typename Dir>
     PointType getSurfaceNormal(const MultiIndex &p,
                                const MultiIndex ci,
@@ -595,11 +861,31 @@ protected:
     std::vector<const IndexRangeType *>
         frange_; // index ranges spanned by faces
 
+    /// @brief Pure virtual method to obtain local coordinates
+    ///
+    /// @param p Local multi-dimensional index
+    /// @param t Cubism::EntityType
+    /// @param dir Entity direction (for faces only)
     virtual PointType getCoords_(const MultiIndex &p,
                                  const EntityType t,
                                  const size_t dir) const = 0;
+
+    /// @brief Pure virtual method to obtain cell volume
+    ///
+    /// @param p Local multi-dimensional index
     virtual RealType getCellVolume_(const MultiIndex &p) const = 0;
+
+    /// @brief Pure virtual method to obtain cell size
+    ///
+    /// @param p Local multi-dimensional index
     virtual PointType getCellSize_(const MultiIndex &p) const = 0;
+
+    /// @brief Pure virtual method to obtain surface vector
+    ///
+    /// @param p Local multi-dimensional index
+    /// @param ci Local multi-dimensional index of reference cell (determines
+    ///           orientation)
+    /// @param dir Entity direction (for faces only)
     virtual PointType getSurface_(const MultiIndex &p,
                                   const MultiIndex &ci,
                                   const size_t dir) const = 0;

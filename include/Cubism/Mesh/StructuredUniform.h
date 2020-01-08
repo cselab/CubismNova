@@ -32,6 +32,12 @@ private:
     using BaseMesh::range_;
 
 public:
+    /// @brief Standard mesh constructor
+    ///
+    /// @param start Lower left point of physical domain
+    /// @param end Upper right point of physical domain
+    /// @param cells Number of cells in mesh
+    /// @param type Mesh hull type (full mesh or sub-mesh)
     StructuredUniform(const PointType &start,
                       const PointType &end,
                       const MultiIndex &cells,
@@ -42,6 +48,11 @@ public:
     {
     }
 
+    /// @brief Standard mesh constructor (with physical origin at 0)
+    ///
+    /// @param end Upper right point of physical domain
+    /// @param cells Number of cells in mesh
+    /// @param type Mesh hull type (full mesh or sub-mesh)
     StructuredUniform(const PointType &end,
                       const MultiIndex &cells,
                       const MeshHull type)
@@ -51,6 +62,12 @@ public:
     {
     }
 
+    /// @brief Standard mesh constructor (useful for MPI subdomains)
+    ///
+    /// @param gorigin Global domain origin
+    /// @param range Domain range spanned by this mesh
+    /// @param crange Cell range spanned by this mesh
+    /// @param type Mesh hull type (full mesh or sub-mesh)
     StructuredUniform(const PointType &gorigin,
                       const RangeType &range,
                       const IndexRangeType &crange,
@@ -61,6 +78,15 @@ public:
     {
     }
 
+    /// @brief Low-level mesh constructor (useful for grid topology classes and
+    ///        sub-meshes)
+    ///
+    /// @param gorigin Global domain origin
+    /// @param range Domain range spanned by this mesh
+    /// @param crange Cell range spanned by this mesh
+    /// @param nrange Node range spanned by this mesh
+    /// @param frange Face range spanned by this mesh
+    /// @param type Mesh hull type (full mesh or sub-mesh)
     StructuredUniform(const PointType &gorigin,
                       const RangeType &range,
                       const IndexRangeType &crange,
