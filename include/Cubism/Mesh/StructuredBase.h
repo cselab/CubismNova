@@ -82,11 +82,11 @@ private:
             : ranges_(1, r), entities_(1, t)
         {
         }
-        Entity(const EntityType t, const std::vector<const IndexRangeType *> &r)
+        Entity(const EntityType t, const std::vector<IndexRangeType> &r)
             : ranges_(), entities_(r.size(), t)
         {
-            for (const auto p : r) {
-                ranges_.push_back(*p);
+            for (const auto &p : r) {
+                ranges_.push_back(p);
             }
         }
         Entity() = default;
@@ -150,8 +150,7 @@ public:
                    const MeshClass cl)
         : type_(type), class_(cl), range_(start, end),
           global_origin_(range_.getBegin()), crange_(cells),
-          nrange_(crange_.getBegin(), crange_.getEnd() + 1),
-          frange_(DIM, nullptr)
+          nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
     }
@@ -168,8 +167,7 @@ public:
                    const MeshClass cl)
         : type_(type), class_(cl), range_(end),
           global_origin_(range_.getBegin()), crange_(cells),
-          nrange_(crange_.getBegin(), crange_.getEnd() + 1),
-          frange_(DIM, nullptr)
+          nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
     }
@@ -187,8 +185,7 @@ public:
                    const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(range), global_origin_(gorigin),
-          crange_(crange), nrange_(crange_.getBegin(), crange_.getEnd() + 1),
-          frange_(DIM, nullptr)
+          crange_(crange), nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
     }
@@ -211,24 +208,19 @@ public:
                    const MeshHull type,
                    const MeshClass cl)
         : type_(type), class_(cl), range_(range), global_origin_(gorigin),
-          crange_(crange), nrange_(nrange), frange_(DIM, nullptr)
+          crange_(crange), nrange_(nrange), frange_(frange)
     {
-        for (size_t i = 0; i < frange_.size(); ++i) {
-            frange_[i] =
-                new IndexRangeType(frange[i].getBegin(), frange[i].getEnd());
-        }
     }
 
     StructuredBase() = delete;
     StructuredBase(StructuredBase &&c) = default;
-    virtual ~StructuredBase() { disposeFaceRange_(); }
+    virtual ~StructuredBase() = default;
 
     StructuredBase(const StructuredBase &c)
         : type_(c.type_), class_(c.class_), range_(c.range_),
           global_origin_(c.global_origin_), crange_(c.crange_),
-          nrange_(c.nrange_), frange_(DIM, nullptr)
+          nrange_(c.nrange_), frange_(c.frange_)
     {
-        copyFaceRange_(c);
     }
 
     StructuredBase &operator=(const StructuredBase &c) = delete;
@@ -248,7 +240,7 @@ public:
         } else if (t == EntityType::Node) {
             return EntityIterator(t, d, nrange_);
         } else if (t == EntityType::Face) {
-            return EntityIterator(t, d, *frange_[d]);
+            return EntityIterator(t, d, frange_[d]);
         } else {
             throw std::runtime_error(
                 "StructuredBase::getIterator: Unknown entity type t");
@@ -296,12 +288,13 @@ public:
     /// @param d Direction indicator (for Face types only)
     size_t size(const EntityType t, const size_t d = 0) const
     {
+        assert(d < frange_.size());
         if (t == EntityType::Cell) {
             return crange_.size();
         } else if (t == EntityType::Node) {
             return nrange_.size();
         } else if (t == EntityType::Face) {
-            return frange_[d]->size();
+            return frange_[d].size();
         } else {
             throw std::runtime_error(
                 "StructuredBase::size: Unknown entity type t");
@@ -328,12 +321,13 @@ public:
     /// @param d Direction indicator (for Face types only)
     MultiIndex getSize(const EntityType t, const size_t d = 0) const
     {
+        assert(d < frange_.size());
         if (t == EntityType::Cell) {
             return crange_.getExtent();
         } else if (t == EntityType::Node) {
             return nrange_.getExtent();
         } else if (t == EntityType::Face) {
-            return frange_[d]->getExtent();
+            return frange_[d].getExtent();
         } else {
             throw std::runtime_error(
                 "StructuredBase::getSize: Unknown entity type t");
@@ -359,12 +353,13 @@ public:
     /// @param d Direction indicator (for Face types only)
     IndexRangeType getIndexRange(const EntityType t, const size_t d = 0) const
     {
+        assert(d < frange_.size());
         if (t == EntityType::Cell) {
             return crange_;
         } else if (t == EntityType::Node) {
             return nrange_;
         } else if (t == EntityType::Face) {
-            return *frange_[d];
+            return frange_[d];
         } else {
             throw std::runtime_error(
                 "StructuredBase::getIndexRange: Unknown entity type t");
@@ -460,12 +455,13 @@ public:
                               const EntityType t,
                               const size_t d = 0) const
     {
+        assert(d < frange_.size());
         if (t == EntityType::Cell) {
             return crange_.getBegin() + p;
         } else if (t == EntityType::Node) {
             return nrange_.getBegin() + p;
         } else if (t == EntityType::Face) {
-            return frange_[d]->getBegin() + p;
+            return frange_[d].getBegin() + p;
         } else {
             throw std::runtime_error(
                 "StructuredBase::getGlobalIndex: Unknown entity type t");
@@ -497,6 +493,7 @@ public:
                               const EntityType t,
                               const size_t d = 0) const
     {
+        assert(d < frange_.size());
         return global_origin_ + getCoords(i, t, d);
     }
 
@@ -524,6 +521,7 @@ public:
                               const EntityType t,
                               const size_t d = 0) const
     {
+        assert(d < frange_.size());
         return global_origin_ + getCoords(p, t, d);
     }
 
@@ -584,6 +582,7 @@ public:
     PointType
     getCoords(const MultiIndex &p, const EntityType t, const size_t d = 0) const
     {
+        assert(d < frange_.size());
         return getCoords_(p, t, d);
     }
 
@@ -694,6 +693,7 @@ public:
     PointType
     getSurface(const MultiIndex &p, const MultiIndex &ci, const size_t d) const
     {
+        assert(d < frange_.size());
         return getSurface_(p, ci, d);
     }
 
@@ -758,6 +758,7 @@ public:
                             const MultiIndex &ci,
                             const size_t d) const
     {
+        assert(d < frange_.size());
         return getSurface_(p, ci, d).norm();
     }
 
@@ -825,6 +826,7 @@ public:
                                const MultiIndex &ci,
                                const size_t d) const
     {
+        assert(d < frange_.size());
         return getSurface_(p, ci, d).unit();
     }
 
@@ -858,8 +860,7 @@ protected:
     const PointType global_origin_; // origin in global mesh
     const IndexRangeType crange_;   // index range spanned by cells
     const IndexRangeType nrange_;   // index range spanned by nodes
-    std::vector<const IndexRangeType *>
-        frange_; // index ranges spanned by faces
+    std::vector<IndexRangeType> frange_; // index ranges spanned by faces
 
     /// @brief Pure virtual method to obtain local coordinates
     ///
@@ -893,37 +894,22 @@ protected:
 private:
     void initFaceRange_(const IndexRangeType &r)
     {
-        for (size_t i = 0; i < frange_.size(); ++i) {
-            frange_[i] = new IndexRangeType(
-                r.getBegin(), r.getEnd() + MultiIndex::getUnitVector(i));
-        }
-    }
-
-    void copyFaceRange_(const StructuredBase &m)
-    {
-        for (size_t i = 0; i < frange_.size(); ++i) {
-            frange_[i] = new IndexRangeType(*m.frange_[i]);
-        }
-    }
-
-    void disposeFaceRange_()
-    {
-        for (auto fr : frange_) {
-            if (fr) {
-                delete fr;
-            }
+        for (size_t i = 0; i < DIM; ++i) {
+            frange_.push_back(IndexRangeType(
+                r.getBegin(), r.getEnd() + MultiIndex::getUnitVector(i)));
         }
     }
 
     MultiIndex
     getMultiIndex_(const size_t i, const EntityType t, const size_t d = 0) const
     {
+        assert(d < frange_.size());
         if (t == EntityType::Cell) {
             return crange_.getMultiIndex(i);
         } else if (t == EntityType::Node) {
             return nrange_.getMultiIndex(i);
         } else if (t == EntityType::Face) {
-            return frange_[d]->getMultiIndex(i);
+            return frange_[d].getMultiIndex(i);
         } else {
             throw std::runtime_error(
                 "StructuredBase::getMultiIndex_: Unknown entity type t");
