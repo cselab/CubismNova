@@ -77,6 +77,9 @@ public:
     static_assert(std::is_same<DataType, T>::value,
                   "Block allocator data type does not match type T");
 
+    /// @brief Specifies memory ownership
+    ///
+    /// A view type will never own memory.
     enum class MemoryOwner { No = 0, Yes };
 
     static constexpr Cubism::EntityType EntityType = ET;
@@ -86,7 +89,8 @@ public:
     /// @param r Index range of data (defines spatial dimensionality of data)
     /// @param owner Whether the data is owner by the class
     explicit Data(const IndexRangeType &r)
-        : range_(r), owner_(MemoryOwner::Yes), block_(nullptr), bytes_(0)
+        : range_(r), owner_(MemoryOwner::Yes), external_memory_(false),
+          block_(nullptr), bytes_(0)
     {
         if (static_cast<bool>(owner_)) {
             allocBlock_();
@@ -94,12 +98,13 @@ public:
         }
     }
 
-    /// @brief General purpose copy-constructor mainly to create data views.
+    /// @brief General purpose copy-constructor mainly for data views.
     ///
     /// @param c Right hand side
     /// @param owner Memory ownership.  MemoryOwner::No for views
     Data(const Data &c, const MemoryOwner owner)
-        : range_(c.range_), owner_(owner), block_(nullptr), bytes_(0)
+        : range_(c.range_), owner_(owner), external_memory_(false),
+          block_(nullptr), bytes_(0)
     {
         if (static_cast<bool>(owner_)) {
             allocBlock_();
@@ -110,14 +115,17 @@ public:
         }
     }
 
-    /// @brief Low-level data view constructor, never owns data.
+    /// @brief Low-level constructor for externally managed memory
     ///
     /// @param r Index range of data pointed to by ptr
     /// @param ptr Block data pointer to first element
     /// @param bytes Number of bytes of block data.  This may be larger than the
     ///              minimum required data specified by the index range!
+    ///
+    /// The block owns the memory but does not deallocate it at destruction.
     Data(const IndexRangeType &r, DataType *ptr, const size_t bytes)
-        : range_(r), owner_(MemoryOwner::No), block_(ptr), bytes_(bytes)
+        : range_(r), owner_(MemoryOwner::Yes), external_memory_(true),
+          block_(ptr), bytes_(bytes)
     {
     }
 
@@ -126,7 +134,8 @@ public:
     ///
     /// @param c Right hand side
     Data(const Data &c)
-        : range_(c.range_), owner_(c.owner_), block_(nullptr), bytes_(0)
+        : range_(c.range_), owner_(c.owner_), external_memory_(false),
+          block_(nullptr), bytes_(0)
     {
         if (static_cast<bool>(owner_)) {
             allocBlock_();
@@ -142,8 +151,8 @@ public:
     ///
     /// @param c Right hand side
     Data(Data &&c) noexcept
-        : range_(std::move(c.range_)), owner_(c.owner_), block_(nullptr),
-          bytes_(0)
+        : range_(std::move(c.range_)), owner_(c.owner_),
+          external_memory_(c.external_memory_), block_(nullptr), bytes_(0)
     {
         bytes_ = c.bytes_; // explicitly set here
         copyBlockShallow_(c);
@@ -153,6 +162,11 @@ public:
     /// @brief Virtual destructor
     ~Data() override
     {
+        if (external_memory_) {
+            // if memory allocation is managed externally, nothing will be
+            // deallocated in this destructor
+            this->setNull_();
+        }
         if (static_cast<bool>(owner_)) {
             deallocBlock_();
         }
@@ -192,6 +206,9 @@ public:
     Data &operator=(Data &&c)
     {
         if (this != &c) {
+            if (external_memory_) {
+                this->setNull_();
+            }
             if (static_cast<bool>(owner_)) {
                 deallocBlock_();
                 bytes_ = c.bytes_; // explicitly set here
@@ -279,7 +296,8 @@ public:
 
 protected:
     const IndexRangeType range_;  // range of DIM-dimensional data
-    const MemoryOwner owner_;     // owns memory allocation
+    const MemoryOwner owner_;     // owns memory
+    const bool external_memory_;  // true if memory allocation is external
     DataType *block_;             // pointer to first block element
     size_t bytes_;                // number of bytes pointed to by block_
     BlockAlloc blk_alloc_;        // block allocator

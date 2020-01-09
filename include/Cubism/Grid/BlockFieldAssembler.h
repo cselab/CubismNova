@@ -88,6 +88,8 @@ struct BlockFieldAssembler {
     using FieldType =
         typename TensorFieldBase<RANK, TEntity, TFData, TFState, TMesh::Dim>::
             Type;
+    /// @brief Container of tensor fields
+    using FieldContainer = Block::FieldContainer<FieldType>;
     /// @brief Field type of components in main tensor field
     using FieldBaseType = typename FieldType::FieldType;
     /// @brief State (meta) information for block
@@ -115,7 +117,7 @@ struct BlockFieldAssembler {
     /// @brief Block meshes corresponding to the assembled fields
     std::vector<MeshType *> field_meshes;
     /// @brief Assembled field views into the external memory
-    std::vector<FieldType *> tensor_fields;
+    FieldContainer tensor_fields;
 
     /// @brief Main assembly routine
     ///
@@ -174,7 +176,7 @@ struct BlockFieldAssembler {
 
             // generate views
             FieldType *tf = new FieldType(); // empty tensor field
-            tensor_fields.push_back(tf);
+            tensor_fields.pushBack(tf);
             for (size_t c = 0; c < FieldType::NComponents; ++c) {
                 fs.comp = c;
                 if (TEntity == Cubism::EntityType::Face) {
@@ -220,19 +222,9 @@ struct BlockFieldAssembler {
                 delete fm;
             }
         }
-        for (auto tf : tensor_fields) {
-            if (tf) {
-                for (auto c : *tf) {
-                    if (c) {
-                        delete c;
-                    }
-                }
-                delete tf;
-            }
-        }
+        tensor_fields.clear();
         field_states.clear();
         field_meshes.clear();
-        tensor_fields.clear();
     }
 };
 
@@ -252,6 +244,10 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
     /// @brief Main scalar field type
     using FieldType =
         typename TensorFieldBase<0, TEntity, TFData, TFState, TMesh::Dim>::Type;
+    /// @brief Container of scalar fields
+    using FieldContainer = Block::FieldContainer<FieldType>;
+    /// @brief Field type of components in main scalar field
+    using FieldBaseType = FieldType;
     /// @brief State (meta) information for block
     using FieldState = TFState;
     /// @brief Underlying block data manager used by the assembled fields
@@ -277,7 +273,7 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
     /// @brief Block meshes corresponding to the assembled fields
     std::vector<MeshType *> field_meshes;
     /// @brief Assembled field views into the external memory
-    std::vector<FieldType *> tensor_fields;
+    FieldContainer tensor_fields;
 
     /// @brief Main assembly routine
     ///
@@ -347,21 +343,21 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
                     sl.push_back(&fs); // all point to the same state
                 }
                 FieldType *sf = new FieldType(face_ranges, dl, bl, sl);
-                tensor_fields.push_back(sf);
+                tensor_fields.pushBack(sf);
             } else if (TEntity == Cubism::EntityType::Node) {
                 char *dst = base + i * block_bytes;
                 FieldType *sf = new FieldType(node_range,
                                               reinterpret_cast<DataType *>(dst),
                                               block_bytes,
                                               &fs);
-                tensor_fields.push_back(sf);
+                tensor_fields.pushBack(sf);
             } else if (TEntity == Cubism::EntityType::Cell) {
                 char *dst = base + i * block_bytes;
                 FieldType *sf = new FieldType(cell_range,
                                               reinterpret_cast<DataType *>(dst),
                                               block_bytes,
                                               &fs);
-                tensor_fields.push_back(sf);
+                tensor_fields.pushBack(sf);
             }
         }
     }
@@ -374,14 +370,9 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
                 delete fm;
             }
         }
-        for (auto tf : tensor_fields) {
-            if (tf) {
-                delete tf;
-            }
-        }
+        tensor_fields.clear();
         field_states.clear();
         field_meshes.clear();
-        tensor_fields.clear();
     }
 };
 
