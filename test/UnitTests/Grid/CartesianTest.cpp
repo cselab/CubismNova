@@ -14,17 +14,66 @@ using namespace Cubism;
 
 TEST(Cartesian, Construction)
 {
-    using IRange = Core::IndexRange<3>;
-    using MIndex = typename IRange::MultiIndex;
+    // 3D mesh
+    using Mesh = Mesh::StructuredUniform<double, 3>;
+    using MIndex = typename Mesh::MultiIndex;
 
-    using Mesh = Mesh::StructuredUniform<double, IRange::Dim>;
+    // grid blocks and cells per block
+    const MIndex nblocks(2);
+    const MIndex block_cells(8);
 
-    // using MeshHull = typename Mesh::MeshHull;
-    // using PointType = typename Mesh::PointType;
-    // using Entity = typename Mesh::EntityType;
-    // using Range = typename Mesh::RangeType;
-    using Grid = Grid::Cartesian<float, Mesh>;
+    { // scalar (rank-0) Cartesian node field (int)
+        using Grid = Grid::Cartesian<int, Mesh, Cubism::EntityType::Node, 0>;
+        Grid grid(nblocks, block_cells);
+        EXPECT_EQ(grid.size(), nblocks.prod());
+        EXPECT_EQ(grid.getSize(), nblocks);
+        for (auto bf : grid) { // scalar block field
+            EXPECT_TRUE(bf->isMemoryOwner());
+            EXPECT_NE(bf->getBlockPtr(), nullptr);
+        }
+    }
 
+    { // scalar (rank-0) Cartesian face field (int)
+        using Grid = Grid::Cartesian<int, Mesh, Cubism::EntityType::Face, 0>;
+        Grid grid(nblocks, block_cells);
+        EXPECT_EQ(grid.size(), nblocks.prod());
+        EXPECT_EQ(grid.getSize(), nblocks);
+        for (auto bf : grid) { // scalar block field
+            for (auto d : *bf) { // face direction
+                EXPECT_TRUE(d->isMemoryOwner());
+                EXPECT_NE(d->getBlockPtr(), nullptr);
+            }
+        }
+    }
+
+    { // vector (rank-1)  Cartesian cell field (double)
+        using Grid = Grid::Cartesian<double, Mesh, Cubism::EntityType::Cell, 1>;
+        Grid grid(nblocks, block_cells);
+        EXPECT_EQ(grid.size(), nblocks.prod());
+        EXPECT_EQ(grid.getSize(), nblocks);
+        for (auto bf : grid) {   // tensor block field
+            for (auto c : *bf) { // tensor field component
+                EXPECT_TRUE(c->isMemoryOwner());
+                EXPECT_NE(c->getBlockPtr(), nullptr);
+            }
+        }
+    }
+
+    { // vector (rank-1)  Cartesian face field (float)
+        using Grid = Grid::Cartesian<float, Mesh, Cubism::EntityType::Face, 1>;
+        Grid grid(nblocks, block_cells);
+        EXPECT_EQ(grid.size(), nblocks.prod());
+        EXPECT_EQ(grid.getSize(), nblocks);
+        for (auto bf : grid) {   // tensor block field
+            for (auto c : *bf) { // tensor field component
+                for (auto d : *c) { // face direction
+                    EXPECT_TRUE(d->isMemoryOwner());
+                    EXPECT_NE(d->getBlockPtr(), nullptr);
+                }
+            }
+        }
+    }
+}
     const MIndex nblocks(2);
     const MIndex block_cells(8);
     Grid g(nblocks, block_cells);
