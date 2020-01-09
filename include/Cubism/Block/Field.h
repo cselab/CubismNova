@@ -287,6 +287,11 @@ public:
         return const_iterator(block_ + range_.size());
     }
 
+    /// @brief Number of data elements carried by field
+    ///
+    /// @return Size of data index range
+    size_t size() const { return range_.size(); }
+
     /// @brief Test if field belongs to scalar class
     ///
     /// @return Boolean (true if scalar, false if higher rank tensor class)
