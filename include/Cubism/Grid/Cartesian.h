@@ -58,14 +58,14 @@ protected:
     /// @brief Type of block assembler
     using Assembler =
         BlockFieldAssembler<TEntity, TData, FieldState, MeshType, RANK>;
+    /// @brief Field type of components in main tensor field
+    using FieldBaseType = typename Assembler::FieldBaseType;
 
 public:
     /// @brief Block (tensor) field type
     using FieldType = typename Assembler::FieldType;
-    /// @brief View type for block fields
-    using FieldView = Block::FieldView<FieldType>;
     /// @brief Container type for field views
-    using FieldContainer = Block::FieldContainer<FieldView>;
+    using FieldContainer = typename Assembler::FieldContainer;
 
     static constexpr size_t Rank = RANK;
     static constexpr size_t NComponents = FieldType::NComponents;
@@ -102,17 +102,14 @@ public:
                             block_cells_,
                             block_bytes_,
                             component_bytes_);
-        // initialize the main field access container
-        for (auto tf : assembler_.tensor_fields) {
-            fields_.pushBack(new FieldView(*tf));
-        }
         // No NUMA touch has been carried out until here.  The user should touch
         // the data based on her/his thread partition strategy in the
         // application.
 
-        assert(fields_.size() == assembler_.field_states.size());
-        assert(fields_.size() == assembler_.field_meshes.size());
-        assert(fields_.size() == assembler_.tensor_fields.size());
+        assert(assembler_.tensor_fields.size() ==
+               assembler_.field_states.size());
+        assert(assembler_.tensor_fields.size() ==
+               assembler_.field_meshes.size());
     }
 
     Cartesian() = delete;
@@ -127,7 +124,7 @@ public:
     {
         assert(size() == c.size());
         for (size_t i = 0; i < c.size(); ++i) {
-            fields_[i].copyData(c.fields_[i]);
+            assembler_.tensor_fields[i].copyData(c.assembler_.tensor_fields[i]);
         }
     }
 
@@ -140,36 +137,48 @@ public:
     using const_reverse_iterator =
         typename FieldContainer::const_reverse_iterator;
 
-    iterator begin() noexcept { return fields_.begin(); }
+    iterator begin() noexcept { return assembler_.tensor_fields.begin(); }
     const_iterator begin() const noexcept
     {
-        return const_iterator(fields_.begin());
+        return const_iterator(assembler_.tensor_fields.begin());
     }
-    iterator end() noexcept { return fields_.end(); }
+    iterator end() noexcept { return assembler_.tensor_fields.end(); }
     const_iterator end() const noexcept
     {
-        return const_iterator(fields_.end());
+        return const_iterator(assembler_.tensor_fields.end());
     }
-    reverse_iterator rbegin() noexcept { return fields_.rbegin(); }
+    reverse_iterator rbegin() noexcept
+    {
+        return assembler_.tensor_fields.rbegin();
+    }
     const_reverse_iterator rbegin() const noexcept
     {
-        return const_reverse_iterator(fields_.rbegin());
+        return const_reverse_iterator(assembler_.tensor_fields.rbegin());
     }
-    reverse_iterator rend() noexcept { return fields_.rend(); }
+    reverse_iterator rend() noexcept { return assembler_.tensor_fields.rend(); }
     const_reverse_iterator rend() const noexcept
     {
-        return const_reverse_iterator(fields_.rend());
+        return const_reverse_iterator(assembler_.tensor_fields.rend());
     }
-    const_iterator cbegin() const noexcept { return fields_.cbegin(); }
-    const_iterator cend() const noexcept { return fields_.cend(); }
+    const_iterator cbegin() const noexcept
+    {
+        return assembler_.tensor_fields.cbegin();
+    }
+    const_iterator cend() const noexcept
+    {
+        return assembler_.tensor_fields.cend();
+    }
     const_reverse_iterator crbegin() const noexcept
     {
-        return fields_.crbegin();
+        return assembler_.tensor_fields.crbegin();
     }
-    const_reverse_iterator crend() const noexcept { return fields_.crend(); }
+    const_reverse_iterator crend() const noexcept
+    {
+        return assembler_.tensor_fields.crend();
+    }
 
     /// @brief Returns number of block fields in the topology
-    size_t size() const { return fields_.size(); }
+    size_t size() const { return assembler_.tensor_fields.size(); }
 
     /// @brief Returns size of topology in all dimensions
     MultiIndex getSize() const { return nblocks_; }
@@ -189,10 +198,10 @@ public:
     const MeshType &getMesh() const { return *mesh_; }
 
     /// @brief Get container of fields
-    FieldContainer &getFields() { return fields_; }
+    FieldContainer &getFields() { return assembler_.tensor_fields; }
 
     /// @brief Get container of fields
-    const FieldContainer &getFields() const { return fields_; }
+    const FieldContainer &getFields() const { return assembler_.tensor_fields; }
 
     /// @brief Get vector of field states
     std::vector<FieldState> &getFieldStates()
@@ -207,29 +216,29 @@ public:
     }
 
     /// @brief Multi-index access fields
-    FieldView &operator()(const MultiIndex &p)
+    FieldType &operator()(const MultiIndex &p)
     {
-        return fields_[block_range_.getFlatIndex(p)];
+        return assembler_.tensor_fields[block_range_.getFlatIndex(p)];
     }
 
     /// @brief Multi-index access fields (immutable)
-    const FieldView &operator()(const MultiIndex &p) const
+    const FieldType &operator()(const MultiIndex &p) const
     {
-        return fields_[block_range_.getFlatIndex(p)];
+        return assembler_.tensor_fields[block_range_.getFlatIndex(p)];
     }
 
     /// @brief Linear access fields
-    FieldView &operator[](const size_t i)
+    FieldType &operator[](const size_t i)
     {
-        assert(i < fields_.size());
-        return fields_[i];
+        assert(i < assembler_.tensor_fields.size());
+        return assembler_.tensor_fields[i];
     }
 
     /// @brief Linear access fields (immutable)
-    const FieldView &operator[](const size_t i) const
+    const FieldType &operator[](const size_t i) const
     {
-        assert(i < fields_.size());
-        return fields_[i];
+        assert(i < assembler_.tensor_fields.size());
+        return assembler_.tensor_fields[i];
     }
 
 protected:
@@ -237,11 +246,10 @@ protected:
     const MultiIndex block_cells_;
     const IndexRangeType block_range_;
     MeshType *mesh_;
-    FieldContainer fields_;
     Assembler assembler_;
 
 private:
-    using BlockData = typename FieldType::BaseType;
+    using BlockData = typename FieldBaseType::BaseType;
     using DataType = typename FieldType::DataType;
 
     DataType *data_;
@@ -297,16 +305,11 @@ private:
 
     void dispose_()
     {
-        if (global_mesh_) {
-            delete global_mesh_;
-        }
         assembler_.dispose();
-        for (auto fv : fields_) {
-            if (fv) {
-                delete fv;
-            }
-        }
         dealloc_();
+        if (mesh_) {
+            delete mesh_;
+        }
     }
 };
 
