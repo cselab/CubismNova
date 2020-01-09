@@ -91,7 +91,7 @@ struct BlockFieldAssembler {
     /// @brief Container of tensor fields
     using FieldContainer = Block::FieldContainer<FieldType>;
     /// @brief Field type of components in main tensor field
-    using FieldBaseType = typename FieldType::FieldType;
+    using FieldBaseType = typename FieldType::TensorComponentType;
     /// @brief State (meta) information for block
     using FieldState = TFState;
     /// @brief Underlying block data manager used by the assembled fields
@@ -141,6 +141,7 @@ struct BlockFieldAssembler {
         const IndexRangeType block_range(nblocks);
 
         char *const base = reinterpret_cast<char *>(src);
+        std::vector<IndexRangeType> face_ranges(MeshType::Dim);
         for (size_t i = 0; i < block_range.size(); ++i) {
             // initialize the field state
             field_states.push_back(FieldState());
@@ -153,14 +154,13 @@ struct BlockFieldAssembler {
             const PointType bend = bstart + block_extent;
             const MultiIndex cells = block_cells;
             MultiIndex nodes = cells;
-            std::vector<IndexRangeType> face_ranges;
             for (size_t d = 0; d < MeshType::Dim; ++d) {
                 MultiIndex faces(cells);
                 if (bi[d] == nblocks[d] - 1) {
                     ++nodes[i];
                     ++faces[i];
                 }
-                face_ranges.push_back(IndexRangeType(faces));
+                face_ranges[d] = IndexRangeType(faces);
             }
             const IndexRangeType cell_range(cells);
             const IndexRangeType node_range(nodes);
@@ -174,7 +174,7 @@ struct BlockFieldAssembler {
             fs.idx = bi;
             fs.mesh = field_meshes.back();
 
-            // generate views
+            // generate fields
             FieldType *tf = new FieldType(); // empty tensor field
             tensor_fields.pushBack(tf);
             for (size_t c = 0; c < FieldType::NComponents; ++c) {
@@ -190,25 +190,25 @@ struct BlockFieldAssembler {
                         bl.push_back(block_bytes);
                         sl.push_back(&fs); // all point to the same state
                     }
-                    FieldBaseType *sf =
+                    FieldBaseType *cf =
                         new FieldBaseType(face_ranges, dl, bl, sl);
-                    tf->pushBack(sf);
+                    tf->pushBack(cf);
                 } else if (TEntity == Cubism::EntityType::Node) {
                     char *dst = base + c * component_bytes + i * block_bytes;
-                    FieldBaseType *sf =
+                    FieldBaseType *cf =
                         new FieldBaseType(node_range,
                                           reinterpret_cast<DataType *>(dst),
                                           block_bytes,
                                           &fs);
-                    tf->pushBack(sf);
+                    tf->pushBack(cf);
                 } else if (TEntity == Cubism::EntityType::Cell) {
                     char *dst = base + c * component_bytes + i * block_bytes;
-                    FieldBaseType *sf =
+                    FieldBaseType *cf =
                         new FieldBaseType(cell_range,
                                           reinterpret_cast<DataType *>(dst),
                                           block_bytes,
                                           &fs);
-                    tf->pushBack(sf);
+                    tf->pushBack(cf);
                 }
             }
         }
@@ -297,6 +297,7 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
         const IndexRangeType block_range(nblocks);
 
         char *const base = reinterpret_cast<char *>(src);
+        std::vector<IndexRangeType> face_ranges(MeshType::Dim);
         for (size_t i = 0; i < block_range.size(); ++i) {
             // initialize the field state
             field_states.push_back(FieldState());
@@ -309,14 +310,13 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
             const PointType bend = bstart + block_extent;
             const MultiIndex cells = block_cells;
             MultiIndex nodes = cells;
-            std::vector<IndexRangeType> face_ranges;
             for (size_t d = 0; d < MeshType::Dim; ++d) {
                 MultiIndex faces(cells);
                 if (bi[d] == nblocks[d] - 1) {
                     ++nodes[i];
                     ++faces[i];
                 }
-                face_ranges.push_back(IndexRangeType(faces));
+                face_ranges[d] = IndexRangeType(faces);
             }
             const IndexRangeType cell_range(cells);
             const IndexRangeType node_range(nodes);
@@ -331,7 +331,7 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
             fs.idx = bi;
             fs.mesh = field_meshes.back();
 
-            // generate views
+            // generate fields
             if (TEntity == Cubism::EntityType::Face) {
                 std::vector<DataType *> dl;
                 std::vector<size_t> bl;
@@ -342,22 +342,22 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
                     bl.push_back(block_bytes);
                     sl.push_back(&fs); // all point to the same state
                 }
-                FieldType *sf = new FieldType(face_ranges, dl, bl, sl);
-                tensor_fields.pushBack(sf);
+                FieldType *bf = new FieldType(face_ranges, dl, bl, sl);
+                tensor_fields.pushBack(bf);
             } else if (TEntity == Cubism::EntityType::Node) {
                 char *dst = base + i * block_bytes;
-                FieldType *sf = new FieldType(node_range,
+                FieldType *bf = new FieldType(node_range,
                                               reinterpret_cast<DataType *>(dst),
                                               block_bytes,
                                               &fs);
-                tensor_fields.pushBack(sf);
+                tensor_fields.pushBack(bf);
             } else if (TEntity == Cubism::EntityType::Cell) {
                 char *dst = base + i * block_bytes;
-                FieldType *sf = new FieldType(cell_range,
+                FieldType *bf = new FieldType(cell_range,
                                               reinterpret_cast<DataType *>(dst),
                                               block_bytes,
                                               &fs);
-                tensor_fields.pushBack(sf);
+                tensor_fields.pushBack(bf);
             }
         }
     }
