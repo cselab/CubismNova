@@ -53,6 +53,7 @@ TEST(BlockMesh, Field)
     const PointType block_extent = m.getExtent() / PointType(nblocks);
     FC fields;
     std::vector<Mesh *> mfields;
+    std::vector<IRange> vfaces(Mesh::Dim);
     for (int bz = 0; bz < nblocks[2]; ++bz) {
         for (int by = 0; by < nblocks[1]; ++by) {
             for (int bx = 0; bx < nblocks[0]; ++bx) {
@@ -63,14 +64,13 @@ TEST(BlockMesh, Field)
                 const PointType bend = bstart + block_extent;
                 const MIndex cells = block_cells;
                 MIndex nodes = cells;
-                std::vector<IRange> vfaces;
                 for (size_t i = 0; i < Mesh::Dim; ++i) {
                     MIndex faces(cells);
                     if (bi[i] == nblocks[i] - 1) {
                         ++nodes[i];
                         ++faces[i];
                     }
-                    vfaces.push_back(IRange(faces));
+                    vfaces[i] = IRange(faces);
                 }
                 MyFieldState fs;
                 mfields.push_back(new Mesh(gorigin,
