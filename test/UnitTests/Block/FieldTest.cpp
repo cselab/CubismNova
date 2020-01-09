@@ -52,12 +52,16 @@ TEST(Field, Construction)
     }
 
     { // low-level
+        using DataType = typename CellField::DataType;
+
         CellField cf(cell_domain);
         CellField cf1(cf, CellField::BaseType::MemoryOwner::Yes);
         FieldState fs;
         fs.rank = cf.getRank();
         fs.comp = cf.getComp();
-        CellField cf2(cell_domain, cf.getData(), cf.getBlockBytes(), &fs);
+        DataType *pdata = new DataType[cf.size()];
+        const size_t bytes = cf.size() * sizeof(DataType);
+        CellField cf2(cell_domain, pdata, bytes, &fs);
 
         EXPECT_EQ(cf.isMemoryOwner(), cf1.isMemoryOwner());
         EXPECT_NE(cf.getBlockPtr(), cf1.getBlockPtr());
@@ -65,11 +69,13 @@ TEST(Field, Construction)
         EXPECT_EQ(cf.getRank(), cf1.getRank());
         EXPECT_EQ(cf.getComp(), cf1.getComp());
 
-        EXPECT_NE(cf.isMemoryOwner(), cf2.isMemoryOwner());
-        EXPECT_EQ(cf.getBlockPtr(), cf2.getBlockPtr());
+        EXPECT_EQ(cf.isMemoryOwner(), cf2.isMemoryOwner());
+        EXPECT_NE(cf.getBlockPtr(), cf2.getBlockPtr());
         EXPECT_EQ(cf.isScalar(), cf2.isScalar());
         EXPECT_EQ(cf.getRank(), cf2.getRank());
         EXPECT_EQ(cf.getComp(), cf2.getComp());
+
+        delete pdata;
     }
 
     { // copy construction
@@ -446,9 +452,19 @@ TEST(FieldContainer, Construction)
 
     // low-level constructors
     {
+        using DataType = typename NodeField::DataType;
+
+        // CellField cf(cell_domain);
+        // CellField cf1(cf, CellField::BaseType::MemoryOwner::Yes);
+        // FieldState fs;
+        // fs.rank = cf.getRank();
+        // fs.comp = cf.getComp();
+        // DataType *pdata = new DataType[cf.size()];
+        // const size_t bytes = cf.size() * sizeof(DataType);
+
         FC fc(2, node_domain);
         std::vector<IRange> rl;
-        std::vector<typename NodeField::DataType *> pl;
+        std::vector<DataType *> pl;
         std::vector<size_t> bl;
         std::vector<FieldState *> sl;
         for (size_t i = 0; i < fc.size(); ++i) {
@@ -461,8 +477,9 @@ TEST(FieldContainer, Construction)
         for (size_t i = 0; i < fc.size(); ++i) {
             EXPECT_EQ(fc1[i].getRank(), 0);
             EXPECT_EQ(fc1[i].getComp(), i);
-            EXPECT_FALSE(fc1[i].isMemoryOwner());
+            EXPECT_TRUE(fc1[i].isMemoryOwner());
             EXPECT_EQ(fc1[i].getBlockPtr(), fc[i].getBlockPtr());
+            EXPECT_EQ(&fc1[i].getState(), &fc[i].getState());
             EXPECT_NE(&fc1[i], &fc[i]);
         }
     }

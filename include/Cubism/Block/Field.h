@@ -161,7 +161,7 @@ public:
         copyState_(f);
     }
 
-    /// @brief Low-level view constructor
+    /// @brief Low-level constructor for external memory
     ///
     /// @param r Index range that is spanned by ptr
     /// @param ptr Block data pointer
@@ -175,7 +175,7 @@ public:
     {
     }
 
-    /// @brief Low-level view constructor
+    /// @brief Low-level constructor for external memory
     ///
     /// @param range_list Vector of index range
     /// @param ptr_list Vector of block data pointer
@@ -212,7 +212,14 @@ public:
     }
 
     /// @brief Virtual destructor
-    ~Field() override { disposeState_(); }
+    ~Field() override
+    {
+        if (this->external_memory_) {
+            // state is not deallocated in the case of externally managed memory
+            state_ = nullptr;
+        }
+        disposeState_();
+    }
 
     /// @brief Standard copy assignment operator
     ///
@@ -239,6 +246,11 @@ public:
         assert(range_.size() == c.range_.size());
         if (this != &c) {
             BaseType::operator=(std::move(c));
+            if (this->external_memory_) {
+                // state is not deallocated in the case of externally managed
+                // memory
+                state_ = nullptr;
+            }
             disposeState_();
             state_ = std::move(c.state_);
             c.state_ = nullptr;
@@ -504,6 +516,10 @@ using FaceField = Field<Data<T, EntityType::Face, Dimension, Alloc<T>>, State>;
 /// container contains nullptr for some of its components.
 ///
 /// @tparam TField Type of field
+///
+/// This is an actively managed field container.  Unlike std::vector, the
+/// destructors of the container elements are called upon destruction of the
+/// container.
 template <typename TField>
 class FieldContainer
 {
@@ -572,7 +588,7 @@ public:
         }
     }
 
-    /// @brief Low-level view constructor
+    /// @brief Low-level constructor for external memory
     ///
     /// @param r Index range that is spanned by ptr
     /// @param ptr Block data pointer
@@ -592,7 +608,7 @@ public:
         }
     }
 
-    /// @brief Low-level constructor for views (never allocates new fields)
+    /// @brief Low-level constructor for external memory
     ///
     /// @param range_list Vector of index ranges for each component
     /// @param ptr_list Vector of block data pointer corresponding to range_list
@@ -647,6 +663,8 @@ public:
     FieldContainer &operator=(const FieldContainer &rhs)
     {
         if (this != &rhs) {
+            // FIXME: [fabianw@mavt.ethz.ch; 2020-01-09] size copy of
+            // externally managed
             dispose_();
             components_.resize(rhs.size());
             for (size_t i = 0; i < rhs.size(); ++i) {
@@ -751,6 +769,12 @@ public:
     /// This copies FieldType::BaseType data only, not the state.
     ///
     /// @param rhs Field container to copy from
+    ///
+    /// Example: fv is a field view and f is another field (either view or
+    /// memory owner)
+    ///
+    ///  - fv = f (shallow copy of f to fv [updates pointers in fv only])
+    ///  - fv.copyData(f) (deep copy of data in f to fv [expensive operation])
     void copyData(const FieldContainer &rhs)
     {
         assert(components_.size() == rhs.components_.size());
@@ -767,6 +791,17 @@ public:
     ///
     /// @param p Pointer to new component
     void pushBack(BaseType *p) { components_.push_back(p); }
+
+    /// @brief Destroy container components
+    ///
+    /// Unlike to std::vector, this calls the destructor of each container
+    /// component effectively destroying the object.  The size of the container
+    /// after this operation is zero.
+    void clear()
+    {
+        dispose_();
+        this->components_.clear();
+    }
 
     /// @brief Access to fields.  This method throws a std::runtime_error if the
     /// component is a nullptr.
@@ -1053,7 +1088,7 @@ public:
 #endif /* NDEBUG */
     }
 
-    /// @brief Low-level view constructor
+    /// @brief Low-level constructor for external memory
     ///
     /// @param r Index range that is spanned by ptr
     /// @param ptr Block data pointer
@@ -1073,7 +1108,7 @@ public:
 #endif /* NDEBUG */
     }
 
-    /// @brief Low-level constructor for views (never allocates new fields)
+    /// @brief Low-level constructor for external memory
     ///
     /// @param range_list Vector of index ranges for each component
     /// @param ptr_list Vector of block data pointer corresponding to range_list
@@ -1157,7 +1192,7 @@ public:
         assert(this->components_.size() == NComponents);
     }
 
-    /// @brief Low-level constructor for views (never allocates new fields)
+    /// @brief Low-level constructor for external memory
     ///
     /// @param range_list Vector of index ranges for each component
     /// @param ptr_list Vector of block data pointer corresponding to range_list
