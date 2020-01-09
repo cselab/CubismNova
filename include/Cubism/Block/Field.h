@@ -128,6 +128,7 @@ protected:
 public:
     using BaseType = TBlockData;
     using FieldType = Field;
+    using BlockDataType = TBlockData;
     using typename BaseType::DataType;
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
@@ -532,6 +533,7 @@ public:
     using BaseType = TField;
     using DataType = typename BaseType::DataType;
     using FieldType = typename BaseType::FieldType;
+    using BlockDataType = typename FieldType::BlockDataType;
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
     using MemoryOwner = typename TField::BaseType::MemoryOwner;
@@ -1048,6 +1050,7 @@ class FaceFieldAll
 {
 public:
     using BaseType = FieldContainer<FaceField<T, State, Dimension, Alloc>>;
+    using typename BaseType::BlockDataType;
     using typename BaseType::DataType;
     using typename BaseType::FieldType;
     using typename BaseType::IndexRangeType;
@@ -1157,6 +1160,8 @@ class TensorField : public FieldContainer<TField>
 {
 public:
     using BaseType = FieldContainer<TField>;
+    using TensorComponentType = TField;
+    using typename BaseType::BlockDataType;
     using typename BaseType::DataType;
     using typename BaseType::FieldType;
     using typename BaseType::IndexRangeType;

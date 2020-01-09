@@ -249,7 +249,7 @@ protected:
     Assembler assembler_;
 
 private:
-    using BlockData = typename FieldBaseType::BaseType;
+    using BlockData = typename FieldType::BlockDataType;
     using DataType = typename FieldType::DataType;
 
     DataType *data_;
