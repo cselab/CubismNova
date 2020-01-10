@@ -20,8 +20,10 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
-/// @brief Meta data (state) of a block field.  Data carried in a field
+/// @brief Minimal meta data (state) of a block field.  Data carried in a field
 ///        state is supposed to be static.
+///
+/// The structure fields rank and comp are required in any custom field state.
 struct FieldState {
     size_t rank;      // field rank -- rank=0 (scalar), rank=1 (vector), ...
     size_t comp;      // field component in rank dimension
