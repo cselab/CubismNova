@@ -1161,6 +1161,44 @@ public:
     FaceFieldAll &operator=(FaceFieldAll &&c) = default;
     ~FaceFieldAll() = default;
 
+    /// @brief Face field access
+    ///
+    /// @param i Direction index
+    FieldType &operator[](const size_t i)
+    {
+        assert(i < IndexRangeType::Dim);
+        return *components_[i];
+    }
+
+    /// @brief Face field access
+    ///
+    /// @param i Direction index
+    const FieldType &operator[](const size_t i) const
+    {
+        assert(i < IndexRangeType::Dim);
+        return *components_[i];
+    }
+
+    /// @brief Face field access
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param t Direction of face
+    template <typename Dir>
+    FieldType &operator[](const Dir &t)
+    {
+        return this->operator[](static_cast<size_t>(t));
+    }
+
+    /// @brief Face field access
+    ///
+    /// @tparam Dir Special type that defines a cast to size_t
+    /// @param t Direction of face
+    template <typename Dir>
+    const FieldType &operator[](const Dir &t) const
+    {
+        return this->operator[](static_cast<size_t>(t));
+    }
+
 private:
     using BaseType::components_;
 };
@@ -1241,6 +1279,44 @@ public:
     TensorField &operator=(const TensorField &c) = default;
     TensorField &operator=(TensorField &&c) = default;
     ~TensorField() = default;
+
+    /// @brief Component field access
+    ///
+    /// @param i Component index
+    FieldType &operator[](const size_t i)
+    {
+        assert(i < NComponents);
+        return *components_[i];
+    }
+
+    /// @brief Component field access
+    ///
+    /// @param i Component index
+    const FieldType &operator[](const size_t i) const
+    {
+        assert(i < NComponents);
+        return *components_[i];
+    }
+
+    /// @brief Component field access
+    ///
+    /// @tparam TComp Special type that defines a cast to size_t
+    /// @param t Component of tensor
+    template <typename TComp>
+    FieldType &operator[](const TComp &t)
+    {
+        return this->operator[](static_cast<size_t>(t));
+    }
+
+    /// @brief Component field access
+    ///
+    /// @tparam TComp Special type that defines a cast to size_t
+    /// @param t Component of tensor
+    template <typename TComp>
+    const FieldType &operator[](const TComp &t) const
+    {
+        return this->operator[](static_cast<size_t>(t));
+    }
 };
 
 template <typename TField, size_t RANK>
