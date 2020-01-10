@@ -545,11 +545,6 @@ private:
     using FieldStateType = typename FieldType::FieldStateType;
 
 public:
-    /// @brief Default constructor
-    ///
-    /// @param n Number of components in container
-    explicit FieldContainer(const size_t n = 0) : components_(n, nullptr) {}
-
     /// @brief Construct from a list of pointers
     ///
     /// @param vf Vector of pointers to underlying type (may be nullptr)
@@ -660,6 +655,9 @@ public:
     {
         c.components_.clear();
     }
+
+    /// @brief Default constructor
+    FieldContainer() = default;
 
     /// @brief Virtual destructor
     virtual ~FieldContainer() { dispose_(); }
@@ -1067,18 +1065,17 @@ public:
     ///
     /// @param cell_domain Index range spanned by the cell domain
     explicit FaceFieldAll(const IndexRangeType &cell_domain)
-        : BaseType(IndexRangeType::Dim)
     {
         const MultiIndex cells = cell_domain.getExtent(); // number of cells
         FieldStateType fs;
         fs.rank = 0;
-        for (size_t i = 0; i < cells.size(); ++i) {
+        for (size_t i = 0; i < IndexRangeType::Dim; ++i) {
             // XXX: [fabianw@mavt.ethz.ch; 2020-01-01] Not most favorable for
             // vectorization but more intuitive.  Will require some
             // transposition in vectorized code.
             const IndexRangeType ri(cells + MultiIndex::getUnitVector(i));
             fs.comp = i;
-            components_[i] = new FieldType(ri, fs);
+            components_.push_back(new FieldType(ri, fs));
             assert(components_[i] != nullptr);
         }
     }
@@ -1255,7 +1252,6 @@ public:
     using FieldStateType = typename FieldType::FieldStateType;
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
-public:
     /// @brief Main constructor to generate a field view
     ///
     /// @param f Field for which to generate the view

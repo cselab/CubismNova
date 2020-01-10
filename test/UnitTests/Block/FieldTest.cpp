@@ -400,9 +400,6 @@ TEST(FieldContainer, Construction)
     { // default
         FC fc;
         EXPECT_EQ(fc.size(), 0);
-
-        FC fc1(1);
-        EXPECT_EQ(fc1.size(), 1);
     }
 
     { // construct new (owns memory)
@@ -453,14 +450,6 @@ TEST(FieldContainer, Construction)
     // low-level constructors
     {
         using DataType = typename NodeField::DataType;
-
-        // CellField cf(cell_domain);
-        // CellField cf1(cf, CellField::BaseType::MemoryOwner::Yes);
-        // FieldState fs;
-        // fs.rank = cf.getRank();
-        // fs.comp = cf.getComp();
-        // DataType *pdata = new DataType[cf.size()];
-        // const size_t bytes = cf.size() * sizeof(DataType);
 
         FC fc(2, node_domain);
         std::vector<IRange> rl;
@@ -635,7 +624,8 @@ TEST(FieldContainer, Interface)
     IRange node_domain(nodes);
 
     {
-        FC fc1(1);
+        FC fc1;
+        fc1.pushBack(nullptr);
         EXPECT_EQ(fc1.size(), 1);
         EXPECT_THROW(
             {
