@@ -90,9 +90,39 @@ TEST(Cartesian, Construction)
         }
     }
 }
+
+TEST(Cartesian, GridFill)
+{
+    // 2D mesh
+    using Mesh = Mesh::StructuredUniform<float, 2>;
+    using MIndex = typename Mesh::MultiIndex;
+
+    // grid blocks and cells per block
     const MIndex nblocks(2);
     const MIndex block_cells(8);
-    Grid g(nblocks, block_cells);
+
+    { // scalar (rank-0) Cartesian cell field (int)
+        using Grid = Grid::Cartesian<int, Mesh, Cubism::EntityType::Cell, 0>;
+        using DataType = typename Grid::DataType;
+        Grid grid(nblocks, block_cells);
+        EXPECT_EQ(grid.size(), nblocks.prod());
+        EXPECT_EQ(grid.getSize(), nblocks);
+        DataType k = 0;
+        for (auto bf : grid) { // fill scalar block fields with data
+            std::fill(bf->begin(), bf->end(), k++);
+        }
+
+        k = nblocks.prod() - 1;
+        const DataType ref = block_cells.prod() * k * (k + 1) / 2;
+        k = 0;
+        for (auto bf : grid) {   // sum all cell values
+            for (auto c : *bf) { // for each value in block field bf
+                k += c;
+            }
+        }
+        EXPECT_EQ(k, ref);
+    }
+}
 }
 
 } // namespace
