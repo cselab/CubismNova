@@ -39,6 +39,8 @@ public:
     /// @brief Type of point in physical domain (a MeshType::Dim vector of
     ///        float or double)
     using PointType = typename MeshType::PointType;
+    /// @brief Type float used to describe the mesh topology
+    using RealType = typename MeshType::RealType;
 
     /// @brief State (meta data) for individual block fields
     ///
@@ -64,6 +66,8 @@ protected:
 public:
     /// @brief Block (tensor) field type
     using FieldType = typename Assembler::FieldType;
+    /// @brief Data type of carried fields
+    using DataType = typename FieldType::DataType;
     /// @brief Container type for field views
     using FieldContainer = typename Assembler::FieldContainer;
 
@@ -251,7 +255,6 @@ protected:
 
 private:
     using BlockData = typename FieldType::BlockDataType;
-    using DataType = typename FieldType::DataType;
 
     DataType *data_;
     TAlloc<DataType> blk_alloc_;
