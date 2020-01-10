@@ -142,10 +142,11 @@ struct BlockFieldAssembler {
 
         char *const base = reinterpret_cast<char *>(src);
         std::vector<IndexRangeType> face_ranges(MeshType::Dim);
+        field_states.resize(block_range.size());
         for (size_t i = 0; i < block_range.size(); ++i) {
             // initialize the field state
-            field_states.push_back(FieldState());
-            FieldState &fs = field_states.back();
+            field_states[i] = FieldState();
+            FieldState &fs = field_states[i];
 
             // compute block mesh
             const MultiIndex bi = block_range.getMultiIndex(i); // local index
@@ -157,22 +158,25 @@ struct BlockFieldAssembler {
             for (size_t d = 0; d < MeshType::Dim; ++d) {
                 MultiIndex faces(cells);
                 if (bi[d] == nblocks[d] - 1) {
-                    ++nodes[i];
-                    ++faces[i];
+                    ++nodes[d];
+                    ++faces[d];
                 }
                 face_ranges[d] = IndexRangeType(faces);
             }
             const IndexRangeType cell_range(cells);
             const IndexRangeType node_range(nodes);
-            field_meshes.push_back(new MeshType(mesh.getGlobalOrigin(),
-                                                RangeType(bstart, bend),
-                                                cell_range,
-                                                node_range,
-                                                face_ranges,
-                                                MeshHull::SubMesh));
+            MeshType *fm = new MeshType(mesh.getGlobalOrigin(),
+                                        RangeType(bstart, bend),
+                                        cell_range,
+                                        node_range,
+                                        face_ranges,
+                                        MeshHull::SubMesh);
+            assert(fm != nullptr);
+
+            field_meshes.push_back(fm);
             fs.rank = RANK;
             fs.idx = bi;
-            fs.mesh = field_meshes.back();
+            fs.mesh = fm;
 
             // generate fields
             FieldType *tf = new FieldType(); // empty tensor field
@@ -298,10 +302,11 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
 
         char *const base = reinterpret_cast<char *>(src);
         std::vector<IndexRangeType> face_ranges(MeshType::Dim);
+        field_states.resize(block_range.size());
         for (size_t i = 0; i < block_range.size(); ++i) {
             // initialize the field state
-            field_states.push_back(FieldState());
-            FieldState &fs = field_states.back();
+            field_states[i] = FieldState();
+            FieldState &fs = field_states[i];
 
             // compute block mesh
             const MultiIndex bi = block_range.getMultiIndex(i); // local index
@@ -313,23 +318,26 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
             for (size_t d = 0; d < MeshType::Dim; ++d) {
                 MultiIndex faces(cells);
                 if (bi[d] == nblocks[d] - 1) {
-                    ++nodes[i];
-                    ++faces[i];
+                    ++nodes[d];
+                    ++faces[d];
                 }
                 face_ranges[d] = IndexRangeType(faces);
             }
             const IndexRangeType cell_range(cells);
             const IndexRangeType node_range(nodes);
-            field_meshes.push_back(new MeshType(mesh.getGlobalOrigin(),
-                                                RangeType(bstart, bend),
-                                                cell_range,
-                                                node_range,
-                                                face_ranges,
-                                                MeshHull::SubMesh));
+            MeshType *fm = new MeshType(mesh.getGlobalOrigin(),
+                                        RangeType(bstart, bend),
+                                        cell_range,
+                                        node_range,
+                                        face_ranges,
+                                        MeshHull::SubMesh);
+            assert(fm != nullptr);
+
+            field_meshes.push_back(fm);
             fs.rank = 0;
             fs.comp = 0;
             fs.idx = bi;
-            fs.mesh = field_meshes.back();
+            fs.mesh = fm;
 
             // generate fields
             if (TEntity == Cubism::EntityType::Face) {
