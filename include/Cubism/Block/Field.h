@@ -17,11 +17,17 @@
 #include <string>
 #include <vector>
 
+#ifndef NDEBUG
+#include <cstdio>
+#endif /* NDEBUG */
+
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
-/// @brief Meta data (state) of a block field.  Data carried in a field
+/// @brief Minimal meta data (state) of a block field.  Data carried in a field
 ///        state is supposed to be static.
+///
+/// The structure fields rank and comp are required in any custom field state.
 struct FieldState {
     size_t rank;      // field rank -- rank=0 (scalar), rank=1 (vector), ...
     size_t comp;      // field component in rank dimension
@@ -543,11 +549,6 @@ private:
     using FieldStateType = typename FieldType::FieldStateType;
 
 public:
-    /// @brief Default constructor
-    ///
-    /// @param n Number of components in container
-    explicit FieldContainer(const size_t n = 0) : components_(n, nullptr) {}
-
     /// @brief Construct from a list of pointers
     ///
     /// @param vf Vector of pointers to underlying type (may be nullptr)
@@ -659,6 +660,9 @@ public:
         c.components_.clear();
     }
 
+    /// @brief Default constructor
+    FieldContainer() = default;
+
     /// @brief Virtual destructor
     virtual ~FieldContainer() { dispose_(); }
 
@@ -670,15 +674,30 @@ public:
     FieldContainer &operator=(const FieldContainer &rhs)
     {
         if (this != &rhs) {
-            // FIXME: [fabianw@mavt.ethz.ch; 2020-01-09] size copy of
-            // externally managed
-            dispose_();
-            components_.resize(rhs.size());
-            for (size_t i = 0; i < rhs.size(); ++i) {
-                components_[i] = nullptr;
-                BaseType *comp = rhs.components_[i];
-                if (comp) {
-                    components_[i] = new BaseType(*comp);
+            if (components_.size() != rhs.components_.size()) {
+#ifndef NDEBUG
+                if (components_.size() > 0) {
+                    std::fprintf(
+                        stderr,
+                        "DEBUG: You are using FieldContainer::operator=() with "
+                        "two containers of unequal size and the destination "
+                        "size is not zero. Is this your intention?\n");
+                }
+#endif /* NDEBUG */
+                dispose_();
+                components_.resize(rhs.size());
+                for (size_t i = 0; i < rhs.size(); ++i) {
+                    components_[i] = nullptr;
+                    BaseType *comp = rhs.components_[i];
+                    if (comp) {
+                        components_[i] = new BaseType(*comp);
+                    }
+                }
+            } else {
+                for (size_t i = 0; i < rhs.size(); ++i) {
+                    assert(components_[i] != nullptr &&
+                           rhs.components_[i] != nullptr);
+                    *components_[i] = *rhs.components_[i];
                 }
             }
         }
@@ -1058,25 +1077,23 @@ public:
     using FieldStateType = typename FieldType::FieldStateType;
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
-public:
     static constexpr size_t NComponents = FieldType::NComponents;
 
     /// @brief Main constructor to generate a face field given the cell_domain
     ///
     /// @param cell_domain Index range spanned by the cell domain
     explicit FaceFieldAll(const IndexRangeType &cell_domain)
-        : BaseType(IndexRangeType::Dim)
     {
         const MultiIndex cells = cell_domain.getExtent(); // number of cells
         FieldStateType fs;
         fs.rank = 0;
-        for (size_t i = 0; i < cells.size(); ++i) {
+        for (size_t i = 0; i < IndexRangeType::Dim; ++i) {
             // XXX: [fabianw@mavt.ethz.ch; 2020-01-01] Not most favorable for
             // vectorization but more intuitive.  Will require some
             // transposition in vectorized code.
             const IndexRangeType ri(cells + MultiIndex::getUnitVector(i));
             fs.comp = i;
-            components_[i] = new FieldType(ri, fs);
+            components_.push_back(new FieldType(ri, fs));
             assert(components_[i] != nullptr);
         }
     }
@@ -1253,7 +1270,6 @@ public:
     using FieldStateType = typename FieldType::FieldStateType;
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
-public:
     /// @brief Main constructor to generate a field view
     ///
     /// @param f Field for which to generate the view
