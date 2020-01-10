@@ -67,6 +67,7 @@ public:
     /// @brief Container type for field views
     using FieldContainer = typename Assembler::FieldContainer;
 
+    static constexpr size_t Dim = MeshType::Dim;
     static constexpr size_t Rank = RANK;
     static constexpr size_t NComponents = FieldType::NComponents;
     static constexpr typename Cubism::EntityType EntityType = TEntity;
@@ -312,6 +313,14 @@ private:
         }
     }
 };
+
+template <typename TData,
+          typename TMesh,
+          Cubism::EntityType TEntity,
+          size_t RANK,
+          template <typename>
+          class TAlloc>
+constexpr size_t Cartesian<TData, TMesh, TEntity, RANK, TAlloc>::Dim;
 
 template <typename TData,
           typename TMesh,
