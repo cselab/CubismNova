@@ -547,6 +547,19 @@ TEST(FieldContainer, Construction)
                 EXPECT_NE(&fc_copy[i], &fc1[i]);
             }
         }
+        { // copy different sized containers
+            std::vector<typename FC::FieldType *> ptr_list;
+            ptr_list.push_back(&fc[1]); // owner
+            ptr_list.push_back(&fv1);   // view
+            ptr_list.push_back(&fc[3]); // owner
+            FC fc1(ptr_list);           // 3 components
+            EXPECT_EQ(fc1.size(), 3);
+            fc1 = fc; // assign 4 components to a 3 component container
+            EXPECT_EQ(fc1.size(), 4);
+            for (size_t i = 0; i < ptr_list.size(); ++i) {
+                EXPECT_NE(fc1[i].getBlockPtr(), ptr_list[i]);
+            }
+        }
     }
 
     {                                     // move construction

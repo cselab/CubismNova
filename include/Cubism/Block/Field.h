@@ -17,6 +17,10 @@
 #include <string>
 #include <vector>
 
+#ifndef NDEBUG
+#include <cstdio>
+#endif /* NDEBUG */
+
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
@@ -670,15 +674,30 @@ public:
     FieldContainer &operator=(const FieldContainer &rhs)
     {
         if (this != &rhs) {
-            // FIXME: [fabianw@mavt.ethz.ch; 2020-01-09] size copy of
-            // externally managed
-            dispose_();
-            components_.resize(rhs.size());
-            for (size_t i = 0; i < rhs.size(); ++i) {
-                components_[i] = nullptr;
-                BaseType *comp = rhs.components_[i];
-                if (comp) {
-                    components_[i] = new BaseType(*comp);
+            if (components_.size() != rhs.components_.size()) {
+#ifndef NDEBUG
+                if (components_.size() > 0) {
+                    std::fprintf(
+                        stderr,
+                        "DEBUG: You are using FieldContainer::operator=() with "
+                        "two containers of unequal size and the destination "
+                        "size is not zero. Is this your intention?\n");
+                }
+#endif /* NDEBUG */
+                dispose_();
+                components_.resize(rhs.size());
+                for (size_t i = 0; i < rhs.size(); ++i) {
+                    components_[i] = nullptr;
+                    BaseType *comp = rhs.components_[i];
+                    if (comp) {
+                        components_[i] = new BaseType(*comp);
+                    }
+                }
+            } else {
+                for (size_t i = 0; i < rhs.size(); ++i) {
+                    assert(components_[i] != nullptr &&
+                           rhs.components_[i] != nullptr);
+                    *components_[i] = *rhs.components_[i];
                 }
             }
         }
@@ -1058,7 +1077,6 @@ public:
     using FieldStateType = typename FieldType::FieldStateType;
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
-public:
     static constexpr size_t NComponents = FieldType::NComponents;
 
     /// @brief Main constructor to generate a face field given the cell_domain
