@@ -19,7 +19,7 @@ TEST(Cartesian, Construction)
     using MIndex = typename Mesh::MultiIndex;
 
     // grid blocks and cells per block
-    const MIndex nblocks(2);
+    const MIndex nblocks(3);
     const MIndex block_cells(8);
 
     { // scalar (rank-0) Cartesian node field (int)
@@ -27,9 +27,13 @@ TEST(Cartesian, Construction)
         Grid grid(nblocks, block_cells);
         EXPECT_EQ(grid.size(), nblocks.prod());
         EXPECT_EQ(grid.getSize(), nblocks);
-        for (auto bf : grid) { // scalar block field
+        for (auto bf : grid) { // scalar block field in grid
             EXPECT_TRUE(bf->isMemoryOwner());
             EXPECT_NE(bf->getBlockPtr(), nullptr);
+            EXPECT_EQ(reinterpret_cast<size_t>(bf->getBlockPtr()) %
+                          CUBISM_ALIGNMENT,
+                      0);
+            EXPECT_NE((bf->getState()).mesh, nullptr);
         }
     }
 
@@ -38,10 +42,14 @@ TEST(Cartesian, Construction)
         Grid grid(nblocks, block_cells);
         EXPECT_EQ(grid.size(), nblocks.prod());
         EXPECT_EQ(grid.getSize(), nblocks);
-        for (auto bf : grid) { // scalar block field
+        for (auto bf : grid) {   // scalar block field in grid
             for (auto d : *bf) { // face direction
                 EXPECT_TRUE(d->isMemoryOwner());
                 EXPECT_NE(d->getBlockPtr(), nullptr);
+                EXPECT_EQ(reinterpret_cast<size_t>(d->getBlockPtr()) %
+                              CUBISM_ALIGNMENT,
+                          0);
+                EXPECT_NE((d->getState()).mesh, nullptr);
             }
         }
     }
@@ -51,10 +59,14 @@ TEST(Cartesian, Construction)
         Grid grid(nblocks, block_cells);
         EXPECT_EQ(grid.size(), nblocks.prod());
         EXPECT_EQ(grid.getSize(), nblocks);
-        for (auto bf : grid) {   // tensor block field
+        for (auto bf : grid) {   // tensor block field in grid
             for (auto c : *bf) { // tensor field component
                 EXPECT_TRUE(c->isMemoryOwner());
                 EXPECT_NE(c->getBlockPtr(), nullptr);
+                EXPECT_EQ(reinterpret_cast<size_t>(c->getBlockPtr()) %
+                              CUBISM_ALIGNMENT,
+                          0);
+                EXPECT_NE((c->getState()).mesh, nullptr);
             }
         }
     }
@@ -64,11 +76,15 @@ TEST(Cartesian, Construction)
         Grid grid(nblocks, block_cells);
         EXPECT_EQ(grid.size(), nblocks.prod());
         EXPECT_EQ(grid.getSize(), nblocks);
-        for (auto bf : grid) {   // tensor block field
+        for (auto bf : grid) {   // tensor block field in grid
             for (auto c : *bf) { // tensor field component
                 for (auto d : *c) { // face direction
                     EXPECT_TRUE(d->isMemoryOwner());
                     EXPECT_NE(d->getBlockPtr(), nullptr);
+                    EXPECT_EQ(reinterpret_cast<size_t>(d->getBlockPtr()) %
+                                  CUBISM_ALIGNMENT,
+                              0);
+                    EXPECT_NE((d->getState()).mesh, nullptr);
                 }
             }
         }
