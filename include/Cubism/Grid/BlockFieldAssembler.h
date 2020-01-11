@@ -139,6 +139,7 @@ struct BlockFieldAssembler {
 
         const PointType block_extent = mesh.getExtent() / PointType(nblocks);
         const IndexRangeType block_range(nblocks);
+        const MultiIndex c0 = mesh.getIndexRange(EntityType::Cell).getBegin();
 
         char *const base = reinterpret_cast<char *>(src);
         std::vector<IndexRangeType> face_ranges(MeshType::Dim);
@@ -150,6 +151,7 @@ struct BlockFieldAssembler {
 
             // compute block mesh
             const MultiIndex bi = block_range.getMultiIndex(i); // local index
+            const MultiIndex cstart = c0 + bi * block_cells;
             const PointType bstart =
                 mesh.getOrigin() + PointType(bi) * block_extent;
             const PointType bend = bstart + block_extent;
@@ -161,10 +163,10 @@ struct BlockFieldAssembler {
                     ++nodes[d];
                     ++faces[d];
                 }
-                face_ranges[d] = IndexRangeType(faces);
+                face_ranges[d] = IndexRangeType(cstart, cstart + faces);
             }
-            const IndexRangeType cell_range(cells);
-            const IndexRangeType node_range(nodes);
+            const IndexRangeType cell_range(cstart, cstart + cells);
+            const IndexRangeType node_range(cstart, cstart + nodes);
             MeshType *fm = new MeshType(mesh.getGlobalOrigin(),
                                         RangeType(bstart, bend),
                                         cell_range,
@@ -299,6 +301,7 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
 
         const PointType block_extent = mesh.getExtent() / PointType(nblocks);
         const IndexRangeType block_range(nblocks);
+        const MultiIndex c0 = mesh.getIndexRange(EntityType::Cell).getBegin();
 
         char *const base = reinterpret_cast<char *>(src);
         std::vector<IndexRangeType> face_ranges(MeshType::Dim);
@@ -310,6 +313,7 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
 
             // compute block mesh
             const MultiIndex bi = block_range.getMultiIndex(i); // local index
+            const MultiIndex cstart = c0 + bi * block_cells;
             const PointType bstart =
                 mesh.getOrigin() + PointType(bi) * block_extent;
             const PointType bend = bstart + block_extent;
@@ -321,10 +325,10 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
                     ++nodes[d];
                     ++faces[d];
                 }
-                face_ranges[d] = IndexRangeType(faces);
+                face_ranges[d] = IndexRangeType(cstart, cstart + faces);
             }
-            const IndexRangeType cell_range(cells);
-            const IndexRangeType node_range(nodes);
+            const IndexRangeType cell_range(cstart, cstart + cells);
+            const IndexRangeType node_range(cstart, cstart + nodes);
             MeshType *fm = new MeshType(mesh.getGlobalOrigin(),
                                         RangeType(bstart, bend),
                                         cell_range,
