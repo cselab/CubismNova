@@ -128,6 +128,9 @@ struct BlockFieldAssembler {
     /// @param block_bytes Number of bytes occupied by each block
     /// @param component_bytes Number of bytes per tensor component (must be
     ///        larger or equal to nblocks.prod() * block_bytes)
+    ///
+    /// Assembles block fields and its sub mesh on a Cartesian topology using
+    /// the external data src
     void assemble(TFData *src,
                   const TMesh &mesh,
                   const MultiIndex &nblocks,
@@ -290,6 +293,9 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
     /// @param block_bytes Number of bytes occupied by each block
     /// @param component_bytes Number of bytes per tensor component (must be
     ///        larger or equal to nblocks.prod() * block_bytes)
+    ///
+    /// Assembles block fields and its sub mesh on a Cartesian topology using
+    /// the external data src (specialized for scalar fields)
     void assemble(TFData *src,
                   const TMesh &mesh,
                   const MultiIndex &nblocks,
