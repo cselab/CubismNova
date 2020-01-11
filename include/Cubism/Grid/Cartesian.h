@@ -76,6 +76,13 @@ public:
     static constexpr size_t NComponents = FieldType::NComponents;
     static constexpr typename Cubism::EntityType EntityType = TEntity;
 
+    /// @brief Default constructor (empty topology)
+    Cartesian()
+        : nblocks_(0), block_cells_(0), block_range_(0), mesh_(nullptr),
+          data_(nullptr)
+    {
+    }
+
     /// @brief Main constructor for a Cartesian block field topology
     ///
     /// @param nblocks Number of blocks
@@ -83,43 +90,19 @@ public:
     /// @param start Physical origin for this Cartesian grid (lower left)
     /// @param end Physical end for this Cartesian grid (top right)
     /// @param gorigin Physical global origin
-    /// @param block_start Start index of the first block in the topology
     Cartesian(const MultiIndex &nblocks,
               const MultiIndex &block_cells,
               const PointType &start = PointType(0),
               const PointType &end = PointType(1),
-              const PointType &gorigin = PointType(0),
-              const MultiIndex &block_start = MultiIndex(0))
-        : nblocks_(nblocks), block_cells_(block_cells),
-          block_range_(block_start, block_start + nblocks)
+              const PointType &gorigin = PointType(0))
+        : nblocks_(nblocks), block_cells_(block_cells), block_range_(nblocks),
+          mesh_(nullptr), data_(nullptr)
     {
-        // allocate the memory
-        alloc_();
-        // allocate the global mesh (gorigin and start may be different)
-        mesh_ = new MeshType(gorigin,
-                             RangeType(start, end),
-                             IndexRangeType(nblocks_ * block_cells_),
-                             MeshHull::FullMesh);
-        // assemble the block fields
-        assembler_.assemble(data_,
-                            *mesh_,
-                            nblocks_,
-                            block_cells_,
-                            block_bytes_,
-                            component_bytes_);
-        // No NUMA touch has been carried out until here.  The user should touch
-        // the data based on her/his thread partition strategy in the
-        // application.
-
-        assert(assembler_.tensor_fields.size() ==
-               assembler_.field_states.size());
-        assert(assembler_.tensor_fields.size() ==
-               assembler_.field_meshes.size());
+        initTopology_(gorigin, start, end);
     }
 
-    Cartesian() = delete;
     Cartesian(const Cartesian &c) = delete;
-    Cartesian(Cartesian &&c) = default;
+    Cartesian(Cartesian &&c) = delete;
     Cartesian &operator=(Cartesian &&c) = delete;
 
     /// @brief Copy assign field data only (not states or mesh)
@@ -200,7 +183,11 @@ public:
     IndexRangeType getBlockRange() const { return block_range_; }
 
     /// @brief Return the mesh associated to the Cartesian block topology
-    const MeshType &getMesh() const { return *mesh_; }
+    const MeshType &getMesh() const
+    {
+        assert(mesh_ != nullptr);
+        return *mesh_;
+    }
 
     /// @brief Get container of fields
     FieldContainer &getFields() { return assembler_.tensor_fields; }
@@ -223,18 +210,21 @@ public:
     /// @brief Multi-index access fields
     FieldType &operator[](const MultiIndex &p)
     {
+        assert(assembler_.tensor_fields.size() > 0);
         return assembler_.tensor_fields[block_range_.getFlatIndex(p)];
     }
 
     /// @brief Multi-index access fields (immutable)
     const FieldType &operator[](const MultiIndex &p) const
     {
+        assert(assembler_.tensor_fields.size() > 0);
         return assembler_.tensor_fields[block_range_.getFlatIndex(p)];
     }
 
     /// @brief Linear access fields
     FieldType &operator[](const size_t i)
     {
+        assert(assembler_.tensor_fields.size() > 0);
         assert(i < assembler_.tensor_fields.size());
         return assembler_.tensor_fields[i];
     }
@@ -242,21 +232,58 @@ public:
     /// @brief Linear access fields (immutable)
     const FieldType &operator[](const size_t i) const
     {
+        assert(assembler_.tensor_fields.size() > 0);
         assert(i < assembler_.tensor_fields.size());
         return assembler_.tensor_fields[i];
     }
 
 protected:
-    const MultiIndex nblocks_;
-    const MultiIndex block_cells_;
-    const IndexRangeType block_range_;
-    MeshType *mesh_;
-    Assembler assembler_;
+    MultiIndex nblocks_;
+    MultiIndex block_cells_;
+    IndexRangeType block_range_;
+
+    /// @brief Initialize Cartesian topology
+    ///
+    /// @param gorigin Global origin of mesh
+    /// @param start Lower left point of mesh (rectangular box)
+    /// @param end Upper right point of mesh (rectangular box)
+    /// @param nodes Scale factor for multi-node setup
+    void initTopology_(const PointType &gorigin,
+                       const PointType &start,
+                       const PointType &end,
+                       const MultiIndex &nodes = MultiIndex(1))
+    {
+        // allocate the memory
+        alloc_();
+        // allocate the global mesh (gorigin and start may be different)
+        mesh_ = new MeshType(gorigin,
+                             RangeType(start, end),
+                             IndexRangeType(nodes * nblocks_ * block_cells_),
+                             MeshHull::FullMesh);
+        // assemble the block fields
+        assembler_.assemble(data_,
+                            *mesh_,
+                            nblocks_,
+                            block_cells_,
+                            block_bytes_,
+                            component_bytes_);
+
+        // No NUMA touch has been carried out until here.  The user should touch
+        // the data based on her/his thread partition strategy in the
+        // application.
+
+        assert(assembler_.tensor_fields.size() ==
+               assembler_.field_states.size());
+        assert(assembler_.tensor_fields.size() ==
+               assembler_.field_meshes.size());
+    }
 
 private:
     using BlockData = typename FieldType::BlockDataType;
 
+    MeshType *mesh_;
     DataType *data_;
+    Assembler assembler_;
     TAlloc<DataType> blk_alloc_;
     size_t block_elements_;
     size_t block_bytes_;
@@ -302,10 +329,16 @@ private:
         // get the allocation
         assert(all_bytes_ > 0);
         data_ = blk_alloc_.allocate(all_bytes_);
+        assert(data_ != nullptr);
     }
 
     /// @brief Deallocate grid memory
-    void dealloc_() { blk_alloc_.deallocate(data_); }
+    void dealloc_()
+    {
+        if (data_) {
+            blk_alloc_.deallocate(data_);
+        }
+    }
 
     void dispose_()
     {
