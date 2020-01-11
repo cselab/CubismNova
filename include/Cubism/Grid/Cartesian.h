@@ -221,13 +221,13 @@ public:
     }
 
     /// @brief Multi-index access fields
-    FieldType &operator()(const MultiIndex &p)
+    FieldType &operator[](const MultiIndex &p)
     {
         return assembler_.tensor_fields[block_range_.getFlatIndex(p)];
     }
 
     /// @brief Multi-index access fields (immutable)
-    const FieldType &operator()(const MultiIndex &p) const
+    const FieldType &operator[](const MultiIndex &p) const
     {
         return assembler_.tensor_fields[block_range_.getFlatIndex(p)];
     }
