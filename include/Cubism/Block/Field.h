@@ -140,7 +140,9 @@ public:
     using typename BaseType::MultiIndex;
     using FieldStateType = TState;
 
+    static constexpr size_t Rank = 0;
     static constexpr size_t NComponents = 1;
+    static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
 
     Field() = delete;
 
@@ -463,7 +465,13 @@ private:
 };
 
 template <typename TBlockData, typename TState>
+constexpr size_t Field<TBlockData, TState>::Rank;
+
+template <typename TBlockData, typename TState>
 constexpr size_t Field<TBlockData, TState>::NComponents;
+
+template <typename TBlockData, typename TState>
+constexpr Cubism::EntityType Field<TBlockData, TState>::EntityType;
 
 /// @brief Basic cell-centered data field
 ///
@@ -1077,7 +1085,9 @@ public:
     using FieldStateType = typename FieldType::FieldStateType;
     using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
 
+    static constexpr size_t Rank = FieldType::Rank;
     static constexpr size_t NComponents = FieldType::NComponents;
+    static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
 
     /// @brief Main constructor to generate a face field given the cell_domain
     ///
@@ -1208,7 +1218,22 @@ template <typename T,
           size_t Dimension,
           template <typename>
           class Alloc>
+constexpr size_t FaceFieldAll<T, State, Dimension, Alloc>::Rank;
+
+template <typename T,
+          typename State,
+          size_t Dimension,
+          template <typename>
+          class Alloc>
 constexpr size_t FaceFieldAll<T, State, Dimension, Alloc>::NComponents;
+
+template <typename T,
+          typename State,
+          size_t Dimension,
+          template <typename>
+          class Alloc>
+constexpr Cubism::EntityType
+    FaceFieldAll<T, State, Dimension, Alloc>::EntityType;
 
 template <typename TField, size_t RANK>
 class TensorField : public FieldContainer<TField>
@@ -1239,6 +1264,7 @@ public:
     static constexpr size_t Rank = RANK;
     static constexpr size_t NComponents =
         Power<IndexRangeType::Dim, RANK>::value;
+    static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
 
     /// @brief Main constructor to generate a tensor field
     ///
@@ -1324,6 +1350,9 @@ constexpr size_t TensorField<TField, RANK>::Rank;
 
 template <typename TField, size_t RANK>
 constexpr size_t TensorField<TField, RANK>::NComponents;
+
+template <typename TField, size_t RANK>
+constexpr Cubism::EntityType TensorField<TField, RANK>::EntityType;
 
 /// @brief Convenience type for vector fields
 ///
