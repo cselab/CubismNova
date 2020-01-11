@@ -7,6 +7,8 @@
 <!-- vim-markdown-toc GFM -->
 
 * [Thoughts](#thoughts)
+  * [Mesh](#mesh)
+    * [Interface components](#interface-components)
 * [Memory management (low-level thoughts)](#memory-management-low-level-thoughts)
   * [Hierarchy (compute node-level)](#hierarchy-compute-node-level)
   * [Plans](#plans)
@@ -24,6 +26,17 @@ duplicates?)
 * Geometry involves most of index conversion cell -> face -> node etc.
 * Geometry should it inherit from field or wrap
 * Geometry data compute on the fly or store in memory?
+
+## Mesh
+
+### Interface components
+
+* getCoords: For entity, flat index, multi index or iterator
+* getCellVolume: cell index or iterator
+* getCellWidth: cell index or iterator
+* getFaceArea: face index, Dir:: or iterator
+* getFaceNormal: face index, Dir:: or iterator
+* getNeighbors: For entity from and index to entity or from iterator to entity
 
 # Memory management (low-level thoughts)
 
