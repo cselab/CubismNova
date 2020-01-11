@@ -201,10 +201,18 @@ public:
     const ArrayType &getArray() const { return array_; }
 
     /// @brief Data access interface
-    DataType &operator[](const size_t i) { return array_[i]; }
+    DataType &operator[](const size_t i)
+    {
+        assert(i < Dim);
+        return array_[i];
+    }
 
     /// @brief Data access interface
-    const DataType &operator[](const size_t i) const { return array_[i]; }
+    const DataType &operator[](const size_t i) const
+    {
+        assert(i < Dim);
+        return array_[i];
+    }
 
     // Allowed casts:
     //
