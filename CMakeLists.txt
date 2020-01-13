@@ -4,8 +4,8 @@ project("CubismNova")
 
 # install destinations
 set(EXE_DIR bin)
+set(INC_DIR include)
 set(LIB_DIR lib)
-set(TEST_DIR test)
 
 # C++11
 set(CMAKE_CXX_STANDARD 11)
@@ -25,7 +25,10 @@ set(CMAKE_CXX_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_CXX_FLAGS}")
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(include/Cubism)
+install(DIRECTORY include/Cubism DESTINATION ${INC_DIR})
+
 add_subdirectory(src)
+add_subdirectory(tools)
 
 # third party
 set(THIRD_DIR third)
@@ -33,13 +36,10 @@ add_subdirectory(${THIRD_DIR})
 
 # testing
 enable_testing()
-add_subdirectory(${TEST_DIR})
-
-# install files that are not built within the project
-install(PROGRAMS tools/histbin DESTINATION ${EXE_DIR})
+add_subdirectory(test)
 
 # debugging
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     message("Debug Mode Enabled")
-    add_subdirectory(${TEST_DIR}/sandbox)
+    add_subdirectory(test/sandbox)
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
