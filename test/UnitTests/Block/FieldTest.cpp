@@ -75,7 +75,7 @@ TEST(Field, Construction)
         EXPECT_EQ(cf.getRank(), cf2.getRank());
         EXPECT_EQ(cf.getComp(), cf2.getComp());
 
-        delete pdata;
+        delete[] pdata;
     }
 
     { // copy construction
