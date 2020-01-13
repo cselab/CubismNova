@@ -8,8 +8,8 @@
 *.a
 *.pyc
 
+/00_sandbox
 /build
 /debug
-/sandbox
 /x86_64
 /trash
