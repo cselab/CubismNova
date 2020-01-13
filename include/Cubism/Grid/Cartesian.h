@@ -171,6 +171,9 @@ public:
     /// @brief Returns size of topology in all dimensions
     MultiIndex getSize() const { return nblocks_; }
 
+    /// @brief Returns the global size of the topology in all dimensions
+    MultiIndex getGlobalSize() const { return nblocks_; }
+
     /// @brief Returns the global block index
     ///
     /// @param bi Local Cartesian block index
