@@ -145,18 +145,18 @@ public:
         return static_cast<size_t>(extent_[i]);
     }
 
-    /// @brief Return flattened MultiIndex
+    /// @brief Return local flattened local MultiIndex
     size_t getFlatIndex(const MultiIndex &p) const
     {
         assert(MultiIndex(0) <= p && p < extent_);
         return convert_.getFlatIndex(p, extent_);
     }
 
-    /// @brief Return MultiIndex from flat index
+    /// @brief Return local MultiIndex from local flat index
     MultiIndex getMultiIndex(size_t i) const
     {
         assert(i <= this->size());
-        return convert_.getMultiIndex(i, this->begin_, extent_);
+        return convert_.getMultiIndex(i, MultiIndex(0), extent_);
     }
 
 private:
