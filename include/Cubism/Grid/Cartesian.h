@@ -250,18 +250,18 @@ protected:
     /// @param gorigin Global origin of mesh
     /// @param start Lower left point of mesh (rectangular box)
     /// @param end Upper right point of mesh (rectangular box)
-    /// @param nodes Scale factor for multi-node setup
+    /// @param nranks Number of ranks in topology
     void initTopology_(const PointType &gorigin,
                        const PointType &start,
                        const PointType &end,
-                       const MultiIndex &nodes = MultiIndex(1))
+                       const MultiIndex &nranks = MultiIndex(1))
     {
         // allocate the memory
         alloc_();
         // allocate the global mesh (gorigin and start may be different)
         mesh_ = new MeshType(gorigin,
                              RangeType(start, end),
-                             IndexRangeType(nodes * nblocks_ * block_cells_),
+                             IndexRangeType(nblocks_ * block_cells_),
                              MeshHull::FullMesh);
         // assemble the block fields
         assembler_.assemble(data_,
