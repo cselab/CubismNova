@@ -168,10 +168,10 @@ public:
     /// @brief Returns number of block fields in the topology
     size_t size() const { return assembler_.tensor_fields.size(); }
 
-    /// @brief Returns size of topology in all dimensions
+    /// @brief Returns the local number of blocks in all dimensions
     MultiIndex getSize() const { return nblocks_; }
 
-    /// @brief Returns the global size of the topology in all dimensions
+    /// @brief Returns the global number of blocks in all dimensions
     MultiIndex getGlobalSize() const { return nblocks_; }
 
     /// @brief Returns the global block index
