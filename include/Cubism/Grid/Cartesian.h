@@ -266,8 +266,9 @@ protected:
         // assemble the block fields
         assembler_.assemble(data_,
                             *mesh_,
-                            nblocks_,
+                            block_range_,
                             block_cells_,
+                            nranks,
                             block_bytes_,
                             component_bytes_);
 

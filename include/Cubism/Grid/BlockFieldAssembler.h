@@ -123,8 +123,9 @@ struct BlockFieldAssembler {
     ///
     /// @param src Pointer to the beginning of the externally allocated memory
     /// @param mesh Global mesh in which contains the assembled block meshes
-    /// @param nblocks Number of blocks to assemble
+    /// @param block_range Range of blocks for which to assemble the fields
     /// @param block_cells Number of cells for individual blocks
+    /// @param scale Scaling factor for total number of blocks
     /// @param block_bytes Number of bytes occupied by each block
     /// @param component_bytes Number of bytes per tensor component (must be
     ///        larger or equal to nblocks.prod() * block_bytes)
@@ -133,15 +134,17 @@ struct BlockFieldAssembler {
     /// the external data src
     void assemble(TFData *src,
                   const TMesh &mesh,
-                  const MultiIndex &nblocks,
+                  const IndexRangeType &block_range,
                   const MultiIndex &block_cells,
+                  const MultiIndex &scale,
                   const size_t block_bytes,
                   const size_t component_bytes)
     {
         dispose();
 
+        const MultiIndex nblocks = block_range.getExtent();
+        const MultiIndex all_blocks = scale * nblocks;
         const PointType block_extent = mesh.getExtent() / PointType(nblocks);
-        const IndexRangeType block_range(nblocks);
         const MultiIndex c0 = mesh.getIndexRange(EntityType::Cell).getBegin();
 
         char *const base = reinterpret_cast<char *>(src);
@@ -154,6 +157,7 @@ struct BlockFieldAssembler {
 
             // compute block mesh
             const MultiIndex bi = block_range.getMultiIndex(i); // local index
+            const MultiIndex gbi = block_range.getBegin() + bi; // global index
             const MultiIndex cstart = c0 + bi * block_cells;
             const PointType bstart =
                 mesh.getOrigin() + PointType(bi) * block_extent;
@@ -162,7 +166,7 @@ struct BlockFieldAssembler {
             MultiIndex nodes = cells;
             for (size_t d = 0; d < MeshType::Dim; ++d) {
                 MultiIndex faces(cells);
-                if (bi[d] == nblocks[d] - 1) {
+                if (gbi[d] == all_blocks[d] - 1) {
                     ++nodes[d];
                     ++faces[d];
                 }
@@ -288,8 +292,9 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
     ///
     /// @param src Pointer to the beginning of the externally allocated memory
     /// @param mesh Global mesh in which contains the assembled block meshes
-    /// @param nblocks Number of blocks to assemble
+    /// @param block_range Range of blocks for which to assemble the fields
     /// @param block_cells Number of cells for individual blocks
+    /// @param scale Scaling factor for total number of blocks
     /// @param block_bytes Number of bytes occupied by each block
     /// @param component_bytes Number of bytes per tensor component (must be
     ///        larger or equal to nblocks.prod() * block_bytes)
@@ -298,15 +303,17 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
     /// the external data src (specialized for scalar fields)
     void assemble(TFData *src,
                   const TMesh &mesh,
-                  const MultiIndex &nblocks,
+                  const IndexRangeType &block_range,
                   const MultiIndex &block_cells,
+                  const MultiIndex &scale,
                   const size_t block_bytes,
                   const size_t component_bytes)
     {
         dispose();
 
+        const MultiIndex nblocks = block_range.getExtent();
+        const MultiIndex all_blocks = scale * nblocks;
         const PointType block_extent = mesh.getExtent() / PointType(nblocks);
-        const IndexRangeType block_range(nblocks);
         const MultiIndex c0 = mesh.getIndexRange(EntityType::Cell).getBegin();
 
         char *const base = reinterpret_cast<char *>(src);
@@ -319,6 +326,7 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
 
             // compute block mesh
             const MultiIndex bi = block_range.getMultiIndex(i); // local index
+            const MultiIndex gbi = block_range.getBegin() + bi; // global index
             const MultiIndex cstart = c0 + bi * block_cells;
             const PointType bstart =
                 mesh.getOrigin() + PointType(bi) * block_extent;
@@ -327,7 +335,7 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
             MultiIndex nodes = cells;
             for (size_t d = 0; d < MeshType::Dim; ++d) {
                 MultiIndex faces(cells);
-                if (bi[d] == nblocks[d] - 1) {
+                if (gbi[d] == all_blocks[d] - 1) {
                     ++nodes[d];
                     ++faces[d];
                 }
