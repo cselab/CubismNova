@@ -5,6 +5,10 @@ jobs:
       - image: debian:stretch
 
     steps:
+      - run:
+          name: Install git
+          command: apt install -y git
+
       - checkout
 
       - run:
