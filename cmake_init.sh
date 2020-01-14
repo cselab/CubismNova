@@ -6,18 +6,27 @@
 # Copyright 2019 ETH Zurich. All Rights Reserved.
 set -e
 
-# 1. no arguments defaults to debug
-# 2. first argument given is used as build path without debug flags
-# 3. remaining arguments are passed to cmake
+# USAGE: ./cmake_init.sh <release|debug> <install path> [additional cmake args]
+
 ROOT="$(pwd -P)"
-COMPILER="-DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpic++ -DCMAKE_INSTALL_PREFIX=${ROOT}/x86_64"
-BUILD=debug
-OPT="-DCMAKE_BUILD_TYPE=Debug"
+COMPILER='-DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpic++'
+DST="./x86_64"
+BUILD='debug'
+OPT='-DCMAKE_BUILD_TYPE=Debug'
 if [[ $# -gt 0 ]]; then
     BUILD="${1}"; shift
-    OPT="-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+    DST="${1}"; shift
+    if [[ "${BUILD}" == 'debug' ]]; then
+        OPT='-DCMAKE_BUILD_TYPE=Debug'
+    else
+        OPT='-DCMAKE_BUILD_TYPE=RelWithDebInfo'
+    fi
 fi
-
+OPT="${OPT} -DCMAKE_INSTALL_PREFIX=${DST}"
 rm -rf ${BUILD}
 mkdir -p ${BUILD}
+
+# initialize build directory
 (cd ${BUILD}; cmake ${ROOT} ${OPT} ${COMPILER} "$@")
+
+exit 0
