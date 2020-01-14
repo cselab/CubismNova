@@ -83,6 +83,11 @@ An optimized build is likewise generated with
 Instead of ``release`` you can use any other token except ``debug``.  If the
 ``<insall path>`` is a system directory use ``sudo make install`` instead.
 
+Versioning
+**********
+
+This software follows the `semantic versioning specification`_.
+
 License
 *******
 
@@ -90,4 +95,5 @@ License
 
 .. _BSD: LICENSE
 .. _GitHub: https://github.com/cselab/CubismNova
+.. _semantic versioning specification: https://semver.org/
 .. bibliography:: bibtex/references.bib
