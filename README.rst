@@ -65,8 +65,7 @@ required and the ``mpicc`` and ``mpic++`` compiler wrappers must be in the
 
    $ ./cmake_init.sh debug <install path>
    $ cd debug
-   $ make -j
-   $ make test
+   $ make -j && make test
    $ make install
    $ cd .. && rm -rf debug
 
@@ -77,8 +76,7 @@ An optimized build is likewise generated with
 
    $ ./cmake_init.sh release <install path>
    $ cd release
-   $ make -j
-   $ make test
+   $ make -j && make test
    $ make install
    $ cd .. && rm -rf release
 
