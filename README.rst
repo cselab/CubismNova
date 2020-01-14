@@ -8,7 +8,7 @@
 CubismNova
 **********
 
-.. image:: https://img.shields.io/badge/version-0.0.1-blue
+.. image:: https://img.shields.io/badge/version-0.1.0-blue
    :alt: Version
 .. image:: https://img.shields.io/badge/license-BSD-green
    :target: LICENSE

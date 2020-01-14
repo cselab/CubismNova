@@ -10,7 +10,7 @@ File       : cubism_nova_srs.md
 Created    : Sun Nov 24 2019 02:35:12 PM (+0100)
 Author     : Fabian Wermelinger (fabianw@mavt.ethz.ch)
              Michalis Chatzimanolakis (michaich@ethz.ch)
-Version    : 1.0
+Version    : 0.1.0
 Copyright 2019 ETH Zurich. All Rights Reserved.
 ```
 
