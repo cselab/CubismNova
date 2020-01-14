@@ -292,7 +292,7 @@ utilization.
 CubismNova is licensed under the BSD 2-Clause simplified license.
 
 ```text
-CubismNova -- HPC library for structured uniform and adaptive multi-resolution
+CubismNova -- HPC library for structured uniform and adaptive multi resolution
 Copyright © 2019 ETH Zurich
 All rights reserved.
 
