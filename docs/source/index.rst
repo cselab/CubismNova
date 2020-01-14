@@ -4,10 +4,6 @@
 .. Description: CubismNova documentation root
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-**********
-CubismNova
-**********
-
 .. include:: ../../README.rst
 
 .. toctree::

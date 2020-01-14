@@ -4,9 +4,14 @@
 .. Description: CubismNova main README file
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
+**********
+CubismNova
+**********
+
 .. image:: https://img.shields.io/badge/version-0.0.1-blue
    :alt: Version
 .. image:: https://img.shields.io/badge/license-BSD-green
+   :target: LICENSE
    :alt: License
 .. image:: https://circleci.com/gh/cselab/CubismNova.svg?style=shield
    :target: https://circleci.com/gh/cselab/CubismNova
@@ -37,7 +42,7 @@ solved.  The refactored library further offers integrated multigrid solvers and
 compression algorithms to reduce the I/O overhead at scale.  Moreover, the
 refactored library takes into account suitable data structures for use with
 heterogeneous accelerators :cite:`wermelinger2016a`.  Apart from compressible
-multicomponent flow simulations (::cite:`sukys2018a`, :cite:`wermelinger2018a`,
+multicomponent flow simulations (:cite:`sukys2018a`, :cite:`wermelinger2018a`,
 :cite:`rasthofer2019a`), the library is also used for incompressible multi-phase
 flow (:cite:`karnakov2019a`) as well as incompressible flow with collective
 swimmers (:cite:`verma2018a`).
