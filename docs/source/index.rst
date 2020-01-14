@@ -4,22 +4,14 @@
 .. Description: CubismNova documentation root
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
+**********
 CubismNova
-##########
+**********
 
-Introduction
-************
-
+.. include:: ../../README.rst
 
 .. toctree::
-   :maxdepth: 1
-   :caption: User Guide:
+   :caption: User Guide
+   :maxdepth: 2
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   Core/index.rst
