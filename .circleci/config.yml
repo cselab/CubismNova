@@ -2,15 +2,20 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: debian:buster
 
     steps:
+      - run:
+          name: Install dependencies
+          command: apt-get update && apt-get -y install mpich cmake git
+
       - checkout
 
       - run:
-          name: Greeting
-          command: echo Hello, world.
-
-      - run:
-          name: Print the Current Time
-          command: date
+          name: Debug Build and Test
+          command: |
+              git submodule update --init &&
+              ./cmake_init.sh &&
+              cd debug &&
+              make -j &&
+              make test
