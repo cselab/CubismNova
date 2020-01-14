@@ -13,4 +13,9 @@ jobs:
 
       - run:
           name: Debug Build and Test
-          command: ./cmake_init.sh && cd debug && make -j && make test
+          command: |
+              git submodule update --init &&
+              ./cmake_init.sh &&
+              cd debug &&
+              make -j &&
+              make test
