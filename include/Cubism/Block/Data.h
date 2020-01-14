@@ -87,7 +87,6 @@ public:
     /// @brief Base constructor for single block allocation
     ///
     /// @param r Index range of data (defines spatial dimensionality of data)
-    /// @param owner Whether the data is owner by the class
     explicit Data(const IndexRangeType &r)
         : range_(r), owner_(MemoryOwner::Yes), external_memory_(false),
           block_(nullptr), bytes_(0)

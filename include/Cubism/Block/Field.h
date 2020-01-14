@@ -1062,12 +1062,13 @@ private:
 #undef FIELD_CONTAINER_OP_FIELD
 #undef FIELD_CONTAINER_OP_SCALAR
 /// @brief Container class for all faces in a CUBISM_DIMENSION-ional problem.
-/// The underlying face fields are based on the FaceField template.  For
-/// CUBISM_DIMENSION \in {1,2,3}, the face field for faces with normal in the X
-/// direction can be obtained with ff[0] or ff[Cubism::Dir::X] for example,
-/// where ff is of type FaceFieldAll.
 ///
 /// @tparam T Data type of FaceField
+///
+/// The underlying face fields are based on the FaceField template.  For
+/// CUBISM_DIMENSION in {1,2,3}, the face field for faces with normal in the X
+/// direction can be obtained with ff[0] or ff[Cubism::Dir::X] for example,
+/// where ff is of type FaceFieldAll.
 template <typename T,
           typename State = FieldState,
           size_t Dimension = CUBISM_DIMENSION,
