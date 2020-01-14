@@ -88,8 +88,8 @@ public:
     ///
     /// @param r Index range of data (defines spatial dimensionality of data)
     explicit Data(const IndexRangeType &r)
-        : range_(r), owner_(MemoryOwner::Yes), external_memory_(false),
-          block_(nullptr), bytes_(0)
+        : BaseType(), range_(r), owner_(MemoryOwner::Yes),
+          external_memory_(false), block_(nullptr), bytes_(0)
     {
         if (static_cast<bool>(owner_)) {
             allocBlock_();
@@ -102,7 +102,7 @@ public:
     /// @param c Right hand side
     /// @param owner Memory ownership.  MemoryOwner::No for views
     Data(const Data &c, const MemoryOwner owner)
-        : range_(c.range_), owner_(owner), external_memory_(false),
+        : BaseType(), range_(c.range_), owner_(owner), external_memory_(false),
           block_(nullptr), bytes_(0)
     {
         if (static_cast<bool>(owner_)) {
@@ -123,8 +123,8 @@ public:
     ///
     /// The block owns the memory but does not deallocate it at destruction.
     Data(const IndexRangeType &r, DataType *ptr, const size_t bytes)
-        : range_(r), owner_(MemoryOwner::Yes), external_memory_(true),
-          block_(ptr), bytes_(bytes)
+        : BaseType(), range_(r), owner_(MemoryOwner::Yes),
+          external_memory_(true), block_(ptr), bytes_(bytes)
     {
     }
 
@@ -133,8 +133,8 @@ public:
     ///
     /// @param c Right hand side
     Data(const Data &c)
-        : range_(c.range_), owner_(c.owner_), external_memory_(false),
-          block_(nullptr), bytes_(0)
+        : BaseType(), range_(c.range_), owner_(c.owner_),
+          external_memory_(false), block_(nullptr), bytes_(0)
     {
         if (static_cast<bool>(owner_)) {
             allocBlock_();
@@ -150,7 +150,7 @@ public:
     ///
     /// @param c Right hand side
     Data(Data &&c) noexcept
-        : range_(std::move(c.range_)), owner_(c.owner_),
+        : BaseType(), range_(std::move(c.range_)), owner_(c.owner_),
           external_memory_(c.external_memory_), block_(nullptr), bytes_(0)
     {
         bytes_ = c.bytes_; // explicitly set here
