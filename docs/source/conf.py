@@ -15,12 +15,13 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import sphinx_rtd_theme
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'CubismNova'
-copyright = '2019, Fabian Wermelinger'
+copyright = 'ETH Zurich'
 author = 'Fabian Wermelinger'
 
 # The short X.Y version
@@ -41,6 +42,9 @@ release = '0.0.1'
 extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
+    'sphinx_rtd_theme',
+    'breathe',
+    # 'exhale'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -68,26 +72,76 @@ language = None
 exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+pygments_style = 'sphinx'
 
+# breathe extension
+breathe_default_project = "CubismNova"
+breathe_projects = {
+        "CubismNova": "../doxygen/xml"
+}
+breathe_domain_by_extension = { "h" : "cpp", "cu" : "cpp" }
+
+cpp_id_attributes = ['__device__', '__global__', '__host__']
+cpp_paren_attributes = ['__align__']
+
+# exhale extension
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./api",
+    "rootFileName":          "library_root.rst",
+    "rootFileTitle":         "Library API",
+    "doxygenStripFromPath":  "..",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    # "treeViewIsBootstrap": True,
+    "exhaleExecutesDoxygen": True,
+    "exhaleDoxygenStdin":    "INPUT = ../../include ../../src"
+}
+
+# Tell sphinx what the primary language being documented is
+primary_domain = 'cpp'
+
+# Tell sphinx what the pygments highlight language should be
+highlight_language = 'cpp'
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+html_static_path = ['.static']
+
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_title = "CubismNova Documentation"
+
+# If false, no module index is generated.
+html_domain_indices = True
+
+# If false, no index is generated.
+html_use_index = True
+
+# If true, the index is split into individual pages for each letter.
+html_split_index = False
+
+# If true, links to the reST sources are added to the pages.
+html_show_sourcelink = False
+
+# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
+html_show_sphinx = False
+
+# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
+html_show_copyright = True
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['.static']
+html_theme_options = {}
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

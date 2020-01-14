@@ -1,0 +1,6 @@
+sphinx>=2.0
+sphinx_rtd_theme
+sphinx_automodapi
+pygments
+breathe>=4.13.0
+exhale
