@@ -43,6 +43,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'sphinx_rtd_theme',
+    'sphinxcontrib.bibtex',
     'breathe',
     # 'exhale'
 ]
