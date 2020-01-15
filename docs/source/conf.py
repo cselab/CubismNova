@@ -27,7 +27,7 @@ copyright = 'ETH Zurich'
 author = 'Fabian Wermelinger'
 
 sp.run('(cd .. && doxygen)', shell=True) # compile the xml source
-v = sp.check_output('git describe --abbrev=0', shell=True) # get version
+v = str(sp.check_output('git describe --abbrev=0', shell=True)) # get version
 
 # The short X.Y version
 version = '.'.join(v.split('.')[:2])
