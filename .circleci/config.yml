@@ -12,10 +12,19 @@ jobs:
       - checkout
 
       - run:
-          name: Debug Build and Test
+          name: Initalize submodules
+          command: git submodule update --init
+
+      - run:
+          name: Debug build
           command: |
-              git submodule update --init &&
-              ./cmake_init.sh &&
+              ./cmake_init.sh debug ./ &&
               cd debug &&
-              make -j &&
-              make test
+              make -j && make test
+
+      - run:
+          name: Release build
+          command: |
+              ./cmake_init.sh release ./ &&
+              cd release &&
+              make -j && make test
