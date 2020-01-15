@@ -105,4 +105,8 @@ License
 .. _BSD: LICENSE
 .. _GitHub: https://github.com/cselab/CubismNova
 .. _semantic versioning specification: https://semver.org/
+
+References
+**********
+
 .. bibliography:: bibtex/references.bib
