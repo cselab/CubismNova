@@ -4,4 +4,3 @@ sphinx_automodapi
 sphinxcontrib-bibtex
 pygments
 breathe>=4.13.0
-exhale

@@ -15,7 +15,9 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import re
 import sphinx_rtd_theme
+import subprocess as sp
 
 
 # -- Project information -----------------------------------------------------
@@ -24,10 +26,13 @@ project = 'CubismNova'
 copyright = 'ETH Zurich'
 author = 'Fabian Wermelinger'
 
+sp.run('(cd .. && doxygen)', shell=True) # compile the xml source
+v = sp.check_output('git describe --abbrev=0', shell=True) # get version
+
 # The short X.Y version
-version = ''
+version = '.'.join(v.split('.')[:2])
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = v
 
 
 # -- General configuration ---------------------------------------------------
@@ -45,7 +50,6 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinxcontrib.bibtex',
     'breathe',
-    # 'exhale'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -84,21 +88,6 @@ breathe_domain_by_extension = { "h" : "cpp", "cu" : "cpp" }
 
 cpp_id_attributes = ['__device__', '__global__', '__host__']
 cpp_paren_attributes = ['__align__']
-
-# exhale extension
-exhale_args = {
-    # These arguments are required
-    "containmentFolder":     "./api",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "Library API",
-    "doxygenStripFromPath":  "..",
-    # Suggested optional arguments
-    "createTreeView":        True,
-    # TIP: if using the sphinx-bootstrap-theme, you need
-    # "treeViewIsBootstrap": True,
-    "exhaleExecutesDoxygen": True,
-    "exhaleDoxygenStdin":    "INPUT = ../../include ../../src"
-}
 
 # Tell sphinx what the primary language being documented is
 primary_domain = 'cpp'
@@ -142,7 +131,7 @@ html_show_copyright = True
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {}
+# html_theme_options = {}
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
