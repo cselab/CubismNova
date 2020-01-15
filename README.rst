@@ -51,6 +51,11 @@ multicomponent flow simulations (:cite:`sukys2018a`, :cite:`wermelinger2018a`,
 flow (:cite:`karnakov2019a`) as well as incompressible flow with collective
 swimmers (:cite:`verma2018a`).
 
+Documentation
+*************
+
+The software documentation is hosted at https://cubismnova.readthedocs.io
+
 Installation
 ************
 
