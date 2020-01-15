@@ -8,14 +8,18 @@
 CubismNova
 **********
 
-.. image:: https://img.shields.io/badge/version-0.1.0-blue
+.. image:: https://badge.fury.io/gh/cselab%2FCubismNova.svg
+   :target: https://badge.fury.io/gh/cselab%2FCubismNova
    :alt: Version
-.. image:: https://img.shields.io/badge/license-BSD-green
+.. image:: https://img.shields.io/badge/license-BSD%202--Clause-orange.svg
    :target: LICENSE
    :alt: License
 .. image:: https://circleci.com/gh/cselab/CubismNova.svg?style=shield
    :target: https://circleci.com/gh/cselab/CubismNova
    :alt: Build Status
+.. image:: https://readthedocs.org/projects/cubismnova/badge/?version=latest
+   :target: https://cubismnova.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
 Introduction
 ************
