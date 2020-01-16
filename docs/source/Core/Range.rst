@@ -5,9 +5,7 @@
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
 Range
-=====
-
-TODO TEXT
+-----
 
 .. doxygenclass:: Range
    :project: CubismNova

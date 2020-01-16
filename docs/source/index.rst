@@ -10,4 +10,9 @@
    :caption: User Guide
    :maxdepth: 2
 
+   Alloc/index.rst
+   Block/index.rst
    Core/index.rst
+   Grid/index.rst
+   Mesh/index.rst
+   Util/index.rst

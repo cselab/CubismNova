@@ -1,22 +1,22 @@
-.. File       : Index.rst
-.. Created    : Tue Jan 14 2020 01:30:48 PM (+0100)
+.. File       : Field.rst
+.. Created    : Thu Jan 16 2020 06:31:49 PM (+0100)
 .. Author     : Fabian Wermelinger
-.. Description: Core/Index.h documentation
+.. Description: Block/Field.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-Index
+Field
 -----
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
-.. doxygenstruct:: IndexConverter
+.. doxygenstruct:: FieldState
    :project: CubismNova
    :members:
 
-.. doxygenclass:: IndexRange
+.. doxygenclass:: Field
    :project: CubismNova
    :members:
 
-.. doxygenclass:: MultiIndexIterator
+.. doxygentypedef:: Cubism::Block::CellField
    :project: CubismNova
    :members:

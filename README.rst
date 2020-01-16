@@ -22,7 +22,7 @@ CubismNova
    :alt: Documentation Status
 
 Introduction
-************
+============
 
 CubismNova is a C++ template library used for solving Partial Differential
 Equations (PDEs) on structured uniform or stretched grids as well as
@@ -52,12 +52,12 @@ flow (:cite:`karnakov2019a`) as well as incompressible flow with collective
 swimmers (:cite:`verma2018a`).
 
 Documentation
-*************
+=============
 
 The software documentation is hosted at https://cubismnova.readthedocs.io
 
 Installation
-************
+============
 
 CubismNova can be downloaded from GitHub_:
 
@@ -93,12 +93,12 @@ Instead of ``release`` you can use any other token except ``debug``.  If the
 ``<insall path>`` is a system directory use ``sudo make install`` instead.
 
 Versioning
-**********
+==========
 
 This software follows the `semantic versioning specification`_.
 
 License
-*******
+=======
 
 `BSD`_ © 2019 ETH Zurich
 
@@ -107,6 +107,6 @@ License
 .. _semantic versioning specification: https://semver.org/
 
 References
-**********
+==========
 
 .. bibliography:: bibtex/references.bib

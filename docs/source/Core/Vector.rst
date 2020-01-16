@@ -5,9 +5,7 @@
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
 Vector
-======
-
-TODO TEXT
+------
 
 .. doxygenclass:: Vector
    :project: CubismNova

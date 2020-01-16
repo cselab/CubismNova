@@ -1,15 +1,13 @@
 .. File       : index.rst
-.. Created    : Tue Jan 14 2020 12:50:43 PM (+0100)
+.. Created    : Thu Jan 16 2020 06:28:48 PM (+0100)
 .. Author     : Fabian Wermelinger
-.. Description: Core namespace documentation
+.. Description: Alloc namespace documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-Core
-====
+Alloc
+=====
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
 .. toctree::
-   Index.rst
-   Range.rst
-   Vector.rst
+   AlignedBlockAllocator.rst
