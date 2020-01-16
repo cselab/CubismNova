@@ -96,7 +96,7 @@ void Profiler::printReport()
                 "printReport: Non-symmetric agents across MPI ranks");
         }
 
-        Stats s;
+        Stats s = {};
         const auto it = this->samples_.find(name);
         if (it != this->samples_.end()) {
             const std::vector<double> &data = it->second;
@@ -158,7 +158,7 @@ void Profiler::printReport()
             const std::string &name = agent.first;
             const auto &gs = agent.second;
 
-            Stats s;
+            Stats s = {};
             const auto it = this->samples_.find(name);
             if (it != this->samples_.end()) {
                 s = rank_stats.find(name)->second;

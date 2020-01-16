@@ -72,7 +72,7 @@ TEST(BlockMesh, Field)
                     }
                     vfaces[i] = IRange(faces);
                 }
-                MyFieldState fs;
+                MyFieldState fs = {};
                 mfields.push_back(new Mesh(gorigin,
                                            Range(bstart, bend),
                                            IRange(cells),

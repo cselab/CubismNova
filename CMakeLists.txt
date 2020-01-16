@@ -15,9 +15,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 
 # MPI
 find_package(MPI REQUIRED)
-# FIXME: [fabianw@mavt.ethz.ch; 2019-12-23] creates infinite loop!
-# set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-# set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
 
 # warnings
 set(CMAKE_C_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_C_FLAGS}")
@@ -42,4 +39,4 @@ add_subdirectory(test)
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     message("Debug Mode Enabled")
     add_subdirectory(test/sandbox)
-endif (CMAKE_BUILD_TYPE MATCHES Debug)
+endif ()
