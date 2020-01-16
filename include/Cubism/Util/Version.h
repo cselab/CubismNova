@@ -22,8 +22,8 @@ extern const char *CubismVersion;
 /// Command: git describe --long --dirty --broken
 /// Example: v1.1.8-5-g824e676-dirty
 /// The string starts with the version number, followed by the number of commits
-/// ahead of tagged version (5 in this case), followed by the SHA of HEAD,
-/// followed by the state of the working tree (if any).
+/// ahead of tagged commit (5 in this case), followed by g and the short hash
+/// (SHA-1)  of HEAD, followed by the state of the working tree (if any).
 extern const char *CubismVersionHEAD;
 
 /// @brief Cubism build branch
