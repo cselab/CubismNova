@@ -7,6 +7,6 @@
 BlockFieldAssembler
 -------------------
 
-.. doxygenclass:: BlockFieldAssembler
+.. doxygenstruct:: BlockFieldAssembler
    :project: CubismNova
    :members:

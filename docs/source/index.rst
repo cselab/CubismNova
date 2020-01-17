@@ -4,15 +4,22 @@
 .. Description: CubismNova documentation root
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-.. include:: ../../README.rst
+.. include::
+   ../../README.rst
 
 .. toctree::
-   :caption: User Guide
-   :maxdepth: 2
+   :caption: Header Files
+   :name: headers
 
-   Alloc/index.rst
-   Block/index.rst
-   Core/index.rst
-   Grid/index.rst
-   Mesh/index.rst
-   Util/index.rst
+   header/Alloc/index.rst
+   header/Block/index.rst
+   header/Core/index.rst
+   header/Grid/index.rst
+   header/Mesh/index.rst
+   header/Util/index.rst
+
+.. toctree::
+   :caption: Examples
+   :name: examples
+
+   examples/dummy.rst

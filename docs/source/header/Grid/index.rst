@@ -10,5 +10,5 @@ Grid
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
 .. toctree::
-   StructuredBase.rst
-   StructuredUniform.rst
+   BlockFieldAssembler.rst
+   Cartesian.rst

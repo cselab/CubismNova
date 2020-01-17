@@ -17,6 +17,5 @@ Field
    :project: CubismNova
    :members:
 
-.. doxygentypedef:: Cubism::Block::CellField
+.. doxygentypedef:: CellField
    :project: CubismNova
-   :members:

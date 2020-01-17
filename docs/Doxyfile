@@ -12,22 +12,23 @@
 # For lists, items can also be appended using:
 # TAG += value [value, ...]
 # Values that contain spaces should be placed between quotes (\" \").
-PROJECT_NAME      = "CubismNova"
-PROJECT_BRIEF     = "HPC block-based stencil framework"
-XML_OUTPUT        = xml
-OUTPUT_DIRECTORY  = ./doxygen
-INPUT             = ../include ../src
-FILE_PATTERNS     = *.h *.cpp *.cu
-EXTENSION_MAPPING = cu=c++
-GENERATE_LATEX    = NO
-GENERATE_MAN      = NO
-GENERATE_RTF      = NO
-CASE_SENSE_NAMES  = NO
-GENERATE_HTML     = NO
-GENERATE_XML      = YES
-RECURSIVE         = YES
-QUIET             = YES
+PROJECT_NAME         = "CubismNova"
+PROJECT_BRIEF        = "HPC block-based stencil framework"
+XML_OUTPUT           = xml
+OUTPUT_DIRECTORY     = ./doxygen
+INPUT                = ../include ../src
+FILE_PATTERNS        = *.h *.cpp *.cu
+EXTENSION_MAPPING    = cu=c++
+GENERATE_LATEX       = NO
+GENERATE_MAN         = NO
+GENERATE_RTF         = NO
+CASE_SENSE_NAMES     = NO
+GENERATE_HTML        = NO
+GENERATE_XML         = YES
+RECURSIVE            = YES
+QUIET                = YES
 WARN_IF_UNDOCUMENTED = NO
+AUTOLINK_SUPPORT     = NO
 
 # embedded markup aliases
 ALIASES = "rst=@verbatim embed:rst:leading-asterisk"
