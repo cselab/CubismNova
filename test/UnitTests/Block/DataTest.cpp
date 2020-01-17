@@ -57,7 +57,7 @@ void runTest()
 
     // copy assignment
     CData cdata1(cell_domain);
-    cdata1 = cdata; // deep copy
+    cdata1 = cdata;           // deep copy
     cdata_view = cdata_view1; // shallow copy
     EXPECT_NE(cdata.getBlockPtr(), cdata1.getBlockPtr());
     EXPECT_EQ(cdata_view1.getBlockPtr(), cdata_view.getBlockPtr());
