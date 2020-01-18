@@ -11,10 +11,18 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Mesh)
 
+/**
+ * @addtogroup Mesh
+ * @{
+ * @brief Structured uniform mesh
+ * @tparam TReal Float type for mesh entities
+ * @tparam DIM Mesh dimension
+ * */
 template <typename TReal, size_t DIM>
 class StructuredUniform : public StructuredBase<TReal, DIM>
 {
 public:
+    /** @brief Base mesh type */
     using BaseMesh = StructuredBase<TReal, DIM>;
     using typename BaseMesh::EntityType;
     using typename BaseMesh::IndexRangeType;
@@ -32,12 +40,13 @@ private:
     using BaseMesh::range_;
 
 public:
-    /// @brief Standard mesh constructor
-    ///
-    /// @param start Lower left point of physical domain
-    /// @param end Upper right point of physical domain
-    /// @param cells Number of cells in mesh
-    /// @param type Mesh hull type (full mesh or sub-mesh)
+    /**
+     * @brief Standard mesh constructor
+     * @param start Lower left point of physical domain
+     * @param end Upper right point of physical domain
+     * @param cells Number of cells in mesh
+     * @param type Mesh hull type (full mesh or sub-mesh)
+     */
     StructuredUniform(const PointType &start,
                       const PointType &end,
                       const MultiIndex &cells,
@@ -48,11 +57,14 @@ public:
     {
     }
 
-    /// @brief Standard mesh constructor (with physical origin at 0)
-    ///
-    /// @param end Upper right point of physical domain
-    /// @param cells Number of cells in mesh
-    /// @param type Mesh hull type (full mesh or sub-mesh)
+    /**
+     * @brief Standard mesh constructor
+     * @param end Upper right point of physical domain
+     * @param cells Number of cells in mesh
+     * @param type Mesh hull type (full mesh or sub-mesh)
+     *
+     * Physical origin starts at 0
+     */
     StructuredUniform(const PointType &end,
                       const MultiIndex &cells,
                       const MeshHull type)
@@ -62,12 +74,15 @@ public:
     {
     }
 
-    /// @brief Standard mesh constructor (useful for MPI subdomains)
-    ///
-    /// @param gorigin Global domain origin
-    /// @param range Domain range spanned by this mesh
-    /// @param crange Cell range spanned by this mesh
-    /// @param type Mesh hull type (full mesh or sub-mesh)
+    /**
+     * @brief Standard mesh constructor
+     * @param gorigin Global domain origin
+     * @param range Domain range spanned by this mesh
+     * @param crange Cell range spanned by this mesh
+     * @param type Mesh hull type (full mesh or sub-mesh)
+     *
+     * Used for MPI subdomains
+     */
     StructuredUniform(const PointType &gorigin,
                       const RangeType &range,
                       const IndexRangeType &crange,
@@ -78,15 +93,17 @@ public:
     {
     }
 
-    /// @brief Low-level mesh constructor (useful for grid topology classes and
-    ///        sub-meshes)
-    ///
-    /// @param gorigin Global domain origin
-    /// @param range Domain range spanned by this mesh
-    /// @param crange Cell range spanned by this mesh
-    /// @param nrange Node range spanned by this mesh
-    /// @param frange Face range spanned by this mesh
-    /// @param type Mesh hull type (full mesh or sub-mesh)
+    /**
+     * @brief Low-level mesh constructor
+     * @param gorigin Global domain origin
+     * @param range Domain range spanned by this mesh
+     * @param crange Cell range spanned by this mesh
+     * @param nrange Node range spanned by this mesh
+     * @param frange Face range spanned by this mesh
+     * @param type Mesh hull type (full mesh or sub-mesh)
+     *
+     * Used for grid topology classes and sub-meshes
+     */
     StructuredUniform(const PointType &gorigin,
                       const RangeType &range,
                       const IndexRangeType &crange,
@@ -163,6 +180,7 @@ private:
     const RealType cell_volume_;
 };
 
+/**  @} */
 NAMESPACE_END(Mesh)
 NAMESPACE_END(Cubism)
 
