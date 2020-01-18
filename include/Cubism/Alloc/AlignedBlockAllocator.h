@@ -28,6 +28,9 @@ public:
      * @brief Allocate block memory
      * @param bytes Minimum number of bytes
      * @return Pointer to first block element
+     *
+     * The actual allocated memory may be larger than the requested number of
+     * bytes.
      */
     DataType *allocate(size_t &bytes) const
     {

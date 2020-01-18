@@ -20,6 +20,12 @@
    header/Util/index.rst
 
 .. toctree::
+   :caption: Tools
+   :name: tools
+
+   tools/index.rst
+
+.. toctree::
    :caption: Examples
    :name: examples
 

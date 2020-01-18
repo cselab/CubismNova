@@ -157,7 +157,7 @@ public:
      */
     bool intersect(const Range &o) const
     {
-        return begin_ < o.end_ || o.begin_ < end_;
+        return begin_ < o.end_ && o.begin_ < end_;
     }
 
     /**

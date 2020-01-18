@@ -4,6 +4,8 @@
 .. Description: Util/Profiler.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
+.. _profiler:
+
 Profiler
 --------
 
