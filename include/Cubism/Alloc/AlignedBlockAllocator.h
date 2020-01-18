@@ -13,9 +13,10 @@
 
 NAMESPACE_BEGIN(Cubism)
 
-/// @brief Simple aligned memory block allocator
-///
-/// @tparam T Data type of single block element
+/**
+ * @brief Simple aligned memory block allocator
+ * @tparam T Data type of single block element
+ */
 template <typename T>
 class AlignedBlockAllocator
 {
@@ -23,11 +24,11 @@ public:
     using DataType = T;
     static constexpr size_t Alignment = CUBISM_ALIGNMENT;
 
-    /// @brief Allocate block memory
-    ///
-    /// @param bytes Minimum number of bytes
-    ///
-    /// @return Pointer to first block element
+    /**
+     * @brief Allocate block memory
+     * @param bytes Minimum number of bytes
+     * @return Pointer to first block element
+     */
     DataType *allocate(size_t &bytes) const
     {
         void *block = nullptr;
@@ -39,9 +40,10 @@ public:
         return static_cast<DataType *>(block);
     }
 
-    /// @brief Deallocate block memory
-    ///
-    /// @param block Pointer to first block element
+    /**
+     * @brief Deallocate block memory
+     * @param block Pointer to first block element
+     */
     void deallocate(DataType *block) const
     {
         if (block != nullptr) {

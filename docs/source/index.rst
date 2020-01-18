@@ -11,6 +11,8 @@
    :caption: Header Files
    :name: headers
 
+   header/Common.rst
+   header/Math.rst
    header/Alloc/index.rst
    header/Block/index.rst
    header/Core/index.rst

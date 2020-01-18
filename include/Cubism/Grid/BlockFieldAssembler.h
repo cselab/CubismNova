@@ -14,12 +14,13 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Grid)
 
-/// @brief Scalar field type factory
-///
-/// @tparam TEntity Cubism::EntityType
-/// @tparam TData Field data type
-/// @tparam TState Field state type
-/// @tparam DIM Field dimension
+/**
+ * @brief Scalar field type factory
+ * @tparam TEntity Entity type
+ * @tparam TData Field data type
+ * @tparam TState Field state type
+ * @tparam DIM Field dimension
+ */
 template <Cubism::EntityType TEntity,
           typename TData,
           typename TState,
@@ -29,23 +30,25 @@ struct ScalarFieldBase {
         Cubism::Block::Field<Cubism::Block::Data<TData, TEntity, DIM>, TState>;
 };
 
-/// @brief Scalar field type factory (specialization for FaceFieldAll types)
-///
-/// @tparam TData Field data type
-/// @tparam TState Field state type
-/// @tparam DIM Field dimension
+/**
+ * @brief Scalar field type factory (specialization for ``FaceFieldAll`` types)
+ * @tparam TData Field data type
+ * @tparam TState Field state type
+ * @tparam DIM Field dimension
+ */
 template <typename TData, typename TState, size_t DIM>
 struct ScalarFieldBase<Cubism::EntityType::Face, TData, TState, DIM> {
     using Type = Cubism::Block::FaceFieldAll<TData, TState, DIM>;
 };
 
-/// @brief Tensor field type factory
-///
-/// @tparam RANK Tensor rank
-/// @tparam TEntity Cubism::EntityType
-/// @tparam TData Field data type
-/// @tparam TState Field state type
-/// @tparam DIM Field dimension
+/**
+ * @brief Tensor field type factory
+ * @tparam RANK Tensor rank
+ * @tparam TEntity Entity type
+ * @tparam TData Field data type
+ * @tparam TState Field state type
+ * @tparam DIM Field dimension
+ */
 template <size_t RANK,
           Cubism::EntityType TEntity,
           typename TData,
@@ -57,12 +60,13 @@ struct TensorFieldBase {
         RANK>;
 };
 
-/// @brief Tensor field type factory (specialization for scalar fields)
-///
-/// @tparam TEntity Cubism::EntityType
-/// @tparam TData Field data type
-/// @tparam TState Field state type
-/// @tparam DIM Field dimension
+/**
+ * @brief Tensor field type factory (specialization for scalar fields)
+ * @tparam TEntity Entity type
+ * @tparam TData Field data type
+ * @tparam TState Field state type
+ * @tparam DIM Field dimension
+ */
 template <Cubism::EntityType TEntity,
           typename TData,
           typename TState,
@@ -71,67 +75,76 @@ struct TensorFieldBase<0, TEntity, TData, TState, DIM> {
     using Type = typename ScalarFieldBase<TEntity, TData, TState, DIM>::Type;
 };
 
-/// @brief Block field assembler for an externally allocated region of memory
-///
-/// @tparam TEntity Cubism::EntityType
-/// @tparam TFData Field data type
-/// @tparam TFState Field state type
-/// @tparam TMesh Mesh type of global and block meshes
-/// @tparam RANK Tensor rank of field
+/**
+ * @brief Block field assembler for an externally allocated region of memory
+ * @tparam TEntity Entity type
+ * @tparam TFData Field data type
+ * @tparam TFState Field state type
+ * @tparam TMesh Mesh type of global and block meshes
+ * @tparam RANK Tensor rank of field
+ */
 template <Cubism::EntityType TEntity,
           typename TFData,
           typename TFState,
           typename TMesh,
           size_t RANK>
 struct BlockFieldAssembler {
-    /// @brief Main tensor field type
+    /** @brief Main tensor field type */
     using FieldType =
         typename TensorFieldBase<RANK, TEntity, TFData, TFState, TMesh::Dim>::
             Type;
-    /// @brief Container of tensor fields
+    /** @brief Container of tensor fields */
     using FieldContainer = Block::FieldContainer<FieldType>;
-    /// @brief Field type of components in main tensor field
+    /** @brief Field type of components in main tensor field */
     using FieldBaseType = typename FieldType::TensorComponentType;
-    /// @brief State (meta) information for block
+    /** @brief State (meta) information for block */
     using FieldState = TFState;
-    /// @brief Underlying block data manager used by the assembled fields
+    /** @brief Underlying block data manager used by the assembled fields */
     using BlockData = typename FieldType::BaseType;
-    /// @brief Synonym type for TFData
+    /** @brief Synonym type for TFData */
     using DataType = typename BlockData::DataType;
-    /// @brief Type of mesh
+    /** @brief Type of mesh */
     using MeshType = TMesh;
-    /// @brief Type of mesh hull (full mesh or sub-mesh)
+    /** @brief Type of mesh hull (full mesh or sub-mesh) */
     using MeshHull = typename MeshType::MeshHull;
-    /// @brief Index range type
+    /** @brief Index range type */
     using IndexRangeType = typename MeshType::IndexRangeType;
-    /// @brief Type for higher dimensional index
+    /** @brief Type for higher dimensional index */
     using MultiIndex = typename IndexRangeType::MultiIndex;
-    /// @brief Type for physical domain ranges spanned by MeshType
+    /** @brief Type for physical domain ranges spanned by ``MeshType`` */
     using RangeType = typename MeshType::RangeType;
-    /// @brief Type of point in physical domain (a MeshType::Dim vector of
-    ///        float or double)
+    /** @brief Type of point in physical domain */
     using PointType = typename MeshType::PointType;
 
-    /// @brief State (meta data) of the assembled fields
+    /**
+     * @brief State (meta data) of the assembled fields
+     */
     std::vector<FieldState> field_states;
-    /// @brief Block meshes corresponding to the assembled fields
+    /**
+     * @brief Block meshes corresponding to the assembled fields
+     */
     std::vector<MeshType *> field_meshes;
-    /// @brief Assembled field views into the external memory
+    /**
+     * @brief Assembled field views into the external memory
+     */
     FieldContainer tensor_fields;
 
-    /// @brief Main assembly routine
-    ///
-    /// @param src Pointer to the beginning of the externally allocated memory
-    /// @param mesh Global mesh in which contains the assembled block meshes
-    /// @param block_range Range of blocks for which to assemble the fields
-    /// @param block_cells Number of cells for individual blocks
-    /// @param scale Scaling factor for total number of blocks
-    /// @param block_bytes Number of bytes occupied by each block
-    /// @param component_bytes Number of bytes per tensor component (must be
-    ///        larger or equal to nblocks.prod() * block_bytes)
-    ///
-    /// Assembles block fields and its sub mesh on a Cartesian topology using
-    /// the external data src
+    /**
+     * @brief Main assembly routine
+     * @param src Pointer to the beginning of the externally allocated memory
+     * @param mesh Global mesh in which contains the assembled block meshes
+     * @param block_range Range of blocks for which to assemble the fields
+     * @param block_cells Number of cells for individual blocks
+     * @param scale Scaling factor for total number of blocks
+     * @param block_bytes Number of bytes occupied by each block
+     * @param component_bytes Number of bytes per tensor component (must be
+     *        larger or equal to ``nblocks.prod() * block_bytes``)
+     *
+     * @rst
+     * Assembles block fields and its sub mesh on a Cartesian topology using
+     * the external data ``src``.
+     * @endrst
+     */
     void assemble(TFData *src,
                   const TMesh &mesh,
                   const IndexRangeType &block_range,
@@ -227,7 +240,9 @@ struct BlockFieldAssembler {
         }
     }
 
-    /// @brief Dispose assembled fields
+    /**
+     * @brief Dispose assembled fields
+     */
     void dispose()
     {
         for (auto fm : field_meshes) {
@@ -241,66 +256,77 @@ struct BlockFieldAssembler {
     }
 };
 
-/// @brief Block field assembler for an externally allocated region of memory
-///
-/// @tparam TEntity Cubism::EntityType
-/// @tparam TFData Field data type
-/// @tparam TFState Field state type
-/// @tparam TMesh Mesh type of global and block meshes
-///
-/// This is a specialization for scalar fields (RANK = 0)
+/**
+ * @brief Block field assembler for an externally allocated region of memory
+ * @tparam TEntity Entity type
+ * @tparam TFData Field data type
+ * @tparam TFState Field state type
+ * @tparam TMesh Mesh type of global and block meshes
+ *
+ * @rst
+ * This is a specialization for scalar fields (``RANK = 0``)
+ * @endrst
+ */
 template <Cubism::EntityType TEntity,
           typename TFData,
           typename TFState,
           typename TMesh>
 struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
-    /// @brief Main scalar field type
+    /** @brief Main scalar field type */
     using FieldType =
         typename TensorFieldBase<0, TEntity, TFData, TFState, TMesh::Dim>::Type;
-    /// @brief Container of scalar fields
+    /** @brief Container of tensor fields */
     using FieldContainer = Block::FieldContainer<FieldType>;
-    /// @brief Field type of components in main scalar field
+    /** @brief Field type of components in main scalar field */
     using FieldBaseType = FieldType;
-    /// @brief State (meta) information for block
+    /** @brief State (meta) information for block */
     using FieldState = TFState;
-    /// @brief Underlying block data manager used by the assembled fields
+    /** @brief Underlying block data manager used by the assembled fields */
     using BlockData = typename FieldType::BaseType;
-    /// @brief Synonym type for TFData
+    /** @brief Synonym type for TFData */
     using DataType = typename BlockData::DataType;
-    /// @brief Type of mesh
+    /** @brief Type of mesh */
     using MeshType = TMesh;
-    /// @brief Type of mesh hull (full mesh or sub-mesh)
+    /** @brief Type of mesh hull (full mesh or sub-mesh) */
     using MeshHull = typename MeshType::MeshHull;
-    /// @brief Index range type
+    /** @brief Index range type */
     using IndexRangeType = typename MeshType::IndexRangeType;
-    /// @brief Type for higher dimensional index
+    /** @brief Type for higher dimensional index */
     using MultiIndex = typename IndexRangeType::MultiIndex;
-    /// @brief Type for physical domain ranges spanned by MeshType
+    /** @brief Type for physical domain ranges spanned by ``MeshType`` */
     using RangeType = typename MeshType::RangeType;
-    /// @brief Type of point in physical domain (a MeshType::Dim vector of
-    ///        float or double)
+    /** @brief Type of point in physical domain */
     using PointType = typename MeshType::PointType;
 
-    /// @brief State (meta data) of the assembled fields
+    /**
+     * @brief State (meta data) of the assembled fields
+     */
     std::vector<FieldState> field_states;
-    /// @brief Block meshes corresponding to the assembled fields
+    /**
+     * @brief Block meshes corresponding to the assembled fields
+     */
     std::vector<MeshType *> field_meshes;
-    /// @brief Assembled field views into the external memory
+    /**
+     * @brief Assembled field views into the external memory
+     */
     FieldContainer tensor_fields;
 
-    /// @brief Main assembly routine
-    ///
-    /// @param src Pointer to the beginning of the externally allocated memory
-    /// @param mesh Global mesh in which contains the assembled block meshes
-    /// @param block_range Range of blocks for which to assemble the fields
-    /// @param block_cells Number of cells for individual blocks
-    /// @param scale Scaling factor for total number of blocks
-    /// @param block_bytes Number of bytes occupied by each block
-    /// @param component_bytes Number of bytes per tensor component (must be
-    ///        larger or equal to nblocks.prod() * block_bytes)
-    ///
-    /// Assembles block fields and its sub mesh on a Cartesian topology using
-    /// the external data src (specialized for scalar fields)
+    /**
+     * @brief Main assembly routine
+     * @param src Pointer to the beginning of the externally allocated memory
+     * @param mesh Global mesh in which contains the assembled block meshes
+     * @param block_range Range of blocks for which to assemble the fields
+     * @param block_cells Number of cells for individual blocks
+     * @param scale Scaling factor for total number of blocks
+     * @param block_bytes Number of bytes occupied by each block
+     * @param component_bytes Number of bytes per tensor component (must be
+     *        larger or equal to ``nblocks.prod() * block_bytes``)
+     *
+     * @rst
+     * Assembles block fields and its sub mesh on a Cartesian topology using
+     * the external data ``src`` (specialized for scalar fields)
+     * @endrst
+     */
     void assemble(TFData *src,
                   const TMesh &mesh,
                   const IndexRangeType &block_range,
@@ -388,7 +414,9 @@ struct BlockFieldAssembler<TEntity, TFData, TFState, TMesh, 0> {
         }
     }
 
-    /// @brief Dispose assembled fields
+    /**
+     * @brief Dispose assembled fields
+     */
     void dispose()
     {
         for (auto fm : field_meshes) {

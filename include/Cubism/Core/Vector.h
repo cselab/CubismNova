@@ -24,13 +24,17 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Core)
 
-/// @brief Vector class with support for common operations (wraps around
-///        std::array)
-///
-/// @tparam T   (underlying data type, must follow the rules of aggregate
-///             initialization)
-/// @tparam DIM (vector dimension, should be low-dimensional when used for
-///             automatic variables on the stack)
+/**
+ * @brief Vector class with support for common operations
+ * @tparam T   Data type
+ * @tparam DIM Dimension
+ *
+ * @rst
+ * Wraps around ``std::array``.  The data type ``T`` must follow the rules of
+ * aggregate initialization.  The vector dimension ``DIM`` should be
+ * low-dimensional when used for automatic variables on the stack.
+ * @endrst
+ */
 template <typename T, size_t DIM>
 class Vector
 {
@@ -56,33 +60,66 @@ public:
         return u;
     }
 
-    /// @brief Default constructor
+    /**
+     * @brief Default constructor
+     *
+     * All elements are initialized to ``0``.
+     */
     Vector() : array_({0}) {}
 
-    /// @brief Default copy constructor
+    /**
+     * @brief Default copy constructor
+     */
     Vector(const Vector &c) : array_(c.array_) {}
 
-    /// @brief Default move constructor (linear complexity)
+    /**
+     * @brief Default move constructor (linear complexity)
+     */
     Vector(Vector &&c) noexcept : array_(std::move(c.array_)) {}
 
-    /// @brief Copy constructor to initialize data from std::array of same type
+    /**
+     * @brief Copy constructor
+     *
+     * @rst
+     * Initialize data from ``std::array`` of same type
+     * @endrst
+     */
     Vector(const ArrayType &ary) : array_(ary) {}
 
-    /// @brief Move constructor to initialize data from std::array of same type
-    ///        (linear complexity)
+    /**
+     * @brief Move constructor
+     *
+     * @rst
+     * Initialize data from ``std::array`` of same type (linear complexity)
+     * @endrst
+     */
     Vector(ArrayType &&ary) noexcept : array_(std::move(ary)) {}
 
-    // Arbitrary type constructors:
-    //
-    /// @brief Constructor for arbitrary Vector types
+    /**
+     * @brief Constructor for arbitrary Vector types
+     * @tparam U Scalar type
+     * @tparam DIMU Vector dimension
+     * @param c Initial values
+     *
+     * @rst
+     * The type ``U`` must define a cast to ``DataType``.
+     * @endrst
+     */
     template <typename U, size_t DIMU>
     Vector(const Vector<U, DIMU> &c) : array_({0})
     {
         copyFromAddress_(c.data(), c.size());
     }
 
-    /// @brief Constructor for any scalar type U.  The type U must be castable
-    ///        to DataType.
+    /**
+     * @brief Constructor for any scalar type ``U``.
+     * @tparam U Scalar type
+     * @param scalar Initialization value
+     *
+     * @rst
+     * The type ``U`` must define a cast to ``DataType``.
+     * @endrst
+     */
     template <typename U>
     explicit Vector(const U scalar) : array_({0})
     {
@@ -91,39 +128,80 @@ public:
         std::fill(dst, dst + Dim, v);
     }
 
-    /// @brief Constructor for arbitrary list initialization
+    /**
+     * @brief Constructor for arbitrary list initialization.
+     * @tparam U Scalar type
+     * @param ilist Initializer list
+     *
+     * @rst
+     * The type ``U`` must define a cast to ``DataType``.
+     * @endrst
+     */
     template <typename U>
     Vector(std::initializer_list<U> ilist) : array_({0})
     {
         copyFromAddress_(ilist.begin(), ilist.size());
     }
 
-    /// @brief Constructor to initialize data from std::vector
+    /**
+     * @brief Constructor to initialize data from ``std::vector``
+     * @tparam U Scalar type
+     * @param vec Initializer vector
+     *
+     * @rst
+     * The type ``U`` must define a cast to ``DataType``.
+     * @endrst
+     */
     template <typename U>
     Vector(const std::vector<U> &vec) : array_({0})
     {
         copyFromAddress_(vec.data(), vec.size());
     }
 
-    /// @brief Constructor to initialize data from arbitrary std::array
+    /**
+     * @brief Constructor to initialize data from arbitrary ``std::array``
+     * @tparam U Scalar type
+     * @tparam DIMU Array dimension
+     * @param ary Initializer array
+     *
+     * @rst
+     * The type ``U`` must define a cast to ``DataType``.  If ``DIMU > DIM``
+     * only the first ``DIM`` elements will be copied.  If ``DIMU < DIM`` the
+     * missing elements will be initialized to zero.
+     * @endrst
+     */
     template <typename U, size_t DIMU>
     Vector(const std::array<U, DIMU> &ary) : array_({0})
     {
         copyFromAddress_(ary.data(), ary.size());
     }
 
-    /// @brief Constructor to initialize data from arbitrary pointer ptr.  The
-    ///        number of elements n must be provided.
+    /**
+     * @brief Constructor to initialize data from arbitrary pointer.
+     * @tparam U Scalar type
+     * @param ptr Pointer to first element
+     * @param n Number of elements to copy
+     *
+     * @rst
+     * The type ``U`` must define a cast to ``DataType``.  If ``n > DIM`` only
+     * the first ``DIM`` elements will be copied.  If ``n < DIM`` the missing
+     * elements will be initialized to zero.
+     * @endrst
+     */
     template <typename U>
     explicit Vector(const U *ptr, size_t n) : array_({0})
     {
         copyFromAddress_(ptr, n);
     }
 
-    /// @brief Default destructor
+    /**
+     * @brief Default destructor
+     */
     virtual ~Vector() = default;
 
-    /// @brief Default assignment operator
+    /**
+     * @brief Default copy assignment operator
+     */
     Vector &operator=(const Vector &c)
     {
         if (this != &c) {
@@ -132,7 +210,9 @@ public:
         return *this;
     }
 
-    /// @brief Default move assignment operator (linear complexity)
+    /**
+     * @brief Default move assignment operator (linear complexity)
+     */
     Vector &operator=(Vector &&c)
     {
         if (this != &c) {
@@ -141,7 +221,9 @@ public:
         return *this;
     }
 
-    /// @brief ArrayType assignment operator
+    /**
+     * @brief Copy assignment operator
+     */
     Vector &operator=(const ArrayType &ary)
     {
         if (&array_ != &ary) {
@@ -150,7 +232,9 @@ public:
         return *this;
     }
 
-    /// @brief ArrayType move assignment operator (linear complexity)
+    /**
+     * @brief Move assignment operator (linear complexity)
+     */
     Vector &operator=(ArrayType &&ary)
     {
         if (&array_ != &ary) {
@@ -159,7 +243,9 @@ public:
         return *this;
     }
 
-    /// @brief Assignment operator for scalar c
+    /**
+     * @brief Copy assignment operator for scalar c
+     */
     Vector &operator=(const DataType c)
     {
         DataType *dst = this->data();
@@ -167,16 +253,18 @@ public:
         return *this;
     }
 
-    /// @brief Assignment operator for any other Vector type.  The data type U
-    ///        must be castable to DataType.  This operation is less efficient
-    ///        than assigning vectors of the same type.
-    ///
-    /// @tparam U (data type must be castable to DataType)
-    /// @tparam DIMU (DIMU may not necessarily be equal to DIM.  If DIMU < DIM,
-    ///              the remaining data elements are left unchanged.)
-    /// @param c
-    ///
-    /// @return (Vector<T, DIM>)
+    /**
+     * @brief Copy assignment operator for any other Vector type
+     * @tparam U Scalar type
+     * @tparam DIMU Vector dimension
+     * @param c Source vector
+     *
+     * @rst
+     * The type ``U`` must define a cast to ``DataType``.  If ``DIMU > DIM``
+     * only the first ``DIM`` elements will be copied.  If ``DIMU < DIM`` the
+     * missing elements in this vector will not be modified.
+     * @endrst
+     */
     template <typename U, size_t DIMU>
     Vector &operator=(const Vector<U, DIMU> &c)
     {
@@ -186,44 +274,77 @@ public:
         return *this;
     }
 
-    /// @brief Swap this vector with other vector
+    /**
+     * @brief Swap this vector with other vector
+     */
     void swap(Vector &other) noexcept { array_.swap(other.array_); }
 
-    /// @brief Return size of vector
+    /**
+     * @brief Size of vector
+     * @return Size of vector (static)
+     */
     size_t size() const { return Dim; }
 
-    /// @brief Return raw data
+    /**
+     * @brief Get pointer to raw data
+     * @return Pointer to first element
+     */
     DataType *data() { return array_.data(); }
+
+    /**
+     * @brief Get pointer to raw data
+     * @return ``const`` pointer to first element
+     */
     const DataType *data() const { return array_.data(); }
 
-    /// @brief Return underlying std::array
+    /**
+     * @brief Get underlying array
+     * @return ``std::array``
+     */
     ArrayType &getArray() { return array_; }
+
+    /**
+     * @brief Get underlying array
+     * @return ``const std::array``
+     */
     const ArrayType &getArray() const { return array_; }
 
-    /// @brief Data access interface
+    /**
+     * @brief Data access interface
+     * @param i Vector element
+     * @return Reference to element
+     */
     DataType &operator[](const size_t i)
     {
         assert(i < Dim);
         return array_[i];
     }
 
-    /// @brief Data access interface
+    /**
+     * @brief Data access interface
+     * @param i Vector element
+     * @return ``const`` reference to element
+     */
     const DataType &operator[](const size_t i) const
     {
         assert(i < Dim);
         return array_[i];
     }
 
-    // Allowed casts:
-    //
-    /// @brief Cast vector to its underlying std::array type
+    /**
+     * @brief Cast operator
+     *
+     * Cast to ``std::array``
+     */
     explicit operator ArrayType() const { return array_; }
 
-    /// @brief Cast vector to pointer, pointing to the first element of its data
+    /**
+     * @brief Cast operator
+     *
+     * Cast to pointer pointing to the first array element
+     */
     explicit operator DataType *() { return data(); }
 
-    // iterators:
-    //
     iterator begin() noexcept { return array_.begin(); }
     iterator end() noexcept { return array_.end(); }
     const_iterator begin() const noexcept
@@ -247,10 +368,11 @@ public:
     const_reverse_iterator crbegin() const noexcept { return array_.crbegin(); }
     const_reverse_iterator crend() const noexcept { return array_.crend(); }
 
-    // Comparison operators:
-    //
-    /// @brief Equality operator.  A Vector is equal to another iff they
-    ///        are equal component-wise.
+    /**
+     * @brief Equality operator.
+     *
+     * A Vector is equal to another if they are equal component-wise.
+     */
     bool operator==(const Vector &other) const
     {
         bool is_equal = true;
@@ -262,9 +384,12 @@ public:
     }
     bool operator!=(const Vector &other) const { return !(*this == other); }
 
-    /// @brief Less than operator.  A Vector is smaller than another iff
-    ///        all components are less than the corresponding components of
-    ///        the other Vector.
+    /**
+     * @brief Less than operator.
+     *
+     * A Vector is smaller than another if all components are less than the
+     * corresponding components of the other Vector.
+     */
     bool operator<(const Vector &other) const
     {
         bool is_less = true;
@@ -273,11 +398,20 @@ public:
         }
         return is_less;
     }
+    /**
+     * @brief Greater than operator.
+     *
+     * A Vector is larger than another if all components are greater than the
+     * corresponding components of the other Vector.
+     */
     bool operator>(const Vector &other) const { return (other < *this); }
 
-    /// @brief Less-equal than operator.  A Vector is smaller or equal
-    ///        than another iff all components are less or equal than the
-    ///        corresponding components of the other Vector.
+    /**
+     * @brief Less-equal than operator.
+     *
+     * A Vector is smaller or equal than another if all components are less or
+     * equal than the corresponding components of the other Vector.
+     */
     bool operator<=(const Vector &other) const
     {
         bool is_lesseq = true;
@@ -286,12 +420,37 @@ public:
         }
         return is_lesseq;
     }
+    /**
+     * @brief Greater-equal than operator.
+     *
+     * A Vector is larger or equal than another if all components are greater or
+     * equal than the corresponding components of the other Vector.
+     */
     bool operator>=(const Vector &other) const { return (other <= *this); }
 
-    // lexicographic compare
+    /**
+     * @brief Lexicographic less-than
+     *
+     * Identical to ``std::array``
+     */
     bool lexLT(const Vector &other) const { return array_ < other.array_; }
+    /**
+     * @brief Lexicographic less-equal
+     *
+     * Identical to ``std::array``
+     */
     bool lexLE(const Vector &other) const { return array_ <= other.array_; }
+    /**
+     * @brief Lexicographic greater-than
+     *
+     * Identical to ``std::array``
+     */
     bool lexGT(const Vector &other) const { return array_ > other.array_; }
+    /**
+     * @brief Lexicographic greater-equal
+     *
+     * Identical to ``std::array``
+     */
     bool lexGE(const Vector &other) const { return array_ >= other.array_; }
 
     // Unitary operators:
@@ -444,18 +603,24 @@ public:
         return rhs;
     }
 
-    // Common vector operations interface:
-    //
-    /// @brief Squared Euclidean vector norm
+    /**
+     * @brief Squared Euclidean vector norm
+     */
     DataType normsq() const { return sumProd_(*this); }
 
-    /// @brief Euclidean vector norm (L2)
+    /**
+     * @brief Euclidean vector norm (L2)
+     */
     DataType norm() const { return mySqrt(normsq()); }
 
-    /// @brief Vector L2 norm (alias for norm())
+    /**
+     * @brief Vector L2 norm (alias for ``norm()``)
+     */
     DataType normL2() const { return norm(); }
 
-    /// @brief Vector L1 norm
+    /**
+     * @brief Vector L1 norm
+     */
     DataType normL1() const
     {
         DataType res = 0;
@@ -465,7 +630,9 @@ public:
         return res;
     }
 
-    /// @brief Vector maximum norm
+    /**
+     * @brief Vector maximum norm
+     */
     DataType normLinf() const
     {
         DataType res = 0;
@@ -475,13 +642,19 @@ public:
         return res;
     }
 
-    /// @brief Unit vector
+    /**
+     * @brief Unit vector
+     */
     Vector unit() const { return (*this / norm()); }
 
-    /// @brief Vector dot product
+    /**
+     * @brief Vector dot product
+     */
     DataType dot(const Vector &other) const { return sumProd_(other); }
 
-    /// @brief Vector cross product
+    /**
+     * @brief Vector cross product
+     */
     Vector cross(const Vector &other) const
     {
         static_assert(3 == Dim, "Cross-product is not defined for Dim != 3");
@@ -491,7 +664,9 @@ public:
         return Vector({v0, v1, v2});
     }
 
-    /// @brief Third component of vector cross-product
+    /**
+     * @brief Third component of vector cross-product
+     */
     DataType getCrossThird(const Vector &other) const
     {
         static_assert(
@@ -500,21 +675,27 @@ public:
         return array_[0] * other[1] - array_[1] * other[0];
     }
 
-    /// @brief Squared distance between this and other vector
+    /**
+     * @brief Squared distance between this and other vector
+     */
     DataType distsq(Vector other) const
     {
         other -= *this;
         return other.normsq();
     }
 
-    /// @brief Distance between this and other vector
+    /**
+     * @brief Distance between this and other vector
+     */
     DataType dist(Vector other) const
     {
         other -= *this;
         return other.norm();
     }
 
-    /// @brief Sum of vector components
+    /**
+     * @brief Sum of vector components
+     */
     DataType sum() const
     {
         DataType res = array_[0];
@@ -524,7 +705,9 @@ public:
         return res;
     }
 
-    /// @brief Product of vector components
+    /**
+     * @brief Product of vector components
+     */
     DataType prod() const
     {
         DataType res = array_[0];
@@ -534,7 +717,9 @@ public:
         return res;
     }
 
-    /// @brief Minimum vector component
+    /**
+     * @brief Minimum vector component
+     */
     DataType min() const
     {
         DataType res = array_[0];
@@ -544,7 +729,9 @@ public:
         return res;
     }
 
-    /// @brief Maximum vector component
+    /**
+     * @brief Maximum vector component
+     */
     DataType max() const
     {
         DataType res = array_[0];
@@ -554,7 +741,9 @@ public:
         return res;
     }
 
-    /// @brief Index of minimum component
+    /**
+     * @brief Index of minimum component
+     */
     size_t argmin() const
     {
         size_t res = 0;
@@ -564,7 +753,9 @@ public:
         return res;
     }
 
-    /// @brief Index of maximum component
+    /**
+     * @brief Index of maximum component
+     */
     size_t argmax() const
     {
         size_t res = 0;
@@ -574,7 +765,10 @@ public:
         return res;
     }
 
-    /// @brief Copy of this vector with absolute value for all components
+    /**
+     * @brief Absolute value
+     * @return Absolute copy of this vector
+     */
     Vector abs() const
     {
         Vector res(*this);
@@ -587,9 +781,14 @@ public:
 private:
     ArrayType array_;
 
-    /// @brief Copy from arbitrary source type.  The data type U must be
-    ///        castable to DataType.  If size_src < Dim, then the remaining
-    ///        elements will be left untouched.
+    /**
+     * @brief Copy from arbitrary source type.
+     *
+     * @rst
+     * The data type ``U`` must define a cast ``DataType``.  If ``size_src <
+     * Dim``, then the remaining elements will be left untouched.
+     * @endrst
+     */
     template <typename U>
     void copyFromAddress_(const U *src, size_t size_src)
     {
@@ -601,8 +800,10 @@ private:
         }
     }
 
-    /// @brief Compute the sum of the component-wise products between this
-    ///        vector and other vector.
+    /**
+     * @brief Compute the sum of the component-wise products between this
+     *        vector and other vector.
+     */
     DataType sumProd_(const Vector &other) const
     {
         DataType res = 0;
@@ -619,14 +820,18 @@ constexpr size_t Vector<T, DIM>::Bytes;
 template <typename T, size_t DIM>
 constexpr size_t Vector<T, DIM>::Dim;
 
-/// @brief Non-STL swap function for vectors
+/**
+ * @brief Non-STL swap function for vectors
+ */
 template <typename T, size_t DIM>
 void swap(Vector<T, DIM> &va, Vector<T, DIM> &vb) noexcept
 {
     va.swap(vb);
 }
 
-/// @brief Input stream for Vector<T, DIM> types
+/**
+ * @brief Input stream for Vector<T, DIM> types
+ */
 template <typename T, size_t DIM>
 std::istream &operator>>(std::istream &stream, Vector<T, DIM> &vec)
 {
@@ -637,7 +842,9 @@ std::istream &operator>>(std::istream &stream, Vector<T, DIM> &vec)
     return stream;
 }
 
-/// @brief Output stream for Vector<T, DIM> types
+/**
+ * @brief Output stream for Vector<T, DIM> types
+ */
 template <typename T, size_t DIM>
 std::ostream &operator<<(std::ostream &stream, const Vector<T, DIM> &vec)
 {
