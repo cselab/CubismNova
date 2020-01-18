@@ -4,6 +4,8 @@
 .. Description: Common header
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
+.. _common:
+
 Common
 ======
 

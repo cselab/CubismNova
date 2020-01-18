@@ -4,6 +4,8 @@
 .. Description: Alloc namespace documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
+.. _alloc:
+
 Alloc
 =====
 
