@@ -13,6 +13,7 @@ Grid
 
 .. toctree::
    Cartesian.rst
+   CartesianMPI.rst
 
 .. This code is low level and must not necessarily be in the public docs.  Check
 .. the source code

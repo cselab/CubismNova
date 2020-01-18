@@ -20,6 +20,14 @@ NAMESPACE_BEGIN(Grid)
  * @tparam TEntity Entity type
  * @tparam RANK Rank of (tensor) fields
  * @tparam TAlloc Allocator for field data
+ *
+ * @rst
+ * Cartesian topology composed of block :ref:`field` for the specified entity
+ * type.  As opposed to an individual block :ref:`field`, this class manages a
+ * structure of arrays (SoA) memory layout for *all* the blocks in the Cartesian
+ * topology instead of just individual blocks.  See the :ref:`cartesianmpi` grid
+ * section for a distributed variant of this class.
+ * @endrst
  */
 template <typename TData,
           typename TMesh,
@@ -117,8 +125,11 @@ public:
         initTopology_(gorigin, start, end);
     }
 
+    /** @brief Deleted copy constructor */
     Cartesian(const Cartesian &c) = delete;
+    /** @brief Deleted move constructor */
     Cartesian(Cartesian &&c) = delete;
+    /** @brief Deleted move assignment */
     Cartesian &operator=(Cartesian &&c) = delete;
 
     /**
@@ -137,6 +148,7 @@ public:
         }
     }
 
+    /** @brief Default destructor */
     virtual ~Cartesian() { dispose_(); }
 
     /** @brief Block field iterator */
@@ -208,21 +220,11 @@ public:
     size_t size() const { return assembler_.tensor_fields.size(); }
 
     /**
-     * @brief Local size grid in all dimensions
+     * @brief Local size of the grid in all dimensions
      * @return Number of blocks in all dimensions in the local grid
      */
     MultiIndex getSize() const { return nblocks_; }
 
-    /**
-     * @brief Global size grid in all dimensions
-     * @return Number of blocks in all dimensions in the global grid
-     */
-    MultiIndex getGlobalSize() const { return nblocks_; }
-
-    /**
-     * @brief Returns the global block index
-     * @param bi Local Cartesian block index
-     */
     /**
      * @brief Get the global block index
      * @param bi Local Cartesian block index
@@ -333,6 +335,12 @@ public:
         assert(i < assembler_.tensor_fields.size());
         return assembler_.tensor_fields[i];
     }
+
+    /**
+     * @brief Global size of the grid in all dimensions
+     * @return Number of blocks in all dimensions in the global grid
+     */
+    virtual MultiIndex getGlobalSize() const { return nblocks_; }
 
 protected:
     MultiIndex nblocks_;
