@@ -4,6 +4,8 @@
 .. Description: Block namespace documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
+.. _block:
+
 Block
 =====
 

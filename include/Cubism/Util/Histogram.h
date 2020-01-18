@@ -15,15 +15,38 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
+/** @addtogroup MPI
+ * @{
+ * @brief MPI profiling using histograms
+ *
+ * Collects samples for a profiled quantity of interest on individual ranks.
+ * Can be used to detect inhomogeneities among MPI ranks.*/
 class Histogram : public Sampler
 {
 public:
+    /**
+     * @brief Main histogram constructor
+     * @param comm MPI communicator used for the profiling
+     * @param name Name of the histogram
+     * @param active Activator switch
+     *
+     * @rst
+     * Extends the :ref:`sampler` class with MPI consolidation during
+     * destruction of the object.  The consolidation generates a binary file
+     * that can be post-processed using the :ref:`histbin` tool.  The activator
+     * switch can be used to disable sample collection for large scale runs.
+     * The size of the binary files can become large depending on the number of
+     * ranks involved and the number of different quantities that are being
+     * sampled.
+     * @endrst
+     */
     Histogram(const MPI_Comm comm,
               const std::string &name,
               const bool active = true)
         : Sampler(active), comm_(comm), name_(name)
     {
     }
+
     ~Histogram()
     {
         if (active_) {
@@ -42,6 +65,7 @@ private:
     void homogenizeCollection_();
 };
 
+/**  @} */
 NAMESPACE_END(Util)
 NAMESPACE_END(Cubism)
 

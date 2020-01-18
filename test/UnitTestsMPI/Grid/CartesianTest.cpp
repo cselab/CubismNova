@@ -1,10 +1,10 @@
-// File       : CartesianTest.cpp
+// File       : CartesianMPITest.cpp
 // Created    : Sun Jan 05 2020 09:27:54 PM (+0100)
 // Author     : Fabian Wermelinger
 // Description: Cartesian Grid test
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "Grid/MPI/Cartesian.h"
 #include "Core/Vector.h"
+#include "Grid/CartesianMPI.h"
 #include "Mesh/StructuredUniform.h"
 #include "gtest-mpi-listener.hpp"
 #include "gtest/gtest.h"
@@ -20,7 +20,7 @@ TEST(CartesianMPI, Construction)
     // 3D mesh
     using Mesh = Mesh::StructuredUniform<double, 3>;
     using MIndex = typename Mesh::MultiIndex;
-    using Grid = Grid::MPI::Cartesian<double, Mesh, EntityType::Cell, 0>;
+    using Grid = Grid::CartesianMPI<double, Mesh, EntityType::Cell, 0>;
     using PointType = typename Mesh::PointType;
 
     // number of processes, grid blocks and cells per block
@@ -59,7 +59,7 @@ TEST(CartesianMPI, BlockMesh)
     // 2D mesh
     using Mesh = Mesh::StructuredUniform<double, 2>;
     using MIndex = typename Mesh::MultiIndex;
-    using Grid = Grid::MPI::Cartesian<int, Mesh, EntityType::Cell, 0>;
+    using Grid = Grid::CartesianMPI<int, Mesh, EntityType::Cell, 0>;
 
     using PointType = typename Grid::PointType;
     using RealType = typename Grid::RealType;

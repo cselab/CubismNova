@@ -19,10 +19,21 @@ using Index = int;
 using Index = std::ptrdiff_t;
 #endif
 
+/**
+ * @brief Converts indices from and to one dimensional and multi-dimensional,
+ * respectively
+ * @tparam DIM Dimension of the index space
+ */
 template <size_t DIM>
 struct IndexConverter {
     using MultiIndex = typename Core::Range<Index, DIM>::PointType;
 
+    /**
+     * @brief Convert a multi-dimensional index to a one-dimensional index
+     * @param p Multi-dimensional index (source)
+     * @param extent Extent of index space associated to ``p``
+     * @return Flattened index
+     */
     size_t getFlatIndex(const MultiIndex &p, const MultiIndex &extent) const
     {
         size_t flat = 0;
@@ -32,6 +43,15 @@ struct IndexConverter {
         return p[0] + flat;
     }
 
+    // TODO: [fabianw@mavt.ethz.ch; 2020-01-17] remove p.  It must be p(0) for
+    // local index
+    /**
+     * @brief Convert a one-dimensional index to a multi-dimensional index
+     * @param i One-dimensional index (source)
+     * @param p TODO remove
+     * @param extent Extent of index space associated to ``i``
+     * @return Multi-dimensional index
+     */
     MultiIndex
     getMultiIndex(size_t i, MultiIndex p, const MultiIndex &extent) const
     {
@@ -95,7 +115,12 @@ struct IndexConverter<3> {
     }
 };
 
-/// @brief Extension of generic Range to index space
+/**
+ * @brief Rectangular index range
+ * @tparam DIM Dimension of the index space
+ *
+ * Defines a simple consecutive index space.
+ */
 template <size_t DIM>
 class IndexRange : public Core::Range<Index, DIM>
 {
@@ -105,21 +130,58 @@ public:
     using typename BaseType::PointType;
     using MultiIndex = PointType;
 
-    // Construction
+    /**
+     * @brief Null range
+     */
     IndexRange() : BaseType(0), extent_(0) {} // NULL range
 
+    /**
+     * @brief Construct index range
+     * @param e End point (*top right*) of index space. Begin is ``0``.
+     *
+     * @rst
+     * Constructs equal extent in all ``DIM`` dimensions.
+     * @endrst
+     */
     explicit IndexRange(const DataType e)
         : BaseType(e), extent_(this->end_ - this->begin_)
     {
     }
+    /**
+     * @brief Construct index range
+     * @param e End point (*top right*) of index space. Begin is ``0``.
+     *
+     * @rst
+     * Constructs an extent specified the ``DIM``-dimensional ``e``.
+     * @endrst
+     */
     explicit IndexRange(const PointType &e)
         : BaseType(e), extent_(this->end_ - this->begin_)
     {
     }
+    /**
+     * @brief Construct index range
+     * @param b Begin point (*lower left*) of index space.
+     * @param e End point (*top right*) of index space.
+     *
+     * @rst
+     * Constructs equal extent in all ``DIM`` dimensions.
+     * @endrst
+     */
     IndexRange(const DataType b, const DataType e)
         : BaseType(b, e), extent_(this->end_ - this->begin_)
     {
     }
+    /**
+     * @brief Construct index range
+     * @param b Begin point (*lower left*) of index space.
+     * @param e End point (*top right*) of index space.
+     *
+     * @rst
+     * Constructs an extent specified the ``DIM``-dimensional difference of
+     * ``e`` and ``b``.
+     * @endrst
+     */
     IndexRange(const PointType &b, const PointType &e)
         : BaseType(b, e), extent_(this->end_ - this->begin_)
     {
@@ -130,29 +192,45 @@ public:
     IndexRange &operator=(const IndexRange &c) = default;
     IndexRange &operator=(IndexRange &&c) = default;
 
-    /// @brief Get current range extent
-    ///
-    /// @return PointType range extent
+    /**
+     * @brief Get index range extent
+     * @return PointType range extent
+     */
     PointType getExtent() const { return extent_; }
 
-    /// @brief Return size of this space (number of indices)
+    /**
+     * @brief Size of index space
+     * @return Total number of indices in the index range
+     */
     size_t size() const { return static_cast<size_t>(extent_.prod()); }
 
-    /// @brief Return number of indices along dimension i
+    /**
+     * @brief Size of index space
+     * @param i Dimension
+     * @return  Number of indices along dimension ``i``
+     */
     size_t sizeDim(const size_t i) const
     {
         assert(i < DIM);
         return static_cast<size_t>(extent_[i]);
     }
 
-    /// @brief Return local flattened local MultiIndex
+    /**
+     * @brief Convert a multi-dimensional index to a one-dimensional index
+     * @param p Multi-dimensional index
+     * @return Flattened index
+     */
     size_t getFlatIndex(const MultiIndex &p) const
     {
         assert(MultiIndex(0) <= p && p < extent_);
         return convert_.getFlatIndex(p, extent_);
     }
 
-    /// @brief Return local MultiIndex from local flat index
+    /**
+     * @brief Convert a one-dimensional index to a multi-dimensional index
+     * @param i One-dimensional index
+     * @return Multi-dimensional index
+     */
     MultiIndex getMultiIndex(size_t i) const
     {
         assert(i <= this->size());
@@ -164,6 +242,10 @@ private:
     IndexConverter<DIM> convert_;
 };
 
+/**
+ * @brief Alias for a multi-dimensional index
+ * @tparam DIM Dimension of associated index space
+ */
 template <size_t DIM>
 using MultiIndex = typename IndexRange<DIM>::PointType;
 

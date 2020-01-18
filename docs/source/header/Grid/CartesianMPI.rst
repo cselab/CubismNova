@@ -1,14 +1,14 @@
-.. File       : Profiler.rst
+.. File       : CartesianMPI.rst
 .. Created    : Thu Jan 16 2020 06:31:49 PM (+0100)
 .. Author     : Fabian Wermelinger
-.. Description: Util/Profiler.h documentation
+.. Description: Grid/CartesianMPI.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-.. _profiler:
+.. _cartesianmpi:
 
-Profiler
---------
+CartesianMPI
+------------
 
-.. doxygenclass:: Profiler
+.. doxygenclass:: CartesianMPI
    :project: CubismNova
    :members:

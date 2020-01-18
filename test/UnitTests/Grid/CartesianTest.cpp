@@ -83,8 +83,8 @@ TEST(Cartesian, Construction)
         Grid grid(nblocks, block_cells);
         EXPECT_EQ(grid.size(), nblocks.prod());
         EXPECT_EQ(grid.getSize(), nblocks);
-        for (auto bf : grid) {   // tensor block field in grid
-            for (auto c : *bf) { // tensor field component
+        for (auto bf : grid) {      // tensor block field in grid
+            for (auto c : *bf) {    // tensor field component
                 for (auto d : *c) { // face direction
                     EXPECT_TRUE(d->isMemoryOwner());
                     EXPECT_NE(d->getBlockPtr(), nullptr);

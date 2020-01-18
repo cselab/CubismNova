@@ -70,8 +70,7 @@ class FieldView
 {
 public:
     FieldView(TFields &... fields) // lvalues only
-        : fields_(std::tuple<TFields &&...>(
-              std::forward<TFields>(fields)...))
+        : fields_(std::tuple<TFields &&...>(std::forward<TFields>(fields)...))
     {
     }
 

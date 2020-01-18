@@ -13,13 +13,21 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
+/** @brief Simple timer class */
 class Timer
 {
     using Clock = std::chrono::steady_clock;
 
 public:
+    /** @brief Default constructor
+     *
+     * Starts the timer */
     Timer() : start_(clock_.now()) {}
 
+    /**
+     * @brief Get the currently elapsed seconds
+     * @return Elapsed seconds
+     */
     double getSeconds() const
     {
         return std::chrono::duration<double>(clock_.now() - start_).count();

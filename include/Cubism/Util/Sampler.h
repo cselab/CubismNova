@@ -16,14 +16,28 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
+/** @brief Sample collector
+ *
+ * @rst
+ * Used to collect time samples (by default) for a code section that is enclosed
+ * by the ``seedSample()`` and ``collectSample()`` methods.  Used for profiling.
+ * @endrst
+ * */
 class Sampler
 {
 public:
-    Sampler(const bool active = true) : active_(active) {}
+    /**
+     * @brief Default constructor
+     * @param active Activator switch
+     */
+    explicit Sampler(const bool active = true) : active_(active) {}
     virtual ~Sampler() {}
 
     using SampleMap = std::map<std::string, std::vector<double>>;
 
+    /** @brief Seed new sample
+     *
+     * Pushes a new timer on the stack. */
     void seedSample()
     {
         if (active_) {
@@ -31,6 +45,15 @@ public:
         }
     }
 
+    /**
+     * @brief Collect a sample
+     * @param name Name of the collected sample
+     *
+     * @rst
+     * Pops the top timer off the stack and collects the measured time sample
+     * for the given ``name``.
+     * @endrst
+     */
     void collectSample(const std::string &name)
     {
         if (active_ && !timer_stack_.empty()) {
@@ -39,6 +62,14 @@ public:
         }
     }
 
+    /**
+     * @brief Pop a sample
+     * @param name Name of the sample
+     *
+     * @rst
+     * Pops the last (most recent) sample of ``name`` from the sample container.
+     * @endrst
+     */
     void popLast(const std::string &name)
     {
         if (active_ && !samples_[name].empty()) {
@@ -46,6 +77,14 @@ public:
         }
     }
 
+    /**
+     * @brief Append samples
+     * @param s Sampler to take samples from
+     *
+     * @rst
+     * Inserts all samples from ``s`` into this sampler.
+     * @endrst
+     */
     void append(const Sampler &s)
     {
         if (active_) {
@@ -57,6 +96,15 @@ public:
         }
     }
 
+    /**
+     * @brief Append single sample
+     * @param name Name of the sample
+     * @param samp Sample value
+     *
+     * @rst
+     * Appends the sample ``samp`` to the list of samples with ``name``.
+     * @endrst
+     */
     void appendSample(const std::string &name, const double samp)
     {
         if (active_) {
@@ -64,6 +112,11 @@ public:
         }
     }
 
+    /**
+     * @brief Insert vector of samples
+     * @param name Name of the samples
+     * @param data Vector of samples to be inserted
+     */
     void insert(const std::string &name, const std::vector<double> &data)
     {
         if (active_) {
@@ -77,6 +130,16 @@ public:
         }
     }
 
+    /**
+     * @brief Perform addition with sample values
+     * @param addto Name of samples to be added to
+     * @param yours Vector of samples to be arithmetically added
+     *
+     * @rst
+     * The number of samples in ``yours`` must be the same as the number of
+     * samples in ``addto``, otherwise a runtime error is thrown.
+     * @endrst
+     */
     void addTo(const std::string &addto, const std::vector<double> &yours)
     {
         if (active_) {
@@ -90,6 +153,17 @@ public:
         }
     }
 
+    /**
+     * @brief Perform subtraction with sample values
+     * @param from Name of samples to be subtracted from (minuend)
+     * @param yours Vector of samples to be arithmetically subtracted
+     * (subtrahend)
+     *
+     * @rst
+     * The number of samples in ``yours`` must be the same as the number of
+     * samples in ``from``, otherwise a runtime error is thrown.
+     * @endrst
+     */
     void subtractFrom(const std::string &from, const std::vector<double> &yours)
     {
         if (active_) {
@@ -103,8 +177,15 @@ public:
         }
     }
 
+    /**
+     * @brief Get the sample container
+     * @return ``const`` reference to sample map
+     */
     const SampleMap &getSamples() const { return samples_; }
 
+    /** @brief Clear the sampler data
+     *
+     * After this method is called the sampler will contain zero samples. */
     void clear()
     {
         samples_.clear();

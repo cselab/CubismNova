@@ -9,14 +9,6 @@ Index
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
-.. doxygenstruct:: IndexConverter
-   :project: CubismNova
-   :members:
-
 .. doxygenclass:: IndexRange
-   :project: CubismNova
-   :members:
-
-.. doxygenclass:: MultiIndexIterator
    :project: CubismNova
    :members:

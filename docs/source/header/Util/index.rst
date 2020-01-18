@@ -4,6 +4,8 @@
 .. Description: Util namespace documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
+.. _util:
+
 Util
 ====
 

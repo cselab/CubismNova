@@ -3,8 +3,8 @@
 // Author     : Fabian Wermelinger
 // Description: Structured uniform mesh test
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "Core/Index.h"
 #include "Mesh/StructuredUniform.h"
+#include "Core/Index.h"
 #include "gtest/gtest.h"
 
 #include <iostream>

@@ -18,6 +18,15 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
+/** @addtogroup MPI
+ * @{
+ * @brief Runtime profiler
+ *
+ * @rst
+ * Used to collect runtime samples for a code section that is enclosed
+ * by the ``push()`` and ``pop()`` methods.  Used for profiling.
+ * @endrst
+ * */
 class Profiler : public Sampler
 {
     struct Accumulator {
@@ -28,6 +37,11 @@ class Profiler : public Sampler
     };
 
 public:
+    /**
+     * @brief Main constructor
+     * @param name Name of the profiler
+     * @param comm MPI communicator associated to the profiler
+     */
     Profiler(const std::string &name = "default",
              const MPI_Comm comm = MPI_COMM_WORLD)
         : Sampler(), comm_(comm), name_(name), batch_count_(0)
@@ -37,6 +51,12 @@ public:
     Profiler(const Profiler &c) = delete;
     Profiler &operator=(const Profiler &c) = delete;
 
+    /**
+     * @brief Push a new profiling agent on the stack
+     * @param name Name of the agent
+     *
+     * Starts a timer for a new profiling agent.
+     */
     void push(const std::string &name)
     {
         agents_.push(name);
@@ -47,6 +67,11 @@ public:
         this->seedSample();
     }
 
+    /** @brief Pop the top profiling agent
+     *
+     * Pops the top (most recent) profiling agent from the stack and collects
+     * the time measurement.
+     * */
     void pop()
     {
         assert(!agents_.empty());
@@ -54,6 +79,7 @@ public:
         agents_.pop();
     }
 
+    /** @brief Print profiling report to standard output */
     void printReport();
 
 private:
@@ -64,6 +90,7 @@ private:
     size_t batch_count_;
 };
 
+/**  @} */
 NAMESPACE_END(Util)
 NAMESPACE_END(Cubism)
 
