@@ -29,4 +29,5 @@
    :caption: Examples
    :name: examples
 
+   examples/Block/index.rst
    examples/Grid/index.rst
