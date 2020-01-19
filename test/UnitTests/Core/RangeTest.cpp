@@ -108,11 +108,14 @@ TEST(Range, Utils)
     Range r1(p1, p2);
     Range r2(p2);
     Range r3(p1, p3);
+    Range r4(p0);
 
     EXPECT_TRUE(r0.contains(r1));
     EXPECT_TRUE(r0.contains(p0));
     EXPECT_TRUE(r2.intersect(r1));
     EXPECT_TRUE(r3.intersect(r2));
+    EXPECT_FALSE(r4.intersect(r1));
+    EXPECT_FALSE(r1.intersect(r4));
 }
 
 } // namespace
