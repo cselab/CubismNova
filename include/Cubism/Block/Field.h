@@ -1520,8 +1520,6 @@ constexpr Cubism::EntityType TensorField<TField, RANK>::EntityType;
 template <typename TField>
 using VectorField = TensorField<TField, 1>;
 
-// TODO: [fabianw@mavt.ethz.ch; 2020-01-17] soft and hard views
-
 /**
  * @brief Field view type
  * @tparam TField Field type
@@ -1550,6 +1548,12 @@ public:
     FieldView(FieldView &&c) = delete;
     FieldView &operator=(FieldView &&c) = delete;
     ~FieldView() = default;
+
+    /**
+     * @brief Set new internal view
+     * @param c Base field be be viewed at
+     */
+    void setView(const BaseType &c) { BaseType::operator=(c); }
 
     /**
      * @brief Force a deep copy of the viewed field

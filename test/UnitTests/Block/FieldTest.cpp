@@ -218,16 +218,111 @@ TEST(Field, View)
     using MIndex = typename IRange::MultiIndex;
 
     using FieldView = Block::FieldView<NodeField>;
-    MIndex nodes(16);
+    MIndex nodes(8);
     IRange node_domain(nodes);
 
-    NodeField nf(node_domain);
-    FieldView nfv(nf);
+    NodeField nf0(node_domain);
+    FieldView nfv0(nf0);
 
-    EXPECT_NE(&nf, &nfv);
-    EXPECT_EQ(nf.getBlockPtr(), nfv.getBlockPtr());
-    EXPECT_TRUE(nf.isMemoryOwner());
-    EXPECT_FALSE(nfv.isMemoryOwner());
+    EXPECT_NE(&nf0, &nfv0); // separate instances
+
+    EXPECT_EQ(nf0.getBlockPtr(), nfv0.getBlockPtr()); // same block data
+    EXPECT_EQ(&nf0.getState(), &nfv0.getState());     // same state
+    EXPECT_TRUE(nf0.isMemoryOwner());
+    EXPECT_FALSE(nfv0.isMemoryOwner());
+
+    // assignment with fields
+    NodeField nf1(node_domain);
+    std::fill(nf0.begin(), nf0.end(), 1);
+    std::fill(nf1.begin(), nf1.end(), 2);
+    int sum = 0;
+    for (auto n : nf1) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 2 * nf0.size());
+
+    // 1. carrier = view
+    EXPECT_NE(nf1.getBlockPtr(), nfv0.getBlockPtr());
+    nf1 = nfv0; // deep copy
+    EXPECT_NE(nf1.getBlockPtr(), nfv0.getBlockPtr());
+    sum = 0;
+    for (auto n : nf1) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 1 * nf0.size());
+
+    // 2. view = carrier
+    EXPECT_NE(nf1.getBlockPtr(), nfv0.getBlockPtr());
+    nfv0.setView(nf1); // shallow copy
+    EXPECT_EQ(nf1.getBlockPtr(), nfv0.getBlockPtr());
+
+    // 3. view = view
+    FieldView nfv1(nf0);
+    EXPECT_NE(nfv1.getBlockPtr(), nfv0.getBlockPtr());
+    nfv1 = nfv0;
+    EXPECT_EQ(nfv1.getBlockPtr(), nfv0.getBlockPtr());
+
+    // 4. forced deep copies
+    nfv0.setView(nf0);
+    nfv1.setView(nf1);
+    EXPECT_NE(nfv0.getBlockPtr(), nfv1.getBlockPtr());
+    std::fill(nfv0.begin(), nfv0.end(), 1);
+    std::fill(nfv1.begin(), nfv1.end(), 2);
+    sum = 0;
+    for (auto n : nfv1) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 2 * nf0.size());
+
+    // 4a. view = carrier
+    nfv1.copyData(nf0);
+    EXPECT_NE(nfv0.getBlockPtr(), nfv1.getBlockPtr());
+    sum = 0;
+    for (auto n : nfv1) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 1 * nf0.size());
+
+    std::fill(nfv1.begin(), nfv1.end(), 2);
+    sum = 0;
+    for (auto n : nfv1) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 2 * nf0.size());
+
+    // 4b. view = view
+    nfv1.copyData(nfv0);
+    EXPECT_NE(nfv0.getBlockPtr(), nfv1.getBlockPtr());
+    sum = 0;
+    for (auto n : nfv1) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 1 * nf0.size());
+
+    // 5. full copy view
+    NodeField nf2 = nfv1.copy(); // call move constructor
+    EXPECT_NE(nf2.getBlockPtr(), nfv1.getBlockPtr());
+    sum = 0;
+    for (auto n : nf2) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 1 * nf0.size());
+
+    std::fill(nfv0.begin(), nfv0.end(), 1);
+    sum = 0;
+    for (auto n : nfv0) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 1 * nf0.size());
+    std::fill(nfv1.begin(), nfv1.end(), 2);
+    sum = 0;
+    for (auto n : nfv1) {
+        sum += n;
+    }
+    EXPECT_EQ(sum, 2 * nf0.size());
+    EXPECT_NE(nfv0.getBlockPtr(), nfv1.getBlockPtr());
+    nfv1.setView(nfv0);
+    EXPECT_EQ(nfv0.getBlockPtr(), nfv1.getBlockPtr());
 }
 
 TEST(Field, Arithmetic)
