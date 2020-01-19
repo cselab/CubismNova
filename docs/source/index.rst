@@ -29,4 +29,4 @@
    :caption: Examples
    :name: examples
 
-   examples/dummy.rst
+   examples/Grid/index.rst
