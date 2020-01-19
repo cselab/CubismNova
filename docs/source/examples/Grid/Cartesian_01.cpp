@@ -19,9 +19,13 @@ int main(void)
     // allocate the grid in the domain [0, 1] (memory is not touched)
     Grid grid(nblocks, block_cells);
 
-    // initialize the block fields using the master thread
+    // initialize the block fields using the master thread with some examples to
+    // access state.
     for (auto bf : grid) {
-        std::fill(bf->begin(), bf->end(), 0);
+        std::fill(bf->begin(), bf->end(), 0); // initialize data to 0
+        const auto &fs = bf->getState();      // get state for this field
+        const Mesh &bm = *fs.mesh; // get the block mesh for this field
+        const MIndex bi = fs.idx;  // get the block index for this field
     }
 
     return 0;
