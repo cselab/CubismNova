@@ -5,7 +5,10 @@
 # Description: Utility to adjust source code according to style conventions
 # Copyright 2020 ETH Zurich. All Rights Reserved.
 
-source ./sources.sh
+HEADER='\.\./\.\./include/Cubism/.*\.h'
+SOURCE='\.\./\.\./src/.*\.(c|cpp)'
+TEST_H='\.\./\.\./test/[A-Z].*\.h'
+TEST_S='\.\./\.\./test/[A-Z].*\.(c|cpp)'
 
 # format in-place
 find ../.. \
@@ -14,4 +17,4 @@ find ../.. \
     -regex "${SOURCE}" -or \
     -regex "${TEST_H}" -or \
     -regex "${TEST_S}" | \
-    xargs -n6 -P2 ./format -i
+    xargs -n6 -P2 clang-format -style=file -i "$@"
