@@ -32,8 +32,11 @@ set(THIRD_DIR third)
 add_subdirectory(${THIRD_DIR})
 
 # testing
-enable_testing()
-add_subdirectory(test)
+option(CUBISM_TESTS "Build CubismNova tests" ON)
+if (CUBISM_TESTS)
+    enable_testing()
+    add_subdirectory(test)
+endif ()
 
 # debugging
 if (CMAKE_BUILD_TYPE MATCHES Debug)
