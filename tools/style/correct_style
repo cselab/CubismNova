@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 # File       : correct_style
-# Created    : Sun Mar 31 2019 10:20:59 PM (+0200)
+# Created    : Mon Jan 20 2020 11:29:59 AM (+0100)
 # Author     : Fabian Wermelinger
 # Description: Utility to adjust source code according to style conventions
-# Copyright 2019 ETH Zurich. All Rights Reserved.
+# Copyright 2020 ETH Zurich. All Rights Reserved.
 
-# check sanity
-find ../.. -name "*.c" -or -name "*.cpp" | \
-    xargs -n1 -P2 ./tidy
+source ./sources.sh
 
 # format in-place
-find ../.. -name "*.c" -or -name "*.cpp" -or -name "*.h" | \
+find ../.. \
+    -regextype 'egrep' \
+    -regex "${HEADER}" -or \
+    -regex "${SOURCE}" -or \
+    -regex "${TEST_H}" -or \
+    -regex "${TEST_S}" | \
     xargs -n6 -P2 ./format -i

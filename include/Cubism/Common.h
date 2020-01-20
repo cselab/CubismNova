@@ -7,8 +7,8 @@
 #define COMMON_H_C0GYQV59
 
 #if !defined(NAMESPACE_BEGIN)
-#define NAMESPACE_BEGIN(name) \
-    namespace name            \
+#define NAMESPACE_BEGIN(name)                                                  \
+    namespace name                                                             \
     {
 #endif
 

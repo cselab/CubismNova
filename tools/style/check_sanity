@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# File       : check_sanity
+# Created    : Mon Jan 20 2020 11:31:29 AM (+0100)
+# Author     : Fabian Wermelinger
+# Description: Perform sanity check of sources(clang - tidy)
+# Copyright 2020 ETH Zurich. All Rights Reserved.
+
+source ./sources.sh
+
+# check sanity
+find ../.. \
+    -type f \
+    -regextype 'egrep' \
+    -regex "${SOURCE}" -or \
+    -regex "${TEST_S}" | \
+    xargs -n1 -P2 ./tidy
