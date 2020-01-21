@@ -130,10 +130,14 @@ public:
     using typename BaseType::PointType;
     using MultiIndex = PointType;
 
-    /**
-     * @brief Null range
-     */
-    IndexRange() : BaseType(0), extent_(0) {} // NULL range
+protected:
+    using BaseType::begin_;
+    using BaseType::end_;
+    using BaseType::extent_;
+
+public:
+    /** @brief Default constructor (NULL range) */
+    IndexRange() : BaseType() {} // NULL range
 
     /**
      * @brief Construct index range
@@ -143,10 +147,7 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    explicit IndexRange(const DataType e)
-        : BaseType(e), extent_(this->end_ - this->begin_)
-    {
-    }
+    explicit IndexRange(const DataType e) : BaseType(e) {}
     /**
      * @brief Construct index range
      * @param e End point (*top right*) of index space. Begin is ``0``.
@@ -155,10 +156,7 @@ public:
      * Constructs an extent specified the ``DIM``-dimensional ``e``.
      * @endrst
      */
-    explicit IndexRange(const PointType &e)
-        : BaseType(e), extent_(this->end_ - this->begin_)
-    {
-    }
+    explicit IndexRange(const PointType &e) : BaseType(e) {}
     /**
      * @brief Construct index range
      * @param b Begin point (*lower left*) of index space.
@@ -168,10 +166,7 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    IndexRange(const DataType b, const DataType e)
-        : BaseType(b, e), extent_(this->end_ - this->begin_)
-    {
-    }
+    IndexRange(const DataType b, const DataType e) : BaseType(b, e) {}
     /**
      * @brief Construct index range
      * @param b Begin point (*lower left*) of index space.
@@ -182,21 +177,12 @@ public:
      * ``e`` and ``b``.
      * @endrst
      */
-    IndexRange(const PointType &b, const PointType &e)
-        : BaseType(b, e), extent_(this->end_ - this->begin_)
-    {
-    }
+    IndexRange(const PointType &b, const PointType &e) : BaseType(b, e) {}
 
     IndexRange(const IndexRange &c) = default;
     IndexRange(IndexRange &&c) noexcept = default;
     IndexRange &operator=(const IndexRange &c) = default;
     IndexRange &operator=(IndexRange &&c) = default;
-
-    /**
-     * @brief Get index range extent
-     * @return PointType range extent
-     */
-    PointType getExtent() const { return extent_; }
 
     /**
      * @brief Size of index space
@@ -238,7 +224,6 @@ public:
     }
 
 private:
-    PointType extent_;
     IndexConverter<DIM> convert_;
 };
 

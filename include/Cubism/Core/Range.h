@@ -26,6 +26,9 @@ public:
 
     static constexpr size_t Dim = DIM;
 
+    /** @brief Default constructor (NULL range) */
+    Range() : begin_(0), end_(0), extent_(end_ - begin_) {}
+
     /**
      * @brief Construct range
      * @param e End point (*top right*) of rectangle. Begin is ``0``.
@@ -34,7 +37,8 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    explicit Range(const DataType e) : begin_(), end_(e)
+    explicit Range(const DataType e)
+        : begin_(0), end_(e), extent_(end_ - begin_)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
@@ -47,7 +51,8 @@ public:
      * Constructs an extent specified the ``DIM``-dimensional ``e``.
      * @endrst
      */
-    explicit Range(const PointType &e) : begin_(), end_(e)
+    explicit Range(const PointType &e)
+        : begin_(0), end_(e), extent_(end_ - begin_)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
@@ -61,7 +66,8 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    Range(const DataType b, const DataType e) : begin_(b), end_(e)
+    Range(const DataType b, const DataType e)
+        : begin_(b), end_(e), extent_(end_ - begin_)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
@@ -76,13 +82,13 @@ public:
      * ``e`` and ``b``.
      * @endrst
      */
-    Range(const PointType &b, const PointType &e) : begin_(b), end_(e)
+    Range(const PointType &b, const PointType &e)
+        : begin_(b), end_(e), extent_(end_ - begin_)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
     }
 
-    Range() = delete;
     Range(const Range &c) = default;
     Range(Range &&c) noexcept = default;
     Range &operator=(const Range &c) = default;
@@ -96,6 +102,7 @@ public:
     void setBegin(const PointType &b)
     {
         begin_ = b;
+        extent_ = end_ - begin_;
         check_("RangeSetBegin");
     }
 
@@ -106,6 +113,7 @@ public:
     void setEnd(const PointType &e)
     {
         end_ = e;
+        extent_ = end_ - begin_;
         check_("RangeSetEnd");
     }
 
@@ -125,13 +133,13 @@ public:
      * @brief Get range extent
      * @return Range extent
      */
-    PointType getExtent() const { return end_ - begin_; }
+    PointType getExtent() const { return extent_; }
 
     /**
      * @brief Get range volume
      * @return Range volume
      */
-    DataType getVolume() const { return getExtent().prod(); }
+    DataType getVolume() const { return extent_.prod(); }
 
     /**
      * @brief Check if other range is contained in this range
@@ -178,7 +186,7 @@ public:
     bool operator!=(const Range &o) const { return !(*this == o); }
 
 protected:
-    PointType begin_, end_;
+    PointType begin_, end_, extent_;
 
     void check_(const std::string &where) const
     {
