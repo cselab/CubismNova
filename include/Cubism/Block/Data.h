@@ -268,6 +268,22 @@ public:
     }
 
     /**
+     * @brief General multi-index access operator
+     */
+    DataType &operator[](const MultiIndex &p)
+    {
+        return this->operator[](range_.getFlatIndex(p));
+    }
+
+    /**
+     * @brief General multi-index access operator
+     */
+    const DataType &operator[](const MultiIndex &p) const
+    {
+        return this->operator[](range_.getFlatIndex(p));
+    }
+
+    /**
      * @brief Access operator for cases DIM <= 3
      */
     DataType &operator()(size_t ix, size_t iy = 0, size_t iz = 0)
@@ -307,22 +323,6 @@ public:
             throw std::runtime_error(
                 "Data::operator(): You can not call this method for DIM > 3");
         }
-    }
-
-    /**
-     * @brief General multi-index access operator
-     */
-    DataType &operator()(const MultiIndex &p)
-    {
-        return this->operator[](range_.getFlatIndex(p));
-    }
-
-    /**
-     * @brief General multi-index access operator
-     */
-    const DataType &operator()(const MultiIndex &p) const
-    {
-        return this->operator[](range_.getFlatIndex(p));
     }
 
     /**

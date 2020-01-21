@@ -94,7 +94,7 @@ void runTest()
     } else {
         for (size_t i = 0; i < test.getBlockSize(); ++i) {
             const MIndex p = r.getMultiIndex(i);
-            test(p) = static_cast<T>(i);
+            test[p] = static_cast<T>(i);
         }
     }
     if (DIM > 3) {
@@ -126,7 +126,7 @@ void runTest()
 
     for (size_t i = 0; i < ref.getBlockSize(); ++i) {
         const MIndex p = r.getMultiIndex(i);
-        EXPECT_EQ(ref[i], test(p));
+        EXPECT_EQ(ref[i], test[p]);
     }
 }
 
