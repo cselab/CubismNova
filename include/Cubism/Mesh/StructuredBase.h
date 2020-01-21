@@ -68,7 +68,7 @@ private:
         ~EntityIterator() = default;
         EntityIterator &operator=(const EntityIterator &c) = default;
 
-        using iterator = Core::MultiIndexIterator<DIM>;
+        using iterator = Core::EntityIterator<DIM>;
         iterator begin() noexcept { return iterator(entity_, dir_, range_, 0); }
         iterator begin() const noexcept
         {
@@ -115,7 +115,7 @@ private:
         ~Entity() = default;
         Entity &operator=(const Entity &c) = default;
 
-        using iterator = Core::MultiIndexIterator<DIM>;
+        using iterator = Core::EntityIterator<DIM>;
         iterator begin() noexcept
         {
             assert(ranges_.size() > 0);

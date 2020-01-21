@@ -324,23 +324,19 @@ struct MIIForward<3> {
 template <size_t DIM>
 class MultiIndexIterator
 {
+protected:
     using IndexRangeType = IndexRange<DIM>;
     using MultiIndex = typename IndexRangeType::MultiIndex;
-    using Entity = Cubism::EntityType;
 
 public:
-    MultiIndexIterator(const Entity t,
-                       const size_t d,
-                       const IndexRangeType &r,
-                       const size_t i)
-        : type_(t), dir_(d), data_(r, i)
+    MultiIndexIterator(const IndexRangeType &r, const size_t i) : data_(r, i)
     {
         assert(data_.i <= data_.range.size());
-        assert(dir_ < DIM);
     }
+
     MultiIndexIterator() = delete;
     MultiIndexIterator(const MultiIndexIterator &c) = default;
-    ~MultiIndexIterator() = default;
+    virtual ~MultiIndexIterator() = default;
 
     MultiIndexIterator &operator=(const MultiIndexIterator &c)
     {
@@ -355,6 +351,7 @@ public:
         assert(data_.range.contains(p) && (p < data_.range.getEnd()));
         data_.p = p;
         data_.i = data_.range.getFlatIndex(p);
+        return *this;
     }
     bool operator==(const MultiIndexIterator &rhs) const
     {
@@ -386,14 +383,67 @@ public:
     const MultiIndex &operator*() const { return data_.p; }
     size_t getFlatIndex() const { return data_.i; }
     MultiIndex getMultiIndex() const { return data_.p; }
-    Entity getEntity() const { return type_; }
-    size_t getDirection() const { return dir_; }
     const IndexRangeType &getIndexRange() const { return data_.range; }
 
-private:
-    const Entity type_;
-    const size_t dir_;
+protected:
     MIIForward<DIM> data_;
+};
+
+template <size_t DIM>
+class EntityIterator : public MultiIndexIterator<DIM>
+{
+    using BaseType = MultiIndexIterator<DIM>;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
+    using Entity = Cubism::EntityType;
+
+    using BaseType::data_;
+
+public:
+    EntityIterator(const Entity t,
+                   const size_t d,
+                   const IndexRangeType &r,
+                   const size_t i)
+        : BaseType(r, i), type_(t), dir_(d)
+    {
+        assert(dir_ < DIM);
+    }
+    EntityIterator() = delete;
+    EntityIterator(const EntityIterator &c) = default;
+    ~EntityIterator() = default;
+
+    EntityIterator &operator=(const EntityIterator &c)
+    {
+        if (this != &c) {
+            BaseType::operator=(c);
+            type_ = c.type_;
+            dir_ = c.dir_;
+        }
+        return *this;
+    }
+    EntityIterator &operator=(const MultiIndex &p)
+    {
+        BaseType::operator=(p);
+        return *this;
+    }
+    EntityIterator &operator++()
+    {
+        BaseType::operator++();
+        return *this;
+    }
+    EntityIterator operator++(int)
+    {
+        EntityIterator tmp(*this);
+        ++data_.i;
+        data_.forwardMultiIndex();
+        return tmp;
+    }
+    Entity getEntity() const { return type_; }
+    size_t getDirection() const { return dir_; }
+
+private:
+    Entity type_;
+    size_t dir_;
 };
 
 NAMESPACE_END(Core)
