@@ -33,6 +33,13 @@ add_subdirectory(${THIRD_DIR})
 
 # testing
 option(CUBISM_TESTS "Build CubismNova tests" ON)
+file(GLOB RESULT "test/googletest/*")
+list(LENGTH RESULT RES_LEN)
+if (RES_LEN EQUAL 0)
+    # if googletest submodule has not been initialized
+    message("Google testing framework is not available")
+    set(CUBISM_TESTS OFF)
+endif ()
 if (CUBISM_TESTS)
     enable_testing()
     add_subdirectory(test)
