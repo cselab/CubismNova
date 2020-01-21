@@ -138,7 +138,7 @@ public:
      * @param o Other range
      * @return True if ``o`` is contained (inclusive)
      */
-    bool contains(const Range &o) const
+    bool isContained(const Range &o) const
     {
         return begin_ <= o.begin_ && o.end_ <= end_;
     }
@@ -148,14 +148,17 @@ public:
      * @param p Point
      * @return True if ``p`` is contained (inclusive)
      */
-    bool contains(const PointType &p) const { return begin_ <= p && p <= end_; }
+    bool isContained(const PointType &p) const
+    {
+        return begin_ <= p && p <= end_;
+    }
 
     /**
      * @brief Check if other range intersects this range
      * @param o Other range
      * @return True if ``o`` intersects this range
      */
-    bool intersect(const Range &o) const
+    bool isIntersecting(const Range &o) const
     {
         return begin_ < o.end_ && o.begin_ < end_;
     }

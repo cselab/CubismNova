@@ -110,12 +110,12 @@ TEST(Range, Utils)
     Range r3(p1, p3);
     Range r4(p0);
 
-    EXPECT_TRUE(r0.contains(r1));
-    EXPECT_TRUE(r0.contains(p0));
-    EXPECT_TRUE(r2.intersect(r1));
-    EXPECT_TRUE(r3.intersect(r2));
-    EXPECT_FALSE(r4.intersect(r1));
-    EXPECT_FALSE(r1.intersect(r4));
+    EXPECT_TRUE(r0.isContained(r1));
+    EXPECT_TRUE(r0.isContained(p0));
+    EXPECT_TRUE(r2.isIntersecting(r1));
+    EXPECT_TRUE(r3.isIntersecting(r2));
+    EXPECT_FALSE(r4.isIntersecting(r1));
+    EXPECT_FALSE(r1.isIntersecting(r4));
 }
 
 } // namespace
