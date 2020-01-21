@@ -1020,10 +1020,10 @@ TEST(FieldContainer, Arithmetic)
     }
 }
 
-TEST(FaceFieldAll, Construction)
+TEST(FaceContainer, Construction)
 {
     // CUBISM_DIMENSION-ional FaceField
-    using FaceField = Block::FaceFieldAll<double>;
+    using FaceField = Block::FaceContainer<double>;
     using IRange = typename FaceField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 

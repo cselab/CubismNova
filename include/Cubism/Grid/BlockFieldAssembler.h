@@ -31,14 +31,14 @@ struct ScalarFieldBase {
 };
 
 /**
- * @brief Scalar field type factory (specialization for ``FaceFieldAll`` types)
+ * @brief Scalar field type factory (specialization for ``FaceContainer`` types)
  * @tparam TData Field data type
  * @tparam TState Field state type
  * @tparam DIM Field dimension
  */
 template <typename TData, typename TState, size_t DIM>
 struct ScalarFieldBase<Cubism::EntityType::Face, TData, TState, DIM> {
-    using Type = Cubism::Block::FaceFieldAll<TData, TState, DIM>;
+    using Type = Cubism::Block::FaceContainer<TData, TState, DIM>;
 };
 
 /**

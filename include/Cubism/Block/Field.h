@@ -562,7 +562,7 @@ using NodeField = Field<Data<T, EntityType::Node, Dimension, Alloc<T>>, State>;
  *
  * @rst
  * Faces are stored individually for the dimensionality specified by
- * ``CUBISM_DIMENSION`` at compile time.  See the ``FaceFieldAll`` type for a
+ * ``CUBISM_DIMENSION`` at compile time.  See the ``FaceContainer`` type for a
  * container of size ``CUBISM_DIMENSION``.
  * @endrst
  */
@@ -1197,14 +1197,14 @@ private:
  * The underlying face fields are based on the ``FaceField`` template.  For
  * ``CUBISM_DIMENSION`` in ``{1,2,3}``, the face field for faces with normal in
  * the ``X`` direction can be obtained with ``ff[0]`` or ``ff[Cubism::Dir::X]``
- * for example, where ``ff`` is of type ``FaceFieldAll``.
+ * for example, where ``ff`` is of type ``FaceContainer``.
  * @endrst
  */
 template <typename T,
           typename State = FieldState,
           size_t Dimension = CUBISM_DIMENSION,
           template <typename> class Alloc = AlignedBlockAllocator>
-class FaceFieldAll
+class FaceContainer
     : public FieldContainer<FaceField<T, State, Dimension, Alloc>>
 {
 public:
@@ -1226,7 +1226,7 @@ public:
      * ``cell_domain``
      * @param cell_domain Index range spanned by the cell domain
      */
-    explicit FaceFieldAll(const IndexRangeType &cell_domain)
+    explicit FaceContainer(const IndexRangeType &cell_domain)
     {
         const MultiIndex cells = cell_domain.getExtent(); // number of cells
         FieldStateType fs;
@@ -1247,7 +1247,7 @@ public:
      * @param ffc Face field container to be copied
      * @param o Memory ownership (``Data::MemoryOwner::Yes`` = copy deep)
      */
-    FaceFieldAll(const FaceFieldAll &ffc, const MemoryOwner o)
+    FaceContainer(const FaceContainer &ffc, const MemoryOwner o)
         : BaseType(ffc, o)
     {
 #ifndef NDEBUG
@@ -1265,10 +1265,10 @@ public:
      * @param bytes Number of bytes in block data
      * @param sptr Field state pointer
      */
-    FaceFieldAll(const IndexRangeType &r,
-                 DataType *ptr,
-                 const size_t bytes,
-                 FieldStateType *sptr)
+    FaceContainer(const IndexRangeType &r,
+                  DataType *ptr,
+                  const size_t bytes,
+                  FieldStateType *sptr)
         : BaseType(r, ptr, bytes, sptr, IndexRangeType::Dim)
     {
 #ifndef NDEBUG
@@ -1287,10 +1287,10 @@ public:
      * @param bytes_list Number of bytes pointed to by pointer in ``ptr_list``
      * @param state_list Vector of field state pointers for each component
      */
-    FaceFieldAll(const std::vector<IndexRangeType> &range_list,
-                 const std::vector<DataType *> &ptr_list,
-                 const std::vector<size_t> &bytes_list,
-                 const std::vector<FieldStateType *> &state_list)
+    FaceContainer(const std::vector<IndexRangeType> &range_list,
+                  const std::vector<DataType *> &ptr_list,
+                  const std::vector<size_t> &bytes_list,
+                  const std::vector<FieldStateType *> &state_list)
         : BaseType(range_list, ptr_list, bytes_list, state_list)
     {
 #ifndef NDEBUG
@@ -1304,12 +1304,12 @@ public:
     /**
      * @brief Default constructor generates an empty container
      */
-    FaceFieldAll() = default;
-    FaceFieldAll(const FaceFieldAll &c) = default;
-    FaceFieldAll(FaceFieldAll &&c) = default;
-    FaceFieldAll &operator=(const FaceFieldAll &c) = default;
-    FaceFieldAll &operator=(FaceFieldAll &&c) = default;
-    ~FaceFieldAll() = default;
+    FaceContainer() = default;
+    FaceContainer(const FaceContainer &c) = default;
+    FaceContainer(FaceContainer &&c) = default;
+    FaceContainer &operator=(const FaceContainer &c) = default;
+    FaceContainer &operator=(FaceContainer &&c) = default;
+    ~FaceContainer() = default;
 
     /**
      * @brief Face field access
@@ -1362,14 +1362,14 @@ template <typename T,
           size_t Dimension,
           template <typename>
           class Alloc>
-constexpr size_t FaceFieldAll<T, State, Dimension, Alloc>::Rank;
+constexpr size_t FaceContainer<T, State, Dimension, Alloc>::Rank;
 
 template <typename T,
           typename State,
           size_t Dimension,
           template <typename>
           class Alloc>
-constexpr size_t FaceFieldAll<T, State, Dimension, Alloc>::NComponents;
+constexpr size_t FaceContainer<T, State, Dimension, Alloc>::NComponents;
 
 template <typename T,
           typename State,
@@ -1377,7 +1377,7 @@ template <typename T,
           template <typename>
           class Alloc>
 constexpr Cubism::EntityType
-    FaceFieldAll<T, State, Dimension, Alloc>::EntityType;
+    FaceContainer<T, State, Dimension, Alloc>::EntityType;
 
 /**
  * @brief Generic tensor field
