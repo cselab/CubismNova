@@ -115,6 +115,10 @@ struct IndexConverter<3> {
     }
 };
 
+// forward declaration of iterator type
+template <size_t DIM>
+class MultiIndexIterator;
+
 /**
  * @brief Rectangular index range
  * @tparam DIM Dimension of the index space
@@ -184,6 +188,46 @@ public:
     IndexRange &operator=(const IndexRange &c) = default;
     IndexRange &operator=(IndexRange &&c) = default;
 
+    using iterator = MultiIndexIterator<DIM>;
+    iterator begin() noexcept { return iterator(*this, 0); }
+    iterator begin() const noexcept { return iterator(*this, 0); }
+    iterator end() noexcept { return iterator(*this, this->size()); }
+    iterator end() const noexcept { return iterator(*this, this->size()); }
+    // iterator end() noexcept { return iterator(*this, this->size() - 1); }
+    // iterator end() const noexcept { return iterator(*this, this->size() - 1);
+    // }
+
+    /**
+     * @brief Get intersection subspace
+     * @param o Other index range
+     * @return New range for intersection
+     */
+    IndexRange getIntersection(const IndexRange &o) const
+    {
+        const auto r = BaseType::getIntersection(o);
+        return IndexRange(r.getBegin(), r.getEnd());
+    }
+
+    /**
+     * @brief Check if index is valid local in this range
+     * @param p Local multi-dimensional index
+     * @return True if ``p`` is a valid index (exclusive; C-style indexing)
+     */
+    bool isIndex(const MultiIndex &p) const
+    {
+        return MultiIndex(0) <= p && p < extent_;
+    }
+
+    /**
+     * @brief Check if index is valid global in this range
+     * @param p Global multi-dimensional index
+     * @return True if ``p`` is a valid index (exclusive; C-style indexing)
+     */
+    bool isGlobalIndex(const MultiIndex &p) const
+    {
+        return begin_ <= p && p < end_;
+    }
+
     /**
      * @brief Size of index space
      * @return Total number of indices in the index range
@@ -202,24 +246,53 @@ public:
     }
 
     /**
-     * @brief Convert a multi-dimensional index to a one-dimensional index
-     * @param p Multi-dimensional index
-     * @return Flattened index
+     * @brief Convert a local multi-dimensional index to a local one-dimensional
+     * index
+     * @param p Local multi-dimensional index
+     * @return Local flattened index
+     *
+     * @rst
+     * Computes a *local* flat index from a *local* multi-dimensional index
+     * relative to the index space spanned by this range.
+     * @endrst
      */
     size_t getFlatIndex(const MultiIndex &p) const
     {
-        assert(MultiIndex(0) <= p && p < extent_);
+        assert(MultiIndex(0) <= p && p <= extent_); // inclusive for iterators
         return convert_.getFlatIndex(p, extent_);
     }
 
     /**
-     * @brief Convert a one-dimensional index to a multi-dimensional index
-     * @param i One-dimensional index
-     * @return Multi-dimensional index
+     * @brief Convert a global multi-dimensional index to a local
+     * one-dimensional index
+     * @param p Global multi-dimensional index
+     * @return Local flattened index
+     *
+     * @rst
+     * Computes a *local* flat index from a *global* multi-dimensional index
+     * relative to the index space spanned by this range.
+     * @endrst
+     */
+    size_t getFlatIndexFromGlobal(const MultiIndex &p) const
+    {
+        assert(begin_ <= p && p <= end_); // inclusive for iterators
+        return convert_.getFlatIndex(p - begin_, extent_);
+    }
+
+    /**
+     * @brief Convert a local one-dimensional index to a local multi-dimensional
+     * index
+     * @param i Local one-dimensional index
+     * @return Local multi-dimensional index
+     *
+     * @rst
+     * Computes a *local* multi-dimensional index from a *local* one-dimensional
+     * index relative to the index space spanned by this range.
+     * @endrst
      */
     MultiIndex getMultiIndex(size_t i) const
     {
-        assert(i <= this->size());
+        assert(i <= this->size()); // inclusive for iterators
         return convert_.getMultiIndex(i, MultiIndex(0), extent_);
     }
 

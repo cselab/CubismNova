@@ -144,7 +144,7 @@ public:
     /**
      * @brief Check if other range is contained in this range
      * @param o Other range
-     * @return True if ``o`` is contained (inclusive)
+     * @return True if ``o`` is contained in this range (inclusive)
      */
     bool isContained(const Range &o) const
     {
@@ -154,7 +154,7 @@ public:
     /**
      * @brief Check if point is contained in this range
      * @param p Point
-     * @return True if ``p`` is contained (inclusive)
+     * @return True if ``p`` is contained in this range (inclusive)
      */
     bool isContained(const PointType &p) const
     {
@@ -169,6 +169,25 @@ public:
     bool isIntersecting(const Range &o) const
     {
         return begin_ < o.end_ && o.begin_ < end_;
+    }
+
+    /**
+     * @brief Get intersection subspace
+     * @param o Other range
+     * @return New range for intersection
+     */
+    Range getIntersection(const Range &o) const
+    {
+        if (!this->isIntersecting(o)) {
+            return Range(); // NULL range
+        }
+        PointType b = o.begin_ - this->begin_;
+        PointType e = o.end_ - this->end_;
+        for (size_t i = 0; i < DIM; ++i) {
+            b[i] = (b[i] > 0) ? o.begin_[i] : this->begin_[i];
+            e[i] = (e[i] < 0) ? o.end_[i] : this->end_[i];
+        }
+        return Range(b, e);
     }
 
     /**
