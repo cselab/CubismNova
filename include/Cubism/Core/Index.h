@@ -115,6 +115,10 @@ struct IndexConverter<3> {
     }
 };
 
+// forward declaration of iterator type
+template <size_t DIM>
+class MultiIndexIterator;
+
 /**
  * @brief Rectangular index range
  * @tparam DIM Dimension of the index space
@@ -130,10 +134,14 @@ public:
     using typename BaseType::PointType;
     using MultiIndex = PointType;
 
-    /**
-     * @brief Null range
-     */
-    IndexRange() : BaseType(0), extent_(0) {} // NULL range
+protected:
+    using BaseType::begin_;
+    using BaseType::end_;
+    using BaseType::extent_;
+
+public:
+    /** @brief Default constructor (NULL range) */
+    IndexRange() : BaseType() {} // NULL range
 
     /**
      * @brief Construct index range
@@ -143,10 +151,7 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    explicit IndexRange(const DataType e)
-        : BaseType(e), extent_(this->end_ - this->begin_)
-    {
-    }
+    explicit IndexRange(const DataType e) : BaseType(e) {}
     /**
      * @brief Construct index range
      * @param e End point (*top right*) of index space. Begin is ``0``.
@@ -155,10 +160,7 @@ public:
      * Constructs an extent specified the ``DIM``-dimensional ``e``.
      * @endrst
      */
-    explicit IndexRange(const PointType &e)
-        : BaseType(e), extent_(this->end_ - this->begin_)
-    {
-    }
+    explicit IndexRange(const PointType &e) : BaseType(e) {}
     /**
      * @brief Construct index range
      * @param b Begin point (*lower left*) of index space.
@@ -168,10 +170,7 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    IndexRange(const DataType b, const DataType e)
-        : BaseType(b, e), extent_(this->end_ - this->begin_)
-    {
-    }
+    IndexRange(const DataType b, const DataType e) : BaseType(b, e) {}
     /**
      * @brief Construct index range
      * @param b Begin point (*lower left*) of index space.
@@ -182,21 +181,52 @@ public:
      * ``e`` and ``b``.
      * @endrst
      */
-    IndexRange(const PointType &b, const PointType &e)
-        : BaseType(b, e), extent_(this->end_ - this->begin_)
-    {
-    }
+    IndexRange(const PointType &b, const PointType &e) : BaseType(b, e) {}
 
     IndexRange(const IndexRange &c) = default;
     IndexRange(IndexRange &&c) noexcept = default;
     IndexRange &operator=(const IndexRange &c) = default;
     IndexRange &operator=(IndexRange &&c) = default;
 
+    using iterator = MultiIndexIterator<DIM>;
+    iterator begin() noexcept { return iterator(*this, 0); }
+    iterator begin() const noexcept { return iterator(*this, 0); }
+    iterator end() noexcept { return iterator(*this, this->size()); }
+    iterator end() const noexcept { return iterator(*this, this->size()); }
+    // iterator end() noexcept { return iterator(*this, this->size() - 1); }
+    // iterator end() const noexcept { return iterator(*this, this->size() - 1);
+    // }
+
     /**
-     * @brief Get index range extent
-     * @return PointType range extent
+     * @brief Get intersection subspace
+     * @param o Other index range
+     * @return New range for intersection
      */
-    PointType getExtent() const { return extent_; }
+    IndexRange getIntersection(const IndexRange &o) const
+    {
+        const auto r = BaseType::getIntersection(o);
+        return IndexRange(r.getBegin(), r.getEnd());
+    }
+
+    /**
+     * @brief Check if index is valid local in this range
+     * @param p Local multi-dimensional index
+     * @return True if ``p`` is a valid index (exclusive; C-style indexing)
+     */
+    bool isIndex(const MultiIndex &p) const
+    {
+        return MultiIndex(0) <= p && p < extent_;
+    }
+
+    /**
+     * @brief Check if index is valid global in this range
+     * @param p Global multi-dimensional index
+     * @return True if ``p`` is a valid index (exclusive; C-style indexing)
+     */
+    bool isGlobalIndex(const MultiIndex &p) const
+    {
+        return begin_ <= p && p < end_;
+    }
 
     /**
      * @brief Size of index space
@@ -216,29 +246,57 @@ public:
     }
 
     /**
-     * @brief Convert a multi-dimensional index to a one-dimensional index
-     * @param p Multi-dimensional index
-     * @return Flattened index
+     * @brief Convert a local multi-dimensional index to a local one-dimensional
+     * index
+     * @param p Local multi-dimensional index
+     * @return Local flattened index
+     *
+     * @rst
+     * Computes a *local* flat index from a *local* multi-dimensional index
+     * relative to the index space spanned by this range.
+     * @endrst
      */
     size_t getFlatIndex(const MultiIndex &p) const
     {
-        assert(MultiIndex(0) <= p && p < extent_);
+        assert(MultiIndex(0) <= p && p <= extent_); // inclusive for iterators
         return convert_.getFlatIndex(p, extent_);
     }
 
     /**
-     * @brief Convert a one-dimensional index to a multi-dimensional index
-     * @param i One-dimensional index
-     * @return Multi-dimensional index
+     * @brief Convert a global multi-dimensional index to a local
+     * one-dimensional index
+     * @param p Global multi-dimensional index
+     * @return Local flattened index
+     *
+     * @rst
+     * Computes a *local* flat index from a *global* multi-dimensional index
+     * relative to the index space spanned by this range.
+     * @endrst
+     */
+    size_t getFlatIndexFromGlobal(const MultiIndex &p) const
+    {
+        assert(begin_ <= p && p <= end_); // inclusive for iterators
+        return convert_.getFlatIndex(p - begin_, extent_);
+    }
+
+    /**
+     * @brief Convert a local one-dimensional index to a local multi-dimensional
+     * index
+     * @param i Local one-dimensional index
+     * @return Local multi-dimensional index
+     *
+     * @rst
+     * Computes a *local* multi-dimensional index from a *local* one-dimensional
+     * index relative to the index space spanned by this range.
+     * @endrst
      */
     MultiIndex getMultiIndex(size_t i) const
     {
-        assert(i <= this->size());
+        assert(i <= this->size()); // inclusive for iterators
         return convert_.getMultiIndex(i, MultiIndex(0), extent_);
     }
 
 private:
-    PointType extent_;
     IndexConverter<DIM> convert_;
 };
 
@@ -339,23 +397,19 @@ struct MIIForward<3> {
 template <size_t DIM>
 class MultiIndexIterator
 {
+protected:
     using IndexRangeType = IndexRange<DIM>;
     using MultiIndex = typename IndexRangeType::MultiIndex;
-    using Entity = Cubism::EntityType;
 
 public:
-    MultiIndexIterator(const Entity t,
-                       const size_t d,
-                       const IndexRangeType &r,
-                       const size_t i)
-        : type_(t), dir_(d), data_(r, i)
+    MultiIndexIterator(const IndexRangeType &r, const size_t i) : data_(r, i)
     {
         assert(data_.i <= data_.range.size());
-        assert(dir_ < DIM);
     }
+
     MultiIndexIterator() = delete;
     MultiIndexIterator(const MultiIndexIterator &c) = default;
-    ~MultiIndexIterator() = default;
+    virtual ~MultiIndexIterator() = default;
 
     MultiIndexIterator &operator=(const MultiIndexIterator &c)
     {
@@ -370,6 +424,7 @@ public:
         assert(data_.range.contains(p) && (p < data_.range.getEnd()));
         data_.p = p;
         data_.i = data_.range.getFlatIndex(p);
+        return *this;
     }
     bool operator==(const MultiIndexIterator &rhs) const
     {
@@ -401,14 +456,67 @@ public:
     const MultiIndex &operator*() const { return data_.p; }
     size_t getFlatIndex() const { return data_.i; }
     MultiIndex getMultiIndex() const { return data_.p; }
-    Entity getEntity() const { return type_; }
-    size_t getDirection() const { return dir_; }
     const IndexRangeType &getIndexRange() const { return data_.range; }
 
-private:
-    const Entity type_;
-    const size_t dir_;
+protected:
     MIIForward<DIM> data_;
+};
+
+template <size_t DIM>
+class EntityIterator : public MultiIndexIterator<DIM>
+{
+    using BaseType = MultiIndexIterator<DIM>;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
+    using Entity = Cubism::EntityType;
+
+    using BaseType::data_;
+
+public:
+    EntityIterator(const Entity t,
+                   const size_t d,
+                   const IndexRangeType &r,
+                   const size_t i)
+        : BaseType(r, i), type_(t), dir_(d)
+    {
+        assert(dir_ < DIM);
+    }
+    EntityIterator() = delete;
+    EntityIterator(const EntityIterator &c) = default;
+    ~EntityIterator() = default;
+
+    EntityIterator &operator=(const EntityIterator &c)
+    {
+        if (this != &c) {
+            BaseType::operator=(c);
+            type_ = c.type_;
+            dir_ = c.dir_;
+        }
+        return *this;
+    }
+    EntityIterator &operator=(const MultiIndex &p)
+    {
+        BaseType::operator=(p);
+        return *this;
+    }
+    EntityIterator &operator++()
+    {
+        BaseType::operator++();
+        return *this;
+    }
+    EntityIterator operator++(int)
+    {
+        EntityIterator tmp(*this);
+        ++data_.i;
+        data_.forwardMultiIndex();
+        return tmp;
+    }
+    Entity getEntity() const { return type_; }
+    size_t getDirection() const { return dir_; }
+
+private:
+    Entity type_;
+    size_t dir_;
 };
 
 NAMESPACE_END(Core)

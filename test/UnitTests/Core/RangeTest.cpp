@@ -58,8 +58,8 @@ TEST(Range, Construction)
 TEST(Range, SetGet)
 {
     Point p0(1);
-    Point p1(2);
-    Point p2(3);
+    Point p1(3);
+    Point p2(8);
     EXPECT_THROW(
         {
             try {
@@ -101,21 +101,21 @@ TEST(Range, SetGet)
 TEST(Range, Utils)
 {
     Point p0(1);
-    Point p1(2);
-    Point p2(3);
-    Point p3(4);
+    Point p1(3);
+    Point p2(6);
+    Point p3(9);
     Range r0(p3);
     Range r1(p1, p2);
     Range r2(p2);
     Range r3(p1, p3);
     Range r4(p0);
 
-    EXPECT_TRUE(r0.contains(r1));
-    EXPECT_TRUE(r0.contains(p0));
-    EXPECT_TRUE(r2.intersect(r1));
-    EXPECT_TRUE(r3.intersect(r2));
-    EXPECT_FALSE(r4.intersect(r1));
-    EXPECT_FALSE(r1.intersect(r4));
+    EXPECT_TRUE(r0.isContained(r1));
+    EXPECT_TRUE(r0.isContained(p0));
+    EXPECT_TRUE(r2.isIntersecting(r1));
+    EXPECT_TRUE(r3.isIntersecting(r2));
+    EXPECT_FALSE(r4.isIntersecting(r1));
+    EXPECT_FALSE(r1.isIntersecting(r4));
 }
 
 } // namespace

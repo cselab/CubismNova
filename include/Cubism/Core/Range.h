@@ -26,6 +26,9 @@ public:
 
     static constexpr size_t Dim = DIM;
 
+    /** @brief Default constructor (NULL range) */
+    Range() : begin_(0), end_(0), extent_(end_ - begin_) {}
+
     /**
      * @brief Construct range
      * @param e End point (*top right*) of rectangle. Begin is ``0``.
@@ -34,7 +37,8 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    explicit Range(const DataType e) : begin_(), end_(e)
+    explicit Range(const DataType e)
+        : begin_(0), end_(e), extent_(end_ - begin_)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
@@ -47,7 +51,8 @@ public:
      * Constructs an extent specified the ``DIM``-dimensional ``e``.
      * @endrst
      */
-    explicit Range(const PointType &e) : begin_(), end_(e)
+    explicit Range(const PointType &e)
+        : begin_(0), end_(e), extent_(end_ - begin_)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
@@ -61,7 +66,8 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    Range(const DataType b, const DataType e) : begin_(b), end_(e)
+    Range(const DataType b, const DataType e)
+        : begin_(b), end_(e), extent_(end_ - begin_)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
@@ -76,13 +82,13 @@ public:
      * ``e`` and ``b``.
      * @endrst
      */
-    Range(const PointType &b, const PointType &e) : begin_(b), end_(e)
+    Range(const PointType &b, const PointType &e)
+        : begin_(b), end_(e), extent_(end_ - begin_)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
     }
 
-    Range() = delete;
     Range(const Range &c) = default;
     Range(Range &&c) noexcept = default;
     Range &operator=(const Range &c) = default;
@@ -96,6 +102,7 @@ public:
     void setBegin(const PointType &b)
     {
         begin_ = b;
+        extent_ = end_ - begin_;
         check_("RangeSetBegin");
     }
 
@@ -106,6 +113,7 @@ public:
     void setEnd(const PointType &e)
     {
         end_ = e;
+        extent_ = end_ - begin_;
         check_("RangeSetEnd");
     }
 
@@ -125,20 +133,20 @@ public:
      * @brief Get range extent
      * @return Range extent
      */
-    PointType getExtent() const { return end_ - begin_; }
+    PointType getExtent() const { return extent_; }
 
     /**
      * @brief Get range volume
      * @return Range volume
      */
-    DataType getVolume() const { return getExtent().prod(); }
+    DataType getVolume() const { return extent_.prod(); }
 
     /**
      * @brief Check if other range is contained in this range
      * @param o Other range
-     * @return True if ``o`` is contained (inclusive)
+     * @return True if ``o`` is contained in this range (inclusive)
      */
-    bool contains(const Range &o) const
+    bool isContained(const Range &o) const
     {
         return begin_ <= o.begin_ && o.end_ <= end_;
     }
@@ -146,18 +154,40 @@ public:
     /**
      * @brief Check if point is contained in this range
      * @param p Point
-     * @return True if ``p`` is contained (inclusive)
+     * @return True if ``p`` is contained in this range (inclusive)
      */
-    bool contains(const PointType &p) const { return begin_ <= p && p <= end_; }
+    bool isContained(const PointType &p) const
+    {
+        return begin_ <= p && p <= end_;
+    }
 
     /**
      * @brief Check if other range intersects this range
      * @param o Other range
      * @return True if ``o`` intersects this range
      */
-    bool intersect(const Range &o) const
+    bool isIntersecting(const Range &o) const
     {
         return begin_ < o.end_ && o.begin_ < end_;
+    }
+
+    /**
+     * @brief Get intersection subspace
+     * @param o Other range
+     * @return New range for intersection
+     */
+    Range getIntersection(const Range &o) const
+    {
+        if (!this->isIntersecting(o)) {
+            return Range(); // NULL range
+        }
+        PointType b = o.begin_ - this->begin_;
+        PointType e = o.end_ - this->end_;
+        for (size_t i = 0; i < DIM; ++i) {
+            b[i] = (b[i] > 0) ? o.begin_[i] : this->begin_[i];
+            e[i] = (e[i] < 0) ? o.end_[i] : this->end_[i];
+        }
+        return Range(b, e);
     }
 
     /**
@@ -175,7 +205,7 @@ public:
     bool operator!=(const Range &o) const { return !(*this == o); }
 
 protected:
-    PointType begin_, end_;
+    PointType begin_, end_, extent_;
 
     void check_(const std::string &where) const
     {
