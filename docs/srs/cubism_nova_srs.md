@@ -291,7 +291,6 @@ utilization.
 CubismNova is licensed under the BSD 2-Clause simplified license.
 
 ```text
-CubismNova -- HPC library for structured uniform and adaptive multi resolution
 Copyright © 2019 ETH Zurich
 All rights reserved.
 
@@ -315,10 +314,6 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-The views and conclusions contained in the software and documentation are those
-of the authors and should not be interpreted as representing official policies,
-either expressed or implied, of ETH Zurich.
 ```
 
 ## Appendix A: Glossary
