@@ -18,6 +18,7 @@ TEST(IO, FieldAOS)
     using DataType = typename CellField::DataType;
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
+    using VecCellField = Block::VectorField<float, Cubism::EntityType::Cell>;
 
     MIndex cells(8);
     IRange cell_domain(cells);
@@ -34,7 +35,6 @@ TEST(IO, FieldAOS)
         delete[] buf;
 
         // vector
-        using VecCellField = Block::VectorField<CellField>;
         VecCellField vf(cell_domain);
         int k = 1;
         for (auto c : vf) {
@@ -71,7 +71,6 @@ TEST(IO, FieldAOS)
         delete[] buf;
     }
     { // vector subspace
-        using VecCellField = Block::VectorField<CellField>;
         VecCellField vf(cell_domain);
         int k = 1;
         for (auto c : vf) {

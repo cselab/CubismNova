@@ -7,8 +7,6 @@
 #include "Core/Index.h"
 #include "gtest/gtest.h"
 
-#include "Alloc/AlignedBlockAllocator.h"
-
 #include <algorithm>
 #include <cmath>
 #include <type_traits>
@@ -18,17 +16,9 @@ namespace
 {
 using namespace Cubism;
 
-template <typename T, template <typename> class TAlloc, size_t DIM>
-using CellData = Block::Data<T, EntityType::Cell, DIM, TAlloc<T>>;
-template <typename T, template <typename> class TAlloc, size_t DIM>
-using NodeData = Block::Data<T, EntityType::Node, DIM, TAlloc<T>>;
-template <typename T, template <typename> class TAlloc, size_t DIM>
-using FaceData = Block::Data<T, EntityType::Face, DIM, TAlloc<T>>;
-
 TEST(Field, Construction)
 {
-    using CellField = Block::Field<CellData<int, AlignedBlockAllocator, 3>>;
-    using FieldState = typename CellField::FieldStateType;
+    using CellField = Block::Field<int, EntityType::Cell, 3>; // 3D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using FieldView = Block::FieldView<CellField>;
@@ -39,43 +29,6 @@ TEST(Field, Construction)
     { // default
         CellField cf(cell_domain);
         EXPECT_TRUE(cf.isScalar());
-        EXPECT_EQ(cf.getRank(), 0);
-        EXPECT_EQ(cf.getComp(), 0);
-
-        FieldState fs;
-        fs.rank = 1;
-        fs.comp = 1;
-        CellField cf1(cell_domain, fs);
-        EXPECT_FALSE(cf1.isScalar());
-        EXPECT_EQ(cf1.getRank(), 1);
-        EXPECT_EQ(cf1.getComp(), 1);
-    }
-
-    { // low-level
-        using DataType = typename CellField::DataType;
-
-        CellField cf(cell_domain);
-        CellField cf1(cf, CellField::BaseType::MemoryOwner::Yes);
-        FieldState fs;
-        fs.rank = cf.getRank();
-        fs.comp = cf.getComp();
-        DataType *pdata = new DataType[cf.size()];
-        const size_t bytes = cf.size() * sizeof(DataType);
-        CellField cf2(cell_domain, pdata, bytes, &fs);
-
-        EXPECT_EQ(cf.isMemoryOwner(), cf1.isMemoryOwner());
-        EXPECT_NE(cf.getBlockPtr(), cf1.getBlockPtr());
-        EXPECT_EQ(cf.isScalar(), cf1.isScalar());
-        EXPECT_EQ(cf.getRank(), cf1.getRank());
-        EXPECT_EQ(cf.getComp(), cf1.getComp());
-
-        EXPECT_EQ(cf.isMemoryOwner(), cf2.isMemoryOwner());
-        EXPECT_NE(cf.getBlockPtr(), cf2.getBlockPtr());
-        EXPECT_EQ(cf.isScalar(), cf2.isScalar());
-        EXPECT_EQ(cf.getRank(), cf2.getRank());
-        EXPECT_EQ(cf.getComp(), cf2.getComp());
-
-        delete[] pdata;
     }
 
     { // copy construction
@@ -85,50 +38,28 @@ TEST(Field, Construction)
 
         EXPECT_EQ(cf.isMemoryOwner(), cf_copy.isMemoryOwner());
         EXPECT_NE(cf.getBlockPtr(), cf_copy.getBlockPtr());
+        EXPECT_NE(&cf.getState(), &cf_copy.getState());
         EXPECT_EQ(cf.isScalar(), cf_copy.isScalar());
-        EXPECT_EQ(cf.getRank(), cf_copy.getRank());
-        EXPECT_EQ(cf.getComp(), cf_copy.getComp());
 
         EXPECT_NE(cf.isMemoryOwner(), cf_view.isMemoryOwner());
         EXPECT_EQ(cf.getBlockPtr(), cf_view.getBlockPtr());
+        EXPECT_EQ(&cf.getState(), &cf_view.getState());
         EXPECT_EQ(cf.isScalar(), cf_view.isScalar());
-        EXPECT_EQ(cf.getRank(), cf_view.getRank());
-        EXPECT_EQ(cf.getComp(), cf_view.getComp());
     }
 
     { // copy assignment
         CellField cf(cell_domain);
-
-        FieldState fs;
-        fs.rank = 1;
-        fs.comp = 1;
-        CellField cf1(cell_domain, fs);
-        CellField cf_copy(cf);
+        CellField cf1(cell_domain);
         FieldView cf_view(cf);
 
-        EXPECT_EQ(cf.getRank(), 0);
-        EXPECT_EQ(cf.getComp(), 0);
-        EXPECT_EQ(cf_copy.getRank(), 0);
-        EXPECT_EQ(cf_copy.getComp(), 0);
-        EXPECT_EQ(cf_view.getRank(), 0);
-        EXPECT_EQ(cf_view.getComp(), 0);
-        EXPECT_EQ(cf1.getRank(), 1);
-        EXPECT_EQ(cf1.getComp(), 1);
         EXPECT_NE(cf.getBlockPtr(), cf1.getBlockPtr());
         EXPECT_EQ(cf.getBlockPtr(), cf_view.getBlockPtr());
         EXPECT_EQ(&cf.getState(), &cf_view.getState());
 
         cf = cf1; // deep copy
-        EXPECT_EQ(cf.getRank(), 1);
-        EXPECT_EQ(cf.getComp(), 1);
-        EXPECT_EQ(cf_copy.getRank(), 0);
-        EXPECT_EQ(cf_copy.getComp(), 0);
-        EXPECT_EQ(cf_view.getRank(), 1);
-        EXPECT_EQ(cf_view.getComp(), 1);
         EXPECT_NE(cf.getBlockPtr(), cf1.getBlockPtr());
         EXPECT_EQ(cf.getBlockPtr(), cf_view.getBlockPtr());
         EXPECT_EQ(&cf.getState(), &cf_view.getState());
-        EXPECT_NE(&cf_copy.getState(), &cf_view.getState());
     }
 
     { // move construction
@@ -136,17 +67,11 @@ TEST(Field, Construction)
         FieldView cfv(cf);
 
         EXPECT_TRUE(cf.isScalar());
-        EXPECT_EQ(cf.getRank(), 0);
-        EXPECT_EQ(cf.getComp(), 0);
 
         CellField cf_move(std::move(cf));
         EXPECT_EQ(cf.getBlockPtr(), nullptr);
         EXPECT_EQ(&cf.getState(), nullptr);
         EXPECT_TRUE(cf_move.isScalar());
-        EXPECT_EQ(cf_move.getRank(), 0);
-        EXPECT_EQ(cf_move.getComp(), 0);
-        EXPECT_EQ(cfv.getRank(), 0);
-        EXPECT_EQ(cfv.getComp(), 0);
         EXPECT_EQ(cfv.getBlockPtr(), cf_move.getBlockPtr());
         EXPECT_EQ(&cfv.getState(), &cf_move.getState());
     }
@@ -156,18 +81,12 @@ TEST(Field, Construction)
         FieldView cfv(cf);
 
         EXPECT_TRUE(cf.isScalar());
-        EXPECT_EQ(cf.getRank(), 0);
-        EXPECT_EQ(cf.getComp(), 0);
 
         CellField cf_move(cell_domain);
         cf_move = std::move(cf);
         EXPECT_EQ(cf.getBlockPtr(), nullptr);
         EXPECT_EQ(&cf.getState(), nullptr);
         EXPECT_TRUE(cf_move.isScalar());
-        EXPECT_EQ(cf_move.getRank(), 0);
-        EXPECT_EQ(cf_move.getComp(), 0);
-        EXPECT_EQ(cfv.getRank(), 0);
-        EXPECT_EQ(cfv.getComp(), 0);
         EXPECT_EQ(cfv.getBlockPtr(), cf_move.getBlockPtr());
         EXPECT_EQ(&cfv.getState(), &cf_move.getState());
     }
@@ -175,26 +94,21 @@ TEST(Field, Construction)
 
 TEST(Field, Interface)
 {
-    using FaceField = Block::Field<FaceData<double, AlignedBlockAllocator, 3>>;
-    using FieldState = typename FaceField::FieldStateType;
+    using FaceField = Block::Field<double, EntityType::Face, 3>; // 3D
     using IRange = typename FaceField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
     MIndex faces(16);
     IRange face_domain(faces);
     FaceField ff(face_domain);
-    const FieldState fs = ff.getState();
-
+    EXPECT_EQ(ff.size(), face_domain.size());
     EXPECT_TRUE(ff.isScalar());
-    EXPECT_EQ(ff.getRank(), 0);
-    EXPECT_EQ(ff.getComp(), 0);
-    EXPECT_EQ(ff.getRank(), fs.rank);
-    EXPECT_EQ(ff.getComp(), fs.comp);
+    EXPECT_NE(&ff.getState(), nullptr);
 }
 
 TEST(Field, Iterator)
 {
-    using CellField = Block::Field<CellData<float, AlignedBlockAllocator, 4>>;
+    using CellField = Block::Field<float, EntityType::Cell, 4>; // 4D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -213,7 +127,7 @@ TEST(Field, Iterator)
 
 TEST(Field, View)
 {
-    using NodeField = Block::Field<NodeData<int, AlignedBlockAllocator, 2>>;
+    using NodeField = Block::Field<int, EntityType::Node, 2>; // 2D
     using IRange = typename NodeField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -327,7 +241,7 @@ TEST(Field, View)
 
 TEST(Field, Arithmetic)
 {
-    using CellField = Block::Field<CellData<float, AlignedBlockAllocator, 3>>;
+    using CellField = Block::Field<float, EntityType::Cell, 3>; // 3D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using DataType = typename CellField::DataType;
@@ -482,8 +396,7 @@ TEST(Field, Arithmetic)
 
 TEST(FieldContainer, Construction)
 {
-    using NodeField = Block::Field<NodeData<char, AlignedBlockAllocator, 5>>;
-    using FieldState = typename NodeField::FieldStateType;
+    using NodeField = Block::Field<char, EntityType::Node, 5>; // 5D
     using IRange = typename NodeField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -516,7 +429,7 @@ TEST(FieldContainer, Construction)
 
     { // construct from list of pointers (including FieldView types)
         FC fc(3, node_domain); // owns all
-        FV fv0(fc[0]);
+        FV fv0(fc[0]);         // view into first field
 
         std::vector<typename FC::FieldType *> ptr_list;
         ptr_list.push_back(&fv0);   // view
@@ -524,48 +437,13 @@ TEST(FieldContainer, Construction)
         ptr_list.push_back(&fc[2]); // owner
         FC fc1(ptr_list);
 
-        EXPECT_EQ(fc1[0].getBlockPtr(), fc[0].getBlockPtr()); // the same
+        EXPECT_EQ(fc1[0].getBlockPtr(), fc[0].getBlockPtr()); // view the same
         EXPECT_NE(fc1[1].getBlockPtr(), fc[1].getBlockPtr()); // copy
         EXPECT_NE(fc1[2].getBlockPtr(), fc[2].getBlockPtr()); // copy
 
-        // view of a field container
-        using FVC = Block::FieldView<FC>;
-        FVC fvc(fc1);
-        EXPECT_FALSE(fvc[0].isMemoryOwner());
-        EXPECT_FALSE(fvc[1].isMemoryOwner());
-        EXPECT_FALSE(fvc[2].isMemoryOwner());
-        EXPECT_EQ(fc1[0].getBlockPtr(), fvc[0].getBlockPtr());
-        EXPECT_EQ(fc1[1].getBlockPtr(), fvc[1].getBlockPtr());
-        EXPECT_EQ(fc1[2].getBlockPtr(), fvc[2].getBlockPtr());
-        EXPECT_NE(&fc1[0], &fvc[0]);
-        EXPECT_NE(&fc1[1], &fvc[1]);
-        EXPECT_NE(&fc1[2], &fvc[2]);
-    }
-
-    // low-level constructors
-    {
-        using DataType = typename NodeField::DataType;
-
-        FC fc(2, node_domain);
-        std::vector<IRange> rl;
-        std::vector<DataType *> pl;
-        std::vector<size_t> bl;
-        std::vector<FieldState *> sl;
-        for (size_t i = 0; i < fc.size(); ++i) {
-            rl.push_back(fc[i].getIndexRange());
-            pl.push_back(fc[i].getData());
-            bl.push_back(fc[i].getBlockBytes());
-            sl.push_back(&fc[i].getState());
-        }
-        FC fc1(rl, pl, bl, sl); // never owns data
-        for (size_t i = 0; i < fc.size(); ++i) {
-            EXPECT_EQ(fc1[i].getRank(), 0);
-            EXPECT_EQ(fc1[i].getComp(), i);
-            EXPECT_TRUE(fc1[i].isMemoryOwner());
-            EXPECT_EQ(fc1[i].getBlockPtr(), fc[i].getBlockPtr());
-            EXPECT_EQ(&fc1[i].getState(), &fc[i].getState());
-            EXPECT_NE(&fc1[i], &fc[i]);
-        }
+        EXPECT_EQ(&fc1[0].getState(), &fc[0].getState()); // view the same
+        EXPECT_NE(&fc1[1].getState(), &fc[1].getState()); // copy
+        EXPECT_NE(&fc1[2].getState(), &fc[2].getState()); // copy
     }
 
     {                          // copy construction
@@ -576,8 +454,10 @@ TEST(FieldContainer, Construction)
         {                   // copy homogeneous
             FC fc_copy(fc); // deep copies
             for (size_t i = 0; i < fc_copy.size(); ++i) {
+                EXPECT_TRUE(fc[i].isMemoryOwner());
                 EXPECT_TRUE(fc_copy[i].isMemoryOwner());
                 EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                EXPECT_NE(&fc_copy[i].getState(), &fc[i].getState());
                 EXPECT_NE(&fc_copy[i], &fc[i]);
             }
         }
@@ -591,13 +471,19 @@ TEST(FieldContainer, Construction)
             FC fc_copy(fc1); // mixed
             for (size_t i = 0; i < fc_copy.size(); ++i) {
                 if (i % 2 == 0) {
+                    EXPECT_TRUE(fc[i].isMemoryOwner());
                     EXPECT_FALSE(fc_copy[i].isMemoryOwner());
                     EXPECT_EQ(fc_copy[i].getBlockPtr(), fc1[i].getBlockPtr());
                     EXPECT_EQ(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                    EXPECT_EQ(&fc_copy[i].getState(), &fc1[i].getState());
+                    EXPECT_EQ(&fc_copy[i].getState(), &fc[i].getState());
                 } else {
+                    EXPECT_TRUE(fc[i].isMemoryOwner());
                     EXPECT_TRUE(fc_copy[i].isMemoryOwner());
                     EXPECT_NE(fc_copy[i].getBlockPtr(), fc1[i].getBlockPtr());
                     EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                    EXPECT_NE(&fc_copy[i].getState(), &fc1[i].getState());
+                    EXPECT_NE(&fc_copy[i].getState(), &fc[i].getState());
                 }
                 EXPECT_NE(&fc_copy[i], &fc[i]);
                 EXPECT_NE(&fc_copy[i], &fc1[i]);
@@ -614,8 +500,10 @@ TEST(FieldContainer, Construction)
             FC fc_copy;   // empty
             fc_copy = fc; // deep copies
             for (size_t i = 0; i < fc_copy.size(); ++i) {
+                EXPECT_TRUE(fc[i].isMemoryOwner());
                 EXPECT_TRUE(fc_copy[i].isMemoryOwner());
                 EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                EXPECT_NE(&fc_copy[i].getState(), &fc[i].getState());
                 EXPECT_NE(&fc_copy[i], &fc[i]);
             }
         }
@@ -630,13 +518,19 @@ TEST(FieldContainer, Construction)
             fc_copy = fc1; // mixed
             for (size_t i = 0; i < fc_copy.size(); ++i) {
                 if (i % 2 == 0) {
+                    EXPECT_TRUE(fc[i].isMemoryOwner());
                     EXPECT_FALSE(fc_copy[i].isMemoryOwner());
                     EXPECT_EQ(fc_copy[i].getBlockPtr(), fc1[i].getBlockPtr());
                     EXPECT_EQ(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                    EXPECT_EQ(&fc_copy[i].getState(), &fc1[i].getState());
+                    EXPECT_EQ(&fc_copy[i].getState(), &fc[i].getState());
                 } else {
+                    EXPECT_TRUE(fc[i].isMemoryOwner());
                     EXPECT_TRUE(fc_copy[i].isMemoryOwner());
                     EXPECT_NE(fc_copy[i].getBlockPtr(), fc1[i].getBlockPtr());
                     EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
+                    EXPECT_NE(&fc_copy[i].getState(), &fc1[i].getState());
+                    EXPECT_NE(&fc_copy[i].getState(), &fc[i].getState());
                 }
                 EXPECT_NE(&fc_copy[i], &fc[i]);
                 EXPECT_NE(&fc_copy[i], &fc1[i]);
@@ -649,49 +543,47 @@ TEST(FieldContainer, Construction)
             ptr_list.push_back(&fc[3]); // owner
             FC fc1(ptr_list);           // 3 components
             EXPECT_EQ(fc1.size(), 3);
-            fc1 = fc; // assign 4 components to a 3 component container
+            fc1 = fc; // assign 4 components to a 3 component container (warns
+                      // in debug build)
             EXPECT_EQ(fc1.size(), 4);
             for (size_t i = 0; i < ptr_list.size(); ++i) {
                 EXPECT_NE(fc1[i].getBlockPtr(), ptr_list[i]);
+                EXPECT_NE(&fc1[i].getState(), &fc[i].getState());
             }
         }
     }
 
-    {                                     // move construction
-        FC fc(5, node_domain);            // owns all
-        using FVC = Block::FieldView<FC>; // view of a field container
-        FVC fvc(fc);
+    {                          // move construction
+        FC fc(5, node_domain); // owns all
+        const auto data = fc.getContainer();
         FC fc_move(std::move(fc));
         EXPECT_EQ(fc.size(), 0);
-        EXPECT_EQ(fc_move.size(), fvc.size());
+        EXPECT_EQ(fc_move.size(), data.size());
         for (size_t i = 0; i < fc_move.size(); ++i) {
             EXPECT_TRUE(fc_move[i].isMemoryOwner());
-            EXPECT_FALSE(fvc[i].isMemoryOwner());
-            EXPECT_EQ(fc_move[i].getBlockPtr(), fvc[i].getBlockPtr());
-            EXPECT_NE(&fc_move[i], &fvc[i]);
+            EXPECT_EQ(fc_move[i].getBlockPtr(), data[i]->getBlockPtr());
+            EXPECT_EQ(&fc_move[i].getState(), &data[i]->getState());
         }
     }
 
-    {                                     // move assignment
-        FC fc(5, node_domain);            // owns all
-        using FVC = Block::FieldView<FC>; // view of a field container
-        FVC fvc(fc);
+    {                          // move assignment
+        FC fc(5, node_domain); // owns all
+        const auto data = fc.getContainer();
         FC fc_move;
         fc_move = std::move(fc);
         EXPECT_EQ(fc.size(), 0);
-        EXPECT_EQ(fc_move.size(), fvc.size());
+        EXPECT_EQ(fc_move.size(), data.size());
         for (size_t i = 0; i < fc_move.size(); ++i) {
             EXPECT_TRUE(fc_move[i].isMemoryOwner());
-            EXPECT_FALSE(fvc[i].isMemoryOwner());
-            EXPECT_EQ(fc_move[i].getBlockPtr(), fvc[i].getBlockPtr());
-            EXPECT_NE(&fc_move[i], &fvc[i]);
+            EXPECT_EQ(fc_move[i].getBlockPtr(), data[i]->getBlockPtr());
+            EXPECT_EQ(&fc_move[i].getState(), &data[i]->getState());
         }
     }
 }
 
 TEST(FieldContainer, Iterator)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 5>>;
+    using CellField = Block::Field<double, EntityType::Cell, 5>; // 5D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -723,7 +615,7 @@ TEST(FieldContainer, Iterator)
 
 TEST(FieldContainer, Interface)
 {
-    using NodeField = Block::Field<NodeData<size_t, AlignedBlockAllocator, 5>>;
+    using NodeField = Block::Field<size_t, EntityType::Node, 5>; // 5D
     using IRange = typename NodeField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -813,12 +705,15 @@ TEST(FieldContainer, Interface)
             fc.pushBack(new NodeField(node_domain));
             EXPECT_EQ(fc.size(), i);
         }
+        EXPECT_EQ(fc.size(), 3);
+        fc.clear();
+        EXPECT_EQ(fc.size(), 0);
     }
 }
 
 TEST(FieldContainer, Arithmetic)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 2>>;
+    using CellField = Block::Field<double, EntityType::Cell, 2>; // 2D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using DataType = typename CellField::DataType;
@@ -1020,103 +915,11 @@ TEST(FieldContainer, Arithmetic)
     }
 }
 
-TEST(FaceContainer, Construction)
-{
-    // CUBISM_DIMENSION-ional FaceField
-    using FaceField = Block::FaceContainer<double>;
-    using IRange = typename FaceField::IndexRangeType;
-    using MIndex = typename IRange::MultiIndex;
-
-    MIndex cells(16);
-    IRange cell_domain(cells);
-    FaceField ff(cell_domain);
-    EXPECT_EQ(ff.size(), CUBISM_DIMENSION);
-    size_t k = 0;
-    for (const auto f : ff) {
-        EXPECT_EQ(f->getRank(), 0);
-        EXPECT_EQ(f->getComp(), k++);
-    }
-
-    { // low-level
-        std::vector<IRange> rl;
-        std::vector<typename FaceField::DataType *> pl;
-        std::vector<size_t> bl;
-        std::vector<typename FaceField::FieldStateType *> sl;
-
-        FaceField ff_copy(ff, FaceField::FieldType::BaseType::MemoryOwner::Yes);
-        EXPECT_EQ(ff_copy.size(), ff.size());
-        for (size_t i = 0; i < ff.size(); ++i) {
-            rl.push_back(ff[i].getIndexRange());
-            pl.push_back(ff[i].getData());
-            bl.push_back(ff[i].getBlockBytes());
-            sl.push_back(&ff[i].getState());
-            EXPECT_NE(ff[i].getBlockPtr(), ff_copy[i].getBlockPtr());
-            EXPECT_NE(&ff[i].getState(), &ff_copy[i].getState());
-        }
-
-        FaceField ff_view(rl, pl, bl, sl);
-        for (size_t i = 0; i < ff.size(); ++i) {
-            EXPECT_EQ(ff[i].getBlockPtr(), ff_view[i].getBlockPtr());
-            EXPECT_EQ(&ff[i].getState(), &ff_view[i].getState());
-        }
-    }
-
-    { // copy construction
-        FaceField ff1(ff);
-        EXPECT_EQ(ff1.size(), ff.size());
-        for (size_t i = 0; i < ff.size(); ++i) {
-            EXPECT_NE(ff[i].getBlockPtr(), ff1[i].getBlockPtr());
-            EXPECT_NE(&ff[i].getState(), &ff1[i].getState());
-        }
-    }
-
-    { // copy assignment
-        FaceField ff1;
-        EXPECT_EQ(ff1.size(), 0);
-        ff1 = ff;
-        EXPECT_EQ(ff1.size(), ff.size());
-        for (size_t i = 0; i < ff.size(); ++i) {
-            EXPECT_NE(ff[i].getBlockPtr(), ff1[i].getBlockPtr());
-            EXPECT_NE(&ff[i].getState(), &ff1[i].getState());
-        }
-    }
-
-    { // move construction
-        using FieldView = Block::FieldView<FaceField>;
-        FaceField ff_copy(ff);
-        FieldView fv(ff);
-        FaceField ff1(std::move(ff));
-        EXPECT_EQ(ff.size(), 0);
-        EXPECT_EQ(ff1.size(), fv.size());
-        for (size_t i = 0; i < ff.size(); ++i) {
-            EXPECT_NE(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
-            EXPECT_NE(&fv[i].getState(), &ff1[i].getState());
-        }
-
-        ff = ff_copy;
-    }
-
-    { // move assignment
-        using FieldView = Block::FieldView<FaceField>;
-        FaceField ff_copy(ff);
-        FieldView fv(ff);
-        FaceField ff1;
-        ff1 = std::move(ff);
-        EXPECT_EQ(ff.size(), 0);
-        EXPECT_EQ(ff1.size(), fv.size());
-        for (size_t i = 0; i < ff.size(); ++i) {
-            EXPECT_NE(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
-            EXPECT_NE(&fv[i].getState(), &ff1[i].getState());
-        }
-
-        ff = ff_copy;
-    }
-}
-
 TEST(TensorField, Construction)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 3>>;
-    using TensorField = Block::TensorField<CellField, 2>; // Rank 2 tensor
+    // Rank 2 tensor, cell-centered data, 3-dimensional
+    using TensorField =
+        Block::TensorField<double, 2, Cubism::EntityType::Cell, 3>;
     using IRange = typename TensorField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -1127,36 +930,22 @@ TEST(TensorField, Construction)
     // If you like that better; must be castable to size_t and 0 for first index
     enum MyIndex { XX = 0, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ };
     EXPECT_EQ(tf[MyIndex::XY].getBlockSize(), cell_domain.size());
-
     EXPECT_EQ(tf.size(), std::pow(IRange::Dim, TensorField::Rank));
-    size_t k = 0;
-    for (const auto c : tf) {
-        EXPECT_EQ(c->getRank(), TensorField::Rank);
-        EXPECT_EQ(c->getComp(), k++);
+    const auto *pstate = &tf.getState();
+    for (auto c : tf) {
+        EXPECT_EQ(&c->getState(), pstate);
     }
 
     { // low-level
-        std::vector<IRange> rl;
-        std::vector<typename CellField::DataType *> pl;
-        std::vector<size_t> bl;
-        std::vector<typename TensorField::FieldStateType *> sl;
-
-        TensorField tf_copy(tf,
-                            TensorField::FieldType::BaseType::MemoryOwner::Yes);
+        TensorField tf_copy(tf, TensorField::BlockDataType::MemoryOwner::Yes);
         EXPECT_EQ(tf_copy.size(), tf.size());
+        const auto *pstate = &tf_copy.getState();
+        for (auto c : tf_copy) {
+            EXPECT_EQ(&c->getState(), pstate);
+        }
         for (size_t i = 0; i < tf.size(); ++i) {
-            rl.push_back(tf[i].getIndexRange());
-            pl.push_back(tf[i].getData());
-            bl.push_back(tf[i].getBlockBytes());
-            sl.push_back(&tf[i].getState());
             EXPECT_NE(tf[i].getBlockPtr(), tf_copy[i].getBlockPtr());
             EXPECT_NE(&tf[i].getState(), &tf_copy[i].getState());
-        }
-
-        TensorField tf_view(rl, pl, bl, sl);
-        for (size_t i = 0; i < tf.size(); ++i) {
-            EXPECT_EQ(tf[i].getBlockPtr(), tf_view[i].getBlockPtr());
-            EXPECT_EQ(&tf[i].getState(), &tf_view[i].getState());
         }
     }
 
@@ -1170,13 +959,17 @@ TEST(TensorField, Construction)
     }
 
     { // copy assignment
-        TensorField tf1;
-        EXPECT_EQ(tf1.size(), 0);
-        tf1 = tf;
+        TensorField tf1(tf);
+        TensorField tf2(cell_domain);
+        tf1 = tf2;
         EXPECT_EQ(tf1.size(), tf.size());
+        const auto *pstate = &tf1.getState();
         for (size_t i = 0; i < tf.size(); ++i) {
             EXPECT_NE(tf[i].getBlockPtr(), tf1[i].getBlockPtr());
+            EXPECT_NE(tf1[i].getBlockPtr(), tf2[i].getBlockPtr());
+            EXPECT_NE(tf[i].getBlockPtr(), tf1[i].getBlockPtr());
             EXPECT_NE(&tf[i].getState(), &tf1[i].getState());
+            EXPECT_EQ(pstate, &tf1[i].getState());
         }
     }
 
@@ -1187,11 +980,12 @@ TEST(TensorField, Construction)
         TensorField tf1(std::move(tf));
         EXPECT_EQ(tf.size(), 0);
         EXPECT_EQ(tf1.size(), tv.size());
+        const auto *pstate = &tf1.getState();
         for (size_t i = 0; i < tf.size(); ++i) {
             EXPECT_NE(tv[i].getBlockPtr(), tf1[i].getBlockPtr());
             EXPECT_NE(&tv[i].getState(), &tf1[i].getState());
+            EXPECT_EQ(pstate, &tf1[i].getState());
         }
-
         tf = tf_copy;
     }
 
@@ -1199,22 +993,136 @@ TEST(TensorField, Construction)
         using FieldView = Block::FieldView<TensorField>;
         TensorField tf_copy(tf);
         FieldView tv(tf);
-        TensorField tf1;
+        TensorField tf1(cell_domain);
         tf1 = std::move(tf);
         EXPECT_EQ(tf.size(), 0);
         EXPECT_EQ(tf1.size(), tv.size());
+        const auto *pstate = &tf1.getState();
         for (size_t i = 0; i < tf.size(); ++i) {
             EXPECT_NE(tv[i].getBlockPtr(), tf1[i].getBlockPtr());
             EXPECT_NE(&tv[i].getState(), &tf1[i].getState());
+            EXPECT_EQ(pstate, &tf1[i].getState());
+        }
+        tf = tf_copy;
+    }
+}
+
+TEST(FaceContainer, Construction)
+{
+    using FaceField =
+        Block::FaceContainer<Block::Field<double, EntityType::Face, 3>>;
+    using IRange = typename FaceField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    FaceField ff(cell_domain);
+    EXPECT_EQ(ff.size(), CUBISM_DIMENSION);
+    const auto *pstate = &ff.getState();
+    for (auto c : ff) {
+        EXPECT_EQ(&c->getState(), pstate);
+    }
+
+    { // low-level
+        FaceField ff_copy(ff, FaceField::BlockDataType::MemoryOwner::Yes);
+        EXPECT_EQ(ff_copy.size(), ff.size());
+        const auto *pstate = &ff_copy.getState();
+        for (auto c : ff_copy) {
+            EXPECT_EQ(&c->getState(), pstate);
+        }
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(ff[i].getBlockPtr(), ff_copy[i].getBlockPtr());
+            EXPECT_NE(&ff[i].getState(), &ff_copy[i].getState());
+        }
+    }
+
+    { // copy construction
+        FaceField ff1(ff);
+        EXPECT_EQ(ff1.size(), ff.size());
+        const auto *pstate = &ff1.getState();
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(ff[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(&ff[i].getState(), &ff1[i].getState());
+            EXPECT_EQ(pstate, &ff1[i].getState());
+        }
+    }
+
+    { // copy assignment
+        FaceField ff1(ff);
+        FaceField ff2(cell_domain);
+        ff1 = ff2;
+        EXPECT_EQ(ff1.size(), ff.size());
+        EXPECT_EQ(ff1.size(), ff2.size());
+        const auto *pstate = &ff1.getState();
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(ff[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(ff1[i].getBlockPtr(), ff2[i].getBlockPtr());
+            EXPECT_NE(&ff[i].getState(), &ff1[i].getState());
+            EXPECT_NE(&ff1[i].getState(), &ff2[i].getState());
+            EXPECT_EQ(pstate, &ff1[i].getState());
+        }
+    }
+
+    { // move construction
+        using FieldView = Block::FieldView<FaceField>;
+        FaceField ff_copy(ff);
+        FieldView fv(ff);
+        FaceField ff1(std::move(ff));
+        EXPECT_EQ(ff.size(), 0);
+        EXPECT_EQ(ff1.size(), fv.size());
+        const auto *pstate = &ff1.getState();
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(&fv[i].getState(), &ff1[i].getState());
+            EXPECT_EQ(pstate, &ff1[i].getState());
         }
 
-        tf = tf_copy;
+        ff = ff_copy;
+    }
+
+    { // move assignment
+        using FieldView = Block::FieldView<FaceField>;
+        FaceField ff_copy(ff);
+        FieldView fv(ff);
+        FaceField ff1(cell_domain);
+        ff1 = std::move(ff);
+        EXPECT_EQ(ff.size(), 0);
+        EXPECT_EQ(ff1.size(), fv.size());
+        const auto *pstate = &ff1.getState();
+        for (size_t i = 0; i < ff.size(); ++i) {
+            EXPECT_NE(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(&fv[i].getState(), &ff1[i].getState());
+            EXPECT_EQ(pstate, &ff1[i].getState());
+        }
+
+        ff = ff_copy;
+    }
+}
+
+TEST(FaceContainer, TensorConstruction)
+{
+    using TensorField =
+        Block::TensorField<double, 2, Cubism::EntityType::Face, 3>;
+    using FaceField = Block::FaceContainer<TensorField>;
+    using IRange = typename FaceField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    FaceField ff(cell_domain);
+    EXPECT_EQ(ff.size(), CUBISM_DIMENSION);
+    const auto *pstate = &ff.getState();
+    for (auto f : ff) { // individual face directions
+        EXPECT_EQ(&f->getState(), pstate);
+        for (auto c : *f) { // tensor components for each f
+            EXPECT_EQ(&c->getState(), pstate);
+        }
     }
 }
 
 TEST(FieldView, Construction)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 3>>;
+    using CellField = Block::Field<double, EntityType::Cell, 3>; // 3D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using FieldView = Block::FieldView<CellField>;
@@ -1231,7 +1139,7 @@ TEST(FieldView, Construction)
 
 TEST(FieldView, Copy)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 3>>;
+    using CellField = Block::Field<double, EntityType::Cell, 3>; // 3D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using FieldView = Block::FieldView<CellField>;

@@ -84,15 +84,16 @@ TEST(Cartesian, Construction)
         EXPECT_EQ(grid.size(), nblocks.prod());
         EXPECT_EQ(grid.getSize(), nblocks);
         for (auto bf : grid) {      // tensor block field in grid
-            for (auto c : *bf) {    // tensor field component
-                for (auto d : *c) { // face direction
-                    EXPECT_TRUE(d->isMemoryOwner());
-                    EXPECT_NE(d->getBlockPtr(), nullptr);
-                    EXPECT_EQ(reinterpret_cast<size_t>(d->getBlockPtr()) %
+            for (auto f : *bf) {    // face container component
+                EXPECT_NE(&f->getState(), nullptr);
+                for (auto c : *f) { // tensor field component of face f
+                    EXPECT_TRUE(c->isMemoryOwner());
+                    EXPECT_NE(c->getBlockPtr(), nullptr);
+                    EXPECT_EQ(reinterpret_cast<size_t>(c->getBlockPtr()) %
                                   CUBISM_ALIGNMENT,
                               0);
-                    EXPECT_NE(&(d->getState()), nullptr);
-                    EXPECT_NE((d->getState()).mesh, nullptr);
+                    EXPECT_NE(&(c->getState()), nullptr);
+                    EXPECT_NE((c->getState()).mesh, nullptr);
                 }
             }
         }

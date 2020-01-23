@@ -16,9 +16,6 @@ namespace
 {
 using namespace Cubism;
 
-template <typename T, template <typename> class TAlloc, size_t DIM>
-using CellData = Block::Data<T, EntityType::Cell, DIM, TAlloc<T>>;
-
 TEST(BlockMesh, Field)
 {
     using IRange = Core::IndexRange<3>;
@@ -38,16 +35,12 @@ TEST(BlockMesh, Field)
     const MIndex cells = nblocks * block_cells;
     Mesh m(end, cells, MeshHull::FullMesh);
 
-    // custom field state (rank and comp are required)
+    // custom field state
     struct MyFieldState {
-        size_t rank;
-        size_t comp;
         MIndex idx;
         Mesh *mesh;
     };
-    using CellField =
-        Block::Field<CellData<double, AlignedBlockAllocator, Mesh::Dim>,
-                     MyFieldState>;
+    using CellField = Block::CellField<double, Mesh::Dim, MyFieldState>;
     using FC = Block::FieldContainer<CellField>;
 
     const PointType block_extent = m.getExtent() / PointType(nblocks);

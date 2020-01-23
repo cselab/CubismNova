@@ -7,6 +7,7 @@
 #define CARTESIAN_H_QBSFTWK7
 
 #include "Alloc/AlignedBlockAllocator.h"
+#include "Common.h"
 #include "Grid/BlockFieldAssembler.h"
 #include <cassert>
 
@@ -15,11 +16,11 @@ NAMESPACE_BEGIN(Grid)
 
 /**
  * @brief Cartesian block (tensor) field
- * @tparam TData Field data type
- * @tparam TMesh Mesh type to be associated with fields
- * @tparam TEntity Entity type
+ * @tparam T Field data type
+ * @tparam Mesh Mesh type to be associated with fields
+ * @tparam Entity Entity type
  * @tparam RANK Rank of (tensor) fields
- * @tparam TAlloc Allocator for field data
+ * @tparam Alloc Allocator for field data
  *
  * @rst
  * Cartesian topology composed of block :ref:`field` for the specified entity
@@ -29,16 +30,16 @@ NAMESPACE_BEGIN(Grid)
  * section for a distributed variant of this class.
  * @endrst
  */
-template <typename TData,
-          typename TMesh,
-          Cubism::EntityType TEntity = Cubism::EntityType::Cell,
+template <typename T,
+          typename Mesh,
+          Cubism::EntityType Entity = Cubism::EntityType::Cell,
           size_t RANK = 0,
-          template <typename> class TAlloc = AlignedBlockAllocator>
+          template <typename> class Alloc = AlignedBlockAllocator>
 class Cartesian
 {
 public:
     /** @brief Type of mesh */
-    using MeshType = TMesh;
+    using MeshType = Mesh;
     /** @brief Index range type */
     using IndexRangeType = typename MeshType::IndexRangeType;
     /** @brief Type for higher dimensional index */
@@ -61,10 +62,6 @@ public:
      * @endrst
      */
     struct FieldState {
-        /** @brief Tensor rank of field associated to the state */
-        size_t rank;
-        /** @brief Component of associated field */
-        size_t comp;
         /** @brief Block index */
         MultiIndex idx;
         /** @brief Block mesh */
@@ -76,15 +73,13 @@ protected:
     using MeshHull = typename MeshType::MeshHull;
     /** @brief Type of block assembler */
     using Assembler =
-        BlockFieldAssembler<TEntity, TData, FieldState, MeshType, RANK>;
-    /** @brief Field type of components in main tensor field */
-    using FieldBaseType = typename Assembler::FieldBaseType;
+        BlockFieldAssembler<T, RANK, Entity, FieldState, MeshType>;
 
 public:
-    /** @brief Block (tensor) field type */
-    using FieldType = typename Assembler::FieldType;
+    /** @brief Block (scalar, tensor, face) field type */
+    using BaseType = typename Assembler::BaseType;
     /** @brief Data type of carried fields */
-    using DataType = typename FieldType::DataType;
+    using DataType = typename Assembler::DataType;
     /** @brief Container type for field views */
     using FieldContainer = typename Assembler::FieldContainer;
 
@@ -93,9 +88,9 @@ public:
     /** @brief Field rank */
     static constexpr size_t Rank = RANK;
     /** @brief Number of field components */
-    static constexpr size_t NComponents = FieldType::NComponents;
+    static constexpr size_t NComponents = BaseType::NComponents;
     /** @brief Entity type of field */
-    static constexpr typename Cubism::EntityType EntityType = TEntity;
+    static constexpr typename Cubism::EntityType EntityType = Entity;
 
     /**
      * @brief Default constructor (empty topology)
@@ -137,14 +132,14 @@ public:
      * @param c Other Cartesian topology of same type
      *
      * @rst
-     * This copies ``FieldType::BaseType`` data only.
+     * This copies the block data only.
      * @endrst
      */
     Cartesian &operator=(const Cartesian &c)
     {
         assert(size() == c.size());
         for (size_t i = 0; i < c.size(); ++i) {
-            assembler_.tensor_fields[i].copyData(c.assembler_.tensor_fields[i]);
+            assembler_.fields[i].copyData(c.assembler_.fields[i]);
         }
     }
 
@@ -162,62 +157,56 @@ public:
         typename FieldContainer::const_reverse_iterator;
 
     /** @return Iterator to first block field */
-    iterator begin() noexcept { return assembler_.tensor_fields.begin(); }
+    iterator begin() noexcept { return assembler_.fields.begin(); }
     /** @return Iterator to first block field */
     const_iterator begin() const noexcept
     {
-        return const_iterator(assembler_.tensor_fields.begin());
+        return const_iterator(assembler_.fields.begin());
     }
     /** @return Iterator to last block field */
-    iterator end() noexcept { return assembler_.tensor_fields.end(); }
+    iterator end() noexcept { return assembler_.fields.end(); }
     /** @return Iterator to last block field */
     const_iterator end() const noexcept
     {
-        return const_iterator(assembler_.tensor_fields.end());
+        return const_iterator(assembler_.fields.end());
     }
     /** @return Reverse iterator to first block field */
-    reverse_iterator rbegin() noexcept
-    {
-        return assembler_.tensor_fields.rbegin();
-    }
+    reverse_iterator rbegin() noexcept { return assembler_.fields.rbegin(); }
     /** @return Reverse iterator to first block field */
     const_reverse_iterator rbegin() const noexcept
     {
-        return const_reverse_iterator(assembler_.tensor_fields.rbegin());
+        return const_reverse_iterator(assembler_.fields.rbegin());
     }
     /** @return Reverse iterator to last block field */
-    reverse_iterator rend() noexcept { return assembler_.tensor_fields.rend(); }
+    reverse_iterator rend() noexcept { return assembler_.fields.rend(); }
     /** @return Reverse iterator to last block field */
     const_reverse_iterator rend() const noexcept
     {
-        return const_reverse_iterator(assembler_.tensor_fields.rend());
+        return const_reverse_iterator(assembler_.fields.rend());
     }
     /** @return Iterator to first block field */
     const_iterator cbegin() const noexcept
     {
-        return assembler_.tensor_fields.cbegin();
+        return assembler_.fields.cbegin();
     }
     /** @return Iterator to last block field */
-    const_iterator cend() const noexcept
-    {
-        return assembler_.tensor_fields.cend();
-    }
+    const_iterator cend() const noexcept { return assembler_.fields.cend(); }
     /** @return Reverse iterator to first block field */
     const_reverse_iterator crbegin() const noexcept
     {
-        return assembler_.tensor_fields.crbegin();
+        return assembler_.fields.crbegin();
     }
     /** @return Reverse iterator to last block field */
     const_reverse_iterator crend() const noexcept
     {
-        return assembler_.tensor_fields.crend();
+        return assembler_.fields.crend();
     }
 
     /**
      * @brief Local size of the grid
      * @return Number of block fields in the local grid
      */
-    size_t size() const { return assembler_.tensor_fields.size(); }
+    size_t size() const { return assembler_.fields.size(); }
 
     /**
      * @brief Local size of the grid in all dimensions
@@ -260,7 +249,7 @@ public:
      * The container has type ``Block::FieldContainer``
      * @endrst
      */
-    FieldContainer &getFields() { return assembler_.tensor_fields; }
+    FieldContainer &getFields() { return assembler_.fields; }
 
     /**
      * @brief Field container
@@ -270,13 +259,13 @@ public:
      * The container has type ``Block::FieldContainer``
      * @endrst
      */
-    const FieldContainer &getFields() const { return assembler_.tensor_fields; }
+    const FieldContainer &getFields() const { return assembler_.fields; }
 
     /**
      * @brief Field states
      * @return Reference to vector of field states
      */
-    std::vector<FieldState> &getFieldStates()
+    std::vector<FieldState *> &getFieldStates()
     {
         return assembler_.field_states;
     }
@@ -285,7 +274,7 @@ public:
      * @brief Field states
      * @return ``const`` reference to vector of field states
      */
-    const std::vector<FieldState> &getFieldStates() const
+    const std::vector<FieldState *> &getFieldStates() const
     {
         return assembler_.field_states;
     }
@@ -295,10 +284,10 @@ public:
      * @param p Multi-dimensional block index
      * @return Reference to block field
      */
-    FieldType &operator[](const MultiIndex &p)
+    BaseType &operator[](const MultiIndex &p)
     {
-        assert(assembler_.tensor_fields.size() > 0);
-        return assembler_.tensor_fields[block_range_.getFlatIndex(p)];
+        assert(assembler_.fields.size() > 0);
+        return assembler_.fields[block_range_.getFlatIndex(p)];
     }
 
     /**
@@ -306,10 +295,10 @@ public:
      * @param p Multi-dimensional block index
      * @return ``const`` reference to block field
      */
-    const FieldType &operator[](const MultiIndex &p) const
+    const BaseType &operator[](const MultiIndex &p) const
     {
-        assert(assembler_.tensor_fields.size() > 0);
-        return assembler_.tensor_fields[block_range_.getFlatIndex(p)];
+        assert(assembler_.fields.size() > 0);
+        return assembler_.fields[block_range_.getFlatIndex(p)];
     }
 
     /**
@@ -317,11 +306,11 @@ public:
      * @param i One-dimensional block index
      * @return Reference to block field
      */
-    FieldType &operator[](const size_t i)
+    BaseType &operator[](const size_t i)
     {
-        assert(assembler_.tensor_fields.size() > 0);
-        assert(i < assembler_.tensor_fields.size());
-        return assembler_.tensor_fields[i];
+        assert(assembler_.fields.size() > 0);
+        assert(i < assembler_.fields.size());
+        return assembler_.fields[i];
     }
 
     /**
@@ -329,11 +318,11 @@ public:
      * @param i One-dimensional block index
      * @return ``const`` reference to block field
      */
-    const FieldType &operator[](const size_t i) const
+    const BaseType &operator[](const size_t i) const
     {
-        assert(assembler_.tensor_fields.size() > 0);
-        assert(i < assembler_.tensor_fields.size());
-        return assembler_.tensor_fields[i];
+        assert(assembler_.fields.size() > 0);
+        assert(i < assembler_.fields.size());
+        return assembler_.fields[i];
     }
 
     /**
@@ -379,19 +368,17 @@ protected:
         // the data based on her/his thread partition strategy in the
         // application.
 
-        assert(assembler_.tensor_fields.size() ==
-               assembler_.field_states.size());
-        assert(assembler_.tensor_fields.size() ==
-               assembler_.field_meshes.size());
+        assert(assembler_.fields.size() == assembler_.field_states.size());
+        assert(assembler_.fields.size() == assembler_.field_meshes.size());
     }
 
 private:
-    using BlockData = typename FieldType::BlockDataType;
+    using BlockData = typename Assembler::BlockData;
 
     MeshType *mesh_;
     DataType *data_;
     Assembler assembler_;
-    TAlloc<DataType> blk_alloc_;
+    Alloc<DataType> blk_alloc_;
     size_t block_elements_;
     size_t block_bytes_;
     size_t component_bytes_;
@@ -433,7 +420,7 @@ private:
         }
 
         // total number of bytes
-        all_bytes_ = nfaces * component_bytes_ * FieldType::NComponents;
+        all_bytes_ = nfaces * component_bytes_ * BaseType::NComponents;
 
         // get the allocation
         assert(all_bytes_ > 0);
@@ -461,38 +448,38 @@ private:
     }
 };
 
-template <typename TData,
-          typename TMesh,
-          Cubism::EntityType TEntity,
+template <typename T,
+          typename Mesh,
+          Cubism::EntityType Entity,
           size_t RANK,
           template <typename>
-          class TAlloc>
-constexpr size_t Cartesian<TData, TMesh, TEntity, RANK, TAlloc>::Dim;
+          class Alloc>
+constexpr size_t Cartesian<T, Mesh, Entity, RANK, Alloc>::Dim;
 
-template <typename TData,
-          typename TMesh,
-          Cubism::EntityType TEntity,
+template <typename T,
+          typename Mesh,
+          Cubism::EntityType Entity,
           size_t RANK,
           template <typename>
-          class TAlloc>
-constexpr size_t Cartesian<TData, TMesh, TEntity, RANK, TAlloc>::Rank;
+          class Alloc>
+constexpr size_t Cartesian<T, Mesh, Entity, RANK, Alloc>::Rank;
 
-template <typename TData,
-          typename TMesh,
-          Cubism::EntityType TEntity,
+template <typename T,
+          typename Mesh,
+          Cubism::EntityType Entity,
           size_t RANK,
           template <typename>
-          class TAlloc>
-constexpr size_t Cartesian<TData, TMesh, TEntity, RANK, TAlloc>::NComponents;
+          class Alloc>
+constexpr size_t Cartesian<T, Mesh, Entity, RANK, Alloc>::NComponents;
 
-template <typename TData,
-          typename TMesh,
-          Cubism::EntityType TEntity,
+template <typename T,
+          typename Mesh,
+          Cubism::EntityType Entity,
           size_t RANK,
           template <typename>
-          class TAlloc>
+          class Alloc>
 constexpr typename Cubism::EntityType
-    Cartesian<TData, TMesh, TEntity, RANK, TAlloc>::EntityType;
+    Cartesian<T, Mesh, Entity, RANK, Alloc>::EntityType;
 
 NAMESPACE_END(Grid)
 NAMESPACE_END(Cubism)

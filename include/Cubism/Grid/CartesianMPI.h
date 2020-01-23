@@ -6,6 +6,7 @@
 #ifndef CARTESIANMPI_H_INHL4O2K
 #define CARTESIANMPI_H_INHL4O2K
 
+#include "Common.h"
 #include "Core/Vector.h"
 #include "Grid/Cartesian.h"
 #include <cassert>
@@ -18,11 +19,11 @@ NAMESPACE_BEGIN(Grid)
  * @addtogroup MPI
  * @{
  * @brief Cartesian MPI block (tensor) field
- * @tparam TData Field data type
- * @tparam TMesh Mesh type to be associated with fields
- * @tparam TEntity Entity type
+ * @tparam T Field data type
+ * @tparam Mesh Mesh type to be associated with fields
+ * @tparam Entity Entity type
  * @tparam RANK Rank of (tensor) fields
- * @tparam TAlloc Allocator for field data
+ * @tparam Alloc Allocator for field data
  *
  * @rst
  * Cartesian topology composed of block :ref:`field` for the specified entity
@@ -32,16 +33,15 @@ NAMESPACE_BEGIN(Grid)
  * :ref:`cartesian` grid section for a non-distributed variant of this class.
  * @endrst
  */
-template <typename TData,
-          typename TMesh,
-          Cubism::EntityType TEntity = Cubism::EntityType::Cell,
+template <typename T,
+          typename Mesh,
+          Cubism::EntityType Entity = Cubism::EntityType::Cell,
           size_t RANK = 0,
-          template <typename> class TAlloc = AlignedBlockAllocator>
+          template <typename> class Alloc = AlignedBlockAllocator>
 class CartesianMPI
-    : public Cubism::Grid::Cartesian<TData, TMesh, TEntity, RANK, TAlloc>
+    : public Cubism::Grid::Cartesian<T, Mesh, Entity, RANK, Alloc>
 {
-    using BaseType =
-        Cubism::Grid::Cartesian<TData, TMesh, TEntity, RANK, TAlloc>;
+    using BaseType = Cubism::Grid::Cartesian<T, Mesh, Entity, RANK, Alloc>;
     using IntVec = typename Core::Vector<int, BaseType::Dim>;
 
     using BaseType::block_cells_;
@@ -52,7 +52,6 @@ public:
     using typename BaseType::DataType;
     using typename BaseType::FieldContainer;
     using typename BaseType::FieldState;
-    using typename BaseType::FieldType;
     using typename BaseType::IndexRangeType;
     using typename BaseType::MeshType;
     using typename BaseType::MultiIndex;

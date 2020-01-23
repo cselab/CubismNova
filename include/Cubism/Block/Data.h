@@ -342,6 +342,12 @@ public:
      */
     bool isMemoryOwner() const { return static_cast<bool>(owner_); }
 
+    /**
+     * @brief Get memory ownership
+     * @return Enumeration type describing the memory ownership
+     */
+    MemoryOwner getMemoryOwnership() const { return owner_; }
+
 protected:
     const IndexRangeType range_; // range of DIM-dimensional data
     const MemoryOwner owner_;    // owns memory
