@@ -1661,8 +1661,13 @@ constexpr Cubism::EntityType FaceContainer<TField>::EntityType;
  * @brief Field view type
  * @tparam TField Field type
  *
+ * @rst
  * Provides a view (shallow copy) for scalar fields, tensor fields or face field
  * containers.  The corresponding field interface is inherited.
+
+ * .. note:: A view type never owns memory.
+
+ * @endrst
  */
 template <typename TField>
 class FieldView : public TField

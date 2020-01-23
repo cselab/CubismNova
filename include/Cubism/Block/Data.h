@@ -90,20 +90,18 @@ public:
     static_assert(std::is_same<DataType, T>::value,
                   "Block allocator data type does not match type T");
 
-    /**
-     * @brief Specifies memory ownership
-     *
-     * @rst
-     * .. note:: A view type will never own memory.
-     * @endrst
-     */
+    /** @brief Specifies memory ownership */
     enum class MemoryOwner { No = 0, Yes };
 
+    /** @brief Specifies entity type of data */
     static constexpr Cubism::EntityType EntityType = Entity;
 
     /**
      * @brief Base constructor for single block allocation
-     * @param r Index range of data (defines spatial dimensionality of data)
+     * @param r Index range of data
+     *
+     * The index range defines the spatial dimensionality of the data.  The
+     * block memory is touched by the thread that calls the constructor.
      */
     explicit Data(const IndexRangeType &r)
         : BaseType(), range_(r), owner_(MemoryOwner::Yes),
@@ -117,8 +115,10 @@ public:
 
     /**
      * @brief General purpose copy-constructor mainly for data views.
-     * @param c Right hand side
-     * @param owner Memory ownership.  MemoryOwner::No for views
+     * @param c Data block to copy from
+     * @param owner Memory ownership
+     *
+     * The block memory is touched by the thread that calls the constructor.
      */
     Data(const Data &c, const MemoryOwner owner)
         : BaseType(), range_(c.range_), owner_(owner), external_memory_(false),
@@ -137,9 +137,16 @@ public:
      * @brief Low-level constructor for externally managed memory
      * @param r Index range of data pointed to by ptr
      * @param ptr Block data pointer to first element
-     * @param bytes Number of bytes of block data.  This may be larger than the
-     *              minimum required data specified by the index range!
+     * @param bytes Number of bytes of block data.
+     *
+     * @rst
      * The block owns the memory but does not deallocate it at destruction.
+     *
+     * .. note::
+     *    This may be larger than the  minimum required data specified by the
+     *    index range!
+     *
+     * @endrst
      */
     Data(const IndexRangeType &r, DataType *ptr, const size_t bytes)
         : BaseType(), range_(r), owner_(MemoryOwner::Yes),
@@ -148,9 +155,11 @@ public:
     }
 
     /**
-     * @brief Copy constructor. Depending on ownership of memory, copy is deep
-     *        or shallow. Relevant for views.
-     * @param c Right hand side
+     * @brief Copy constructor
+     * @param c Block data to copy from
+     *
+     * Depending on ownership of the memory, copy is deep or shallow. Relevant
+     * for views.
      */
     Data(const Data &c)
         : BaseType(), range_(c.range_), owner_(c.owner_),
@@ -166,9 +175,11 @@ public:
     }
 
     /**
-     * @brief Move constructor. Move constructions are always shallow.
-     *        Ownership of the memory is inherited from the source.
-     * @param c Right hand side
+     * @brief Move constructor
+     * @param c Block data to copy from
+     *
+     * Move constructions are always shallow.  Ownership of the memory is
+     * inherited from the source.
      */
     Data(Data &&c) noexcept
         : BaseType(), range_(std::move(c.range_)), owner_(c.owner_),
@@ -205,18 +216,24 @@ public:
     size_t getBlockSize() const override { return range_.size(); }
 
     /**
-     * @brief Returns pointer to first data element
+     * @brief Get pointer to data
+     * @return Pointer to first data element
      */
     DataType *getData() { return block_; }
 
     /**
-     * @brief Returns const pointer to first data element
+     * @brief Get pointer to data
+     * @return ``const`` pointer to first data element
      */
     const DataType *getData() const { return block_; }
 
     /**
-     * @brief Copy assignment operator. Depending on ownership of memory, copy
-     *        is deep or shallow. Relevant for views.
+     * @brief Copy assignment operator
+     * @param c Block data to assign from
+     * @return This instance with updated data
+     *
+     * Depending on ownership of memory, copy is deep or shallow. Relevant for
+     * views.
      */
     Data &operator=(const Data &c)
     {
@@ -232,6 +249,11 @@ public:
 
     /**
      * @brief Move assignment operator
+     * @param c
+     * @return This instance with moved data
+     *
+     * Move constructions are always shallow.  Ownership of the memory is
+     * inherited from the source.
      */
     Data &operator=(Data &&c)
     {
@@ -250,7 +272,9 @@ public:
     }
 
     /**
-     * @brief Linear access of data
+     * @brief Linear data access
+     * @param i Local flat index
+     * @return Reference to data element
      */
     DataType &operator[](size_t i)
     {
@@ -259,7 +283,9 @@ public:
     }
 
     /**
-     * @brief Linear access of data
+     * @brief Linear data access
+     * @param i Local flat index
+     * @return ``const`` reference to data element
      */
     const DataType &operator[](size_t i) const
     {
@@ -268,7 +294,9 @@ public:
     }
 
     /**
-     * @brief General multi-index access operator
+     * @brief Linear data access
+     * @param i Local multi-dimensional index
+     * @return Reference to data element
      */
     DataType &operator[](const MultiIndex &p)
     {
@@ -276,7 +304,9 @@ public:
     }
 
     /**
-     * @brief General multi-index access operator
+     * @brief Linear data access
+     * @param i Local multi-dimensional index
+     * @return ``const`` reference to data element
      */
     const DataType &operator[](const MultiIndex &p) const
     {
@@ -285,6 +315,10 @@ public:
 
     /**
      * @brief Access operator for cases DIM <= 3
+     * @param ix Local flat index along first dimension
+     * @param iy Local flat index along second dimension
+     * @param iz Local flat index along third dimension
+     * @return Reference to data element
      */
     DataType &operator()(size_t ix, size_t iy = 0, size_t iz = 0)
     {
@@ -306,6 +340,10 @@ public:
 
     /**
      * @brief Access operator for cases DIM <= 3
+     * @param ix Local flat index along first dimension
+     * @param iy Local flat index along second dimension
+     * @param iz Local flat index along third dimension
+     * @return ``const`` reference to data element
      */
     const DataType &operator()(size_t ix, size_t iy = 0, size_t iz = 0) const
     {
@@ -326,19 +364,24 @@ public:
     }
 
     /**
-     * @brief Copies the data block in c to *this unconditionally
+     * @brief Deep copy data
+     * @param c Block data to copy from
+     *
+     * Copies data unconditionally.
      */
     void copyData(const Data &c) { copyBlockDeep_(c); }
 
     // TODO: [fabianw@mavt.ethz.ch; 2020-01-01] resize(IndexRangeType) method?
 
     /**
-     * @brief Returns index range that spans the block data
+     * @brief Get index range
+     * @return Index range spanned by the data
      */
     IndexRangeType getIndexRange() const { return range_; }
 
     /**
-     * @brief Returns true if the block memory is owned by this instance
+     * @brief Test for memory ownership
+     * @return True if memory is owned by this instance
      */
     bool isMemoryOwner() const { return static_cast<bool>(owner_); }
 
