@@ -53,10 +53,13 @@ void FieldAOS(const Block::Field<U, V> &f,
     }
 }
 
-/**
- * @brief Copy scalar field data into AoS buffer
- * @tparam U Field type
- * @tparam R Tensor rank
+/** @brief Generic tensor field
+ * @tparam T Field data type
+ * @tparam RANK Tensor rank
+ * @tparam ET Entity type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator
  * @param tf Source tensor field
  * @param r Index space for the copy (describes the memory region of buf)
  * @param buf Destination buffer
@@ -64,13 +67,23 @@ void FieldAOS(const Block::Field<U, V> &f,
  * Copy the data from a structure of arrays (SoA) field into an array of
  * structures (AoS) buffer for I/O operation.  This is a low-level function
  * which can be used in high-level I/O interfaces.
- */
-template <typename U, size_t R>
-void FieldAOS(const Block::TensorField<U, R> &tf,
-              const typename Block::TensorField<U, R>::IndexRangeType &r,
-              typename Block::TensorField<U, R>::DataType *buf)
+ * */
+template <typename T,
+          size_t RANK,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+void FieldAOS(
+    const Block::TensorField<T, RANK, ET, Dimension, State, Alloc> &tf,
+    const typename Block::TensorField<T, RANK, ET, Dimension, State, Alloc>::
+        IndexRangeType &r,
+    typename Block::TensorField<T, RANK, ET, Dimension, State, Alloc>::DataType
+        *buf)
 {
-    using IRange = typename Block::TensorField<U, R>::IndexRangeType;
+    using FieldType = Block::TensorField<T, RANK, ET, Dimension, State, Alloc>;
+    using IRange = typename FieldType::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
     // get index space intersection.  The IRange r must be relative to the
@@ -82,7 +95,7 @@ void FieldAOS(const Block::TensorField<U, R> &tf,
     const MIndex offset = base - tf[0].getIndexRange().getBegin();
 
     // iterate over local (sub) index space and copy into buf
-    constexpr size_t Nc = Block::TensorField<U, R>::NComponents;
+    constexpr size_t Nc = FieldType::NComponents;
     for (const auto &p : indices) {
         const size_t i = r.getFlatIndexFromGlobal(base + p);
         const size_t j = tf[0].getIndexRange().getFlatIndex(offset + p);

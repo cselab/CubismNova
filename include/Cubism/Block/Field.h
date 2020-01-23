@@ -41,19 +41,22 @@ struct FieldState {
 // class FieldUnit // for physical units of carried data
 
 /**
- * @brief Block field base class
+ * @brief Block scalar field base class
  * @tparam TBlockData Block data type
  * @tparam TState Field state type
  *
  * @rst
- * Generic block field type used by :ref:`grid` classes to compose a certain
- * topology of block fields.
+ * Generic block scalar field type used by :ref:`grid` classes to compose a
+ * certain topology of block fields.
  * @endrst
  */
 template <typename TBlockData, typename TState = FieldState>
 class Field : public TBlockData
 {
 protected:
+    template <typename U>
+    using NestedVector = std::vector<std::vector<U>>; // simplifies construction
+
     using TBlockData::block_;
     using TBlockData::range_;
 
@@ -154,6 +157,8 @@ public:
     static constexpr size_t Rank = 0;
     static constexpr size_t NComponents = 1;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
+    static_assert(IndexRangeType::Dim > 0,
+                  "Dimension must be greater than zero");
 
     Field() = delete;
 
@@ -164,64 +169,95 @@ public:
      */
     explicit Field(const IndexRangeType &r,
                    const FieldStateType &fs = FieldStateType())
-        : BaseType(r), state_(new FieldStateType())
+        : BaseType(r), is_subfield_(false), state_(new FieldStateType())
     {
         *state_ = fs;
     }
 
     /**
-     * @brief Copy constructor for deep and shallow copies
+     * @brief Low-level field constructor (for higher rank tensors)
+     * @param r Index range that spans the data
+     * @param pfs Field state pointer (externally managed)
+     */
+    explicit Field(const IndexRangeType &r, FieldStateType *pfs)
+        : BaseType(r), is_subfield_(true), state_(pfs)
+    {
+    }
+
+    /**
+     * @brief Low-level copy constructor for deep and shallow copies
      * @param f Field to be copied
-     * @param o Memory ownership (Data::MemoryOwner::Yes = copy deep)
+     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
      */
     Field(const Field &f, const typename BaseType::MemoryOwner o)
-        : BaseType(f, o)
+        : BaseType(f, o), is_subfield_(false), state_(nullptr)
     {
-        if (this->isMemoryOwner()) {
+        if (!is_subfield_ && this->isMemoryOwner()) {
             state_ = new FieldStateType();
         }
         copyState_(f);
     }
 
     /**
-     * @brief Low-level constructor for external memory
-     * @param r Index range that is spanned by ptr
-     * @param ptr Block data pointer
-     * @param bytes Number of bytes in block data
-     * @param sptr Field state pointer
+     * @brief Low-level copy constructor for deep and shallow copies (for higher
+     * rank tensors)
+     * @param f Field to be copied
+     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
+     * @param pfs External field state
      */
-    Field(const IndexRangeType &r,
-          DataType *ptr,
-          const size_t bytes,
-          FieldStateType *sptr)
-        : BaseType(r, ptr, bytes), state_(sptr)
+    Field(const Field &f,
+          const typename BaseType::MemoryOwner o,
+          FieldStateType *pfs)
+        : BaseType(f, o), is_subfield_(true), state_(pfs)
     {
     }
 
     /**
-     * @brief Low-level constructor for external memory
+     * @brief Low-level constructor for external memory management
      * @param range_list Vector of index range
      * @param ptr_list Vector of block data pointer
      * @param bytes_list Number of bytes pointed to by pointer in ptr_list
      * @param state_list Vector of field state pointer
+     * @param subfield Subfield component indicator
+     *
+     * The nested vector data structure is used to simplify the interface
+     * between scalar fields, tensor fields and face field containers.  A
+     * subfield component applies to higher rank tensors and face field
+     * containers which share the field state among each others.
      */
-    Field(const std::vector<IndexRangeType> &range_list,
-          const std::vector<DataType *> &ptr_list,
-          const std::vector<size_t> &bytes_list,
-          const std::vector<FieldStateType *> &state_list)
-        : BaseType(range_list[0], ptr_list[0], bytes_list[0]),
-          state_(state_list[0])
+    Field(const NestedVector<IndexRangeType> &range_list,
+          const NestedVector<DataType *> &ptr_list,
+          const NestedVector<size_t> &bytes_list,
+          const NestedVector<FieldStateType *> &state_list,
+          const bool subfield = false)
+        : BaseType(range_list[0][0], ptr_list[0][0], bytes_list[0][0]),
+          is_subfield_(subfield), state_(state_list[0][0])
     {
+        // outer
         assert(range_list.size() == 1);
+        assert(ptr_list.size() == 1);
+        assert(bytes_list.size() == 1);
+        assert(state_list.size() == 1);
+
+        // inner
+        assert(range_list[0].size() == 1);
+        assert(ptr_list[0].size() == 1);
+        assert(bytes_list[0].size() == 1);
+        assert(state_list[0].size() == 1);
     }
 
     /**
-     * @brief Standard copy constructor
+     * @brief Standard copy constructor for a scalar field
      * @param c Field to copy from
+     *
+     * This constructor is not designed to be used with individual components of
+     * a rank > 0 tensor or face containers.  The copy constructors of these
+     * data structures should be used instead (unless you know what you do).
      */
-    Field(const Field &c) : BaseType(c)
+    Field(const Field &c)
+        : BaseType(c), is_subfield_(c.is_subfield_), state_(nullptr)
     {
-        if (this->isMemoryOwner()) {
+        if (!is_subfield_ && this->isMemoryOwner()) {
             state_ = new FieldStateType();
         }
         copyState_(c);
@@ -232,7 +268,8 @@ public:
      * @param c Field to move from
      */
     Field(Field &&c) noexcept
-        : BaseType(std::move(c)), state_(std::move(c.state_))
+        : BaseType(std::move(c)), is_subfield_(c.is_subfield_),
+          state_(std::move(c.state_))
     {
         c.state_ = nullptr;
     }
@@ -242,7 +279,7 @@ public:
      */
     ~Field() override
     {
-        if (this->external_memory_) {
+        if (is_subfield_ || !this->isMemoryOwner()) {
             // state is not deallocated in the case of externally managed memory
             state_ = nullptr;
         }
@@ -258,7 +295,11 @@ public:
     {
         assert(range_.size() == c.range_.size());
         if (this != &c) {
-            copyState_(c);
+            if (!is_subfield_) {
+                copyState_(c);
+            } else if (is_subfield_ && !this->isMemoryOwner()) {
+                state_ = c.state_;
+            }
             BaseType::operator=(c);
         }
         return *this;
@@ -274,7 +315,7 @@ public:
         assert(range_.size() == c.range_.size());
         if (this != &c) {
             BaseType::operator=(std::move(c));
-            if (this->external_memory_) {
+            if (is_subfield_ || !this->isMemoryOwner()) {
                 // state is not deallocated in the case of externally managed
                 // memory
                 state_ = nullptr;
@@ -335,12 +376,12 @@ public:
      */
     bool isScalar() const { return (0 == Rank); }
     /**
-     * @brief Access to field state
+     * @brief Get field state
      * @return Non-const reference to state
      */
     FieldStateType &getState() { return *state_; }
     /**
-     * @brief Access to field state
+     * @brief Get field state
      * @return ``const`` reference to state
      */
     const FieldStateType &getState() const { return *state_; }
@@ -460,7 +501,13 @@ public:
     }
 
 private:
-    FieldStateType *state_; // Field state values/meta data
+    const bool is_subfield_; // Indicates whether this field is a sub-field of a
+                             // rank > 0 tensor.
+                             // Example: rank = 1 tensor
+                             // tensor_component[0]: is_subfield_ = false
+                             // tensor_component[1]: is_subfield_ = true
+                             // tensor_component[n]: is_subfield_ = true
+    FieldStateType *state_;  // Field state values/meta data
 
     /**
      * @brief Deallocate state data
@@ -502,34 +549,34 @@ constexpr Cubism::EntityType Field<TBlockData, TState>::EntityType;
 /**
  * @brief Basic cell-centered data field
  * @tparam T Data type (must be POD)
- * @tparam State State type
  * @tparam Dimension
+ * @tparam State State type
  * @tparam Alloc Allocator type
  */
 template <typename T,
-          typename State = FieldState,
           size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
 using CellField = Field<Data<T, EntityType::Cell, Dimension, Alloc<T>>, State>;
 
 /**
  * @brief Basic node-centered data field
  * @tparam T Data type (must be POD)
- * @tparam State State type
  * @tparam Dimension
+ * @tparam State State type
  * @tparam Alloc Allocator type
  */
 template <typename T,
-          typename State = FieldState,
           size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
 using NodeField = Field<Data<T, EntityType::Node, Dimension, Alloc<T>>, State>;
 
 /**
  * @brief Basic face-centered data field.
  * @tparam T Data type (must be POD)
- * @tparam State State type
  * @tparam Dimension
+ * @tparam State State type
  * @tparam Alloc Allocator type
  *
  * @rst
@@ -539,8 +586,8 @@ using NodeField = Field<Data<T, EntityType::Node, Dimension, Alloc<T>>, State>;
  * @endrst
  */
 template <typename T,
-          typename State = FieldState,
           size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
 using FaceField = Field<Data<T, EntityType::Face, Dimension, Alloc<T>>, State>;
 
@@ -587,12 +634,33 @@ public:
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
     using MemoryOwner = typename TField::BaseType::MemoryOwner;
+    using ContainerType = std::vector<BaseType *>;
 
 private:
-    using ContainerType = std::vector<BaseType *>;
     using FieldStateType = typename FieldType::FieldStateType;
 
 public:
+    /**
+     * @brief Default constructor
+     */
+    FieldContainer() = default;
+
+    /**
+     * @brief Standard constructor for field container
+     * @param n Number of components
+     * @param r Index range spanned by field data
+     * @param fs Field state initial value
+     */
+    FieldContainer(const size_t n,
+                   const IndexRangeType &r,
+                   const FieldStateType &fs = FieldStateType())
+        : components_(n, nullptr)
+    {
+        for (size_t i = 0; i < n; ++i) {
+            components_[i] = new FieldType(r, fs);
+        }
+    }
+
     /**
      * @brief Construct from a list of pointers
      * @param vf Vector of pointers to underlying type (may be ``nullptr``)
@@ -605,86 +673,6 @@ public:
             if (comp) {
                 components_[i] = new BaseType(*comp);
             }
-        }
-    }
-
-    /**
-     * @brief Copy constructor for deep and shallow copies
-     * @param fc Field container to be copied
-     * @param o Memory ownership (``Data::MemoryOwner::Yes`` = copy deep)
-     */
-    FieldContainer(const FieldContainer &fc, const MemoryOwner o)
-        : components_(fc.size(), nullptr)
-    {
-        for (size_t i = 0; i < fc.size(); ++i) {
-            const BaseType *comp = fc.components_[i];
-            if (comp) {
-                components_[i] = new BaseType(*comp, o);
-            }
-        }
-    }
-
-    /**
-     * @brief Standard constructor for field container (allocates new fields)
-     * @param n Number of components
-     * @param r Index range spanned by field data
-     * @param rank Rank of field
-     */
-    FieldContainer(const size_t n,
-                   const IndexRangeType &r,
-                   const size_t rank = 0)
-        : components_(n, nullptr)
-    {
-        FieldStateType fs;
-        fs.rank = rank;
-        for (size_t i = 0; i < n; ++i) {
-            fs.comp = i;
-            components_[i] = new FieldType(r, fs);
-        }
-    }
-
-    /**
-     * @brief Low-level constructor for external memory
-     * @param r Index range that is spanned by ``ptr``
-     * @param ptr Block data pointer
-     * @param bytes Number of bytes in block data
-     * @param sptr Field state pointer
-     * @param size Size of container
-     */
-    FieldContainer(const IndexRangeType &r,
-                   DataType *ptr,
-                   const size_t bytes,
-                   FieldStateType *sptr,
-                   const size_t size)
-        : components_(size, nullptr)
-    {
-        for (size_t i = 0; i < components_.size(); ++i) {
-            assert(ptr != nullptr);
-            components_[i] = new FieldType(r, ptr, bytes, sptr);
-        }
-    }
-
-    /**
-     * @brief Low-level constructor for external memory
-     * @param range_list Vector of index ranges for each component
-     * @param ptr_list Vector of block data pointer corresponding to
-     * ``range_list``
-     * @param bytes_list Number of bytes pointed to by pointer in ``ptr_list``
-     * @param state_list Vector of field state pointers for each component
-     */
-    FieldContainer(const std::vector<IndexRangeType> &range_list,
-                   const std::vector<DataType *> &ptr_list,
-                   const std::vector<size_t> &bytes_list,
-                   const std::vector<FieldStateType *> &state_list)
-        : components_(ptr_list.size(), nullptr)
-    {
-        assert(range_list.size() == ptr_list.size());
-        assert(ptr_list.size() == bytes_list.size());
-        for (size_t i = 0; i < ptr_list.size(); ++i) {
-            DataType *data = ptr_list[i];
-            assert(data != nullptr);
-            components_[i] = new FieldType(
-                range_list[i], data, bytes_list[i], state_list[i]);
         }
     }
 
@@ -711,11 +699,6 @@ public:
     {
         c.components_.clear();
     }
-
-    /**
-     * @brief Default constructor
-     */
-    FieldContainer() = default;
 
     /**
      * @brief Virtual destructor
@@ -865,6 +848,18 @@ public:
     size_t size() const { return components_.size(); }
 
     /**
+     * @brief Get container of raw data
+     * @return STL vector with ``BaseType`` pointers
+     */
+    ContainerType &getContainer() { return components_; }
+
+    /**
+     * @brief Get container of raw data
+     * @return ``const`` STL vector with ``BaseType`` pointers
+     */
+    const ContainerType &getContainer() const { return components_; }
+
+    /**
      * @brief Forced deep copy of underlying fields
      * @param rhs Field container to copy from
      *
@@ -928,6 +923,7 @@ public:
      * @endrst
      */
     BaseType &operator[](const size_t i) { return getComp_(i); }
+
     /**
      * @brief Access to fields
      * @param i Component ID of field to be accessed
@@ -956,6 +952,7 @@ public:
     {
         return getComp_(static_cast<size_t>(t));
     }
+
     /**
      * @brief Generic access to fields.
      * @tparam T Generic index type that defines casting to ``size_t``
@@ -1161,207 +1158,25 @@ private:
 #undef FIELD_CONTAINER_OP_FIELD
 #undef FIELD_CONTAINER_OP_SCALAR
 
-/**
- * @brief Container class for all faces in a ``CUBISM_DIMENSION``-ional problem
- * @tparam T Data type of underlying ``FaceField``
- *
- * @rst
- * The underlying face fields are based on the ``FaceField`` template.  For
- * ``CUBISM_DIMENSION`` in ``{1,2,3}``, the face field for faces with normal in
- * the ``X`` direction can be obtained with ``ff[0]`` or ``ff[Cubism::Dir::X]``
- * for example, where ``ff`` is of type ``FaceContainer``.
- * @endrst
- */
-template <typename T,
-          typename State = FieldState,
-          size_t Dimension = CUBISM_DIMENSION,
-          template <typename> class Alloc = AlignedBlockAllocator>
-class FaceContainer
-    : public FieldContainer<FaceField<T, State, Dimension, Alloc>>
-{
-public:
-    using BaseType = FieldContainer<FaceField<T, State, Dimension, Alloc>>;
-    using typename BaseType::BlockDataType;
-    using typename BaseType::DataType;
-    using typename BaseType::FieldType;
-    using typename BaseType::IndexRangeType;
-    using typename BaseType::MultiIndex;
-    using FieldStateType = typename FieldType::FieldStateType;
-    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
-
-    static constexpr size_t Rank = FieldType::Rank;
-    static constexpr size_t NComponents = FieldType::NComponents;
-    static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
-
-    /**
-     * @brief Main constructor to generate a face field given the
-     * ``cell_domain``
-     * @param cell_domain Index range spanned by the cell domain
-     */
-    explicit FaceContainer(const IndexRangeType &cell_domain)
-    {
-        const MultiIndex cells = cell_domain.getExtent(); // number of cells
-        FieldStateType fs;
-        fs.rank = 0;
-        for (size_t i = 0; i < IndexRangeType::Dim; ++i) {
-            // XXX: [fabianw@mavt.ethz.ch; 2020-01-01] Not most favorable for
-            // vectorization but more intuitive.  Will require some
-            // transposition in vectorized code.
-            const IndexRangeType ri(cells + MultiIndex::getUnitVector(i));
-            fs.comp = i;
-            components_.push_back(new FieldType(ri, fs));
-            assert(components_[i] != nullptr);
-        }
-    }
-
-    /**
-     * @brief Copy constructor for deep and shallow copies
-     * @param ffc Face field container to be copied
-     * @param o Memory ownership (``Data::MemoryOwner::Yes`` = copy deep)
-     */
-    FaceContainer(const FaceContainer &ffc, const MemoryOwner o)
-        : BaseType(ffc, o)
-    {
-#ifndef NDEBUG
-        assert(this->components_.size() == IndexRangeType::Dim);
-        for (auto c : components_) {
-            assert(c != nullptr);
-        }
-#endif /* NDEBUG */
-    }
-
-    /**
-     * @brief Low-level constructor for external memory
-     * @param r Index range that is spanned by ``ptr``
-     * @param ptr Block data pointer
-     * @param bytes Number of bytes in block data
-     * @param sptr Field state pointer
-     */
-    FaceContainer(const IndexRangeType &r,
-                  DataType *ptr,
-                  const size_t bytes,
-                  FieldStateType *sptr)
-        : BaseType(r, ptr, bytes, sptr, IndexRangeType::Dim)
-    {
-#ifndef NDEBUG
-        assert(this->components_.size() == IndexRangeType::Dim);
-        for (auto c : components_) {
-            assert(c != nullptr);
-        }
-#endif /* NDEBUG */
-    }
-
-    /**
-     * @brief Low-level constructor for external memory
-     * @param range_list Vector of index ranges for each component
-     * @param ptr_list Vector of block data pointer corresponding to
-     * ``range_list``
-     * @param bytes_list Number of bytes pointed to by pointer in ``ptr_list``
-     * @param state_list Vector of field state pointers for each component
-     */
-    FaceContainer(const std::vector<IndexRangeType> &range_list,
-                  const std::vector<DataType *> &ptr_list,
-                  const std::vector<size_t> &bytes_list,
-                  const std::vector<FieldStateType *> &state_list)
-        : BaseType(range_list, ptr_list, bytes_list, state_list)
-    {
-#ifndef NDEBUG
-        assert(this->components_.size() == IndexRangeType::Dim);
-        for (auto c : components_) {
-            assert(c != nullptr);
-        }
-#endif /* NDEBUG */
-    }
-
-    /**
-     * @brief Default constructor generates an empty container
-     */
-    FaceContainer() = default;
-    FaceContainer(const FaceContainer &c) = default;
-    FaceContainer(FaceContainer &&c) = default;
-    FaceContainer &operator=(const FaceContainer &c) = default;
-    FaceContainer &operator=(FaceContainer &&c) = default;
-    ~FaceContainer() = default;
-
-    /**
-     * @brief Face field access
-     * @param i Direction index
-     */
-    FieldType &operator[](const size_t i)
-    {
-        assert(i < IndexRangeType::Dim);
-        return *components_[i];
-    }
-
-    /**
-     * @brief Face field access
-     * @param i Direction index
-     */
-    const FieldType &operator[](const size_t i) const
-    {
-        assert(i < IndexRangeType::Dim);
-        return *components_[i];
-    }
-
-    /**
-     * @brief Face field access
-     * @tparam Dir Special type that defines a cast to ``size_t``
-     * @param t Direction of face
-     */
-    template <typename Dir>
-    FieldType &operator[](const Dir &t)
-    {
-        return this->operator[](static_cast<size_t>(t));
-    }
-
-    /**
-     * @brief Face field access
-     * @tparam Dir Special type that defines a cast to ``size_t``
-     * @param t Direction of face
-     */
-    template <typename Dir>
-    const FieldType &operator[](const Dir &t) const
-    {
-        return this->operator[](static_cast<size_t>(t));
-    }
-
-private:
-    using BaseType::components_;
-};
-
-template <typename T,
-          typename State,
-          size_t Dimension,
-          template <typename>
-          class Alloc>
-constexpr size_t FaceContainer<T, State, Dimension, Alloc>::Rank;
-
-template <typename T,
-          typename State,
-          size_t Dimension,
-          template <typename>
-          class Alloc>
-constexpr size_t FaceContainer<T, State, Dimension, Alloc>::NComponents;
-
-template <typename T,
-          typename State,
-          size_t Dimension,
-          template <typename>
-          class Alloc>
-constexpr Cubism::EntityType
-    FaceContainer<T, State, Dimension, Alloc>::EntityType;
-
-/**
- * @brief Generic tensor field
- * @tparam TField Field type
+/** @brief Generic tensor field
+ * @tparam T Field data type
  * @tparam RANK Tensor rank
- */
-template <typename TField, size_t RANK>
-class TensorField : public FieldContainer<TField>
+ * @tparam ET Entity type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator */
+template <typename T,
+          size_t RANK,
+          Cubism::EntityType ET,
+          size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+class TensorField
+    : public FieldContainer<Field<Data<T, ET, Dimension, Alloc<T>>, State>>
 {
 public:
-    using BaseType = FieldContainer<TField>;
-    using TensorComponentType = TField;
+    using BaseType =
+        FieldContainer<Field<Data<T, ET, Dimension, Alloc<T>>, State>>;
     using typename BaseType::BlockDataType;
     using typename BaseType::DataType;
     using typename BaseType::FieldType;
@@ -1379,6 +1194,8 @@ private:
     struct Power<B, 0> {
         static constexpr size_t value = 1;
     };
+    template <typename U>
+    using NestedVector = std::vector<std::vector<U>>; // simplifies construction
     using BaseType::components_;
 
 public:
@@ -1386,52 +1203,178 @@ public:
     static constexpr size_t NComponents =
         Power<IndexRangeType::Dim, RANK>::value;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
+    static_assert(NComponents > 0, "Tensor has zero components");
+    static_assert(IndexRangeType::Dim > 0,
+                  "Dimension must be greater than zero");
+
+    TensorField() = delete;
 
     /**
      * @brief Main constructor to generate a tensor field
      * @param r Index range spanned by the field data
+     * @param fs Field state initial value
      */
-    explicit TensorField(const IndexRangeType &r)
-        : BaseType(NComponents, r, Rank)
+    explicit TensorField(const IndexRangeType &r,
+                         const FieldStateType &fs = FieldStateType())
+        : BaseType()
     {
+        // first component owns the field state
+        FieldType *first = new FieldType(r, fs);
+        FieldStateType *pfs = &first->getState();
+        components_.push_back(first);
+        for (size_t i = 1; i < NComponents; ++i) {
+            components_.push_back(new FieldType(r, pfs));
+        }
     }
 
     /**
-     * @brief Copy constructor for deep and shallow copies
+     * @brief Low-level field constructor (for higher rank tensors)
+     * @param r Index range that spans the data
+     * @param pfs Field state pointer (externally managed)
+     */
+    explicit TensorField(const IndexRangeType &r, FieldStateType *pfs)
+        : BaseType()
+    {
+        for (size_t i = 0; i < NComponents; ++i) {
+            components_.push_back(new FieldType(r, pfs));
+        }
+    }
+
+    /**
+     * @brief Low-level copy constructor for deep and shallow copies
      * @param tfc Tensor field container to be copied
-     * @param o Memory ownership (``Data::MemoryOwner::Yes`` = copy deep)
+     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
      */
-    TensorField(const TensorField &tfc, const MemoryOwner o) : BaseType(tfc, o)
+    TensorField(const TensorField &tfc, const MemoryOwner o) : BaseType()
     {
-        assert(this->components_.size() == NComponents);
+        // first component owns the field state
+        FieldType *first = new FieldType(tfc[0], o);
+        FieldStateType *pfs = &first->getState();
+        components_.push_back(first);
+        for (size_t i = 1; i < NComponents; ++i) {
+            components_.push_back(new FieldType(tfc[i], o, pfs));
+        }
     }
 
     /**
-     * @brief Low-level constructor for external memory
-     * @param range_list Vector of index ranges for each component
-     * @param ptr_list Vector of block data pointer corresponding to
-     * ``range_list``
-     * @param bytes_list Number of bytes pointed to by pointer in ``ptr_list``
-     * @param state_list Vector of field state pointers for each component
+     * @brief Low-level copy constructor for deep and shallow copies (for higher
+     * rank tensors)
+     * @param tfc Tensor field container to be copied
+     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
+     * @param pfs External field state
      */
-    TensorField(const std::vector<IndexRangeType> &range_list,
-                const std::vector<DataType *> &ptr_list,
-                const std::vector<size_t> &bytes_list,
-                const std::vector<FieldStateType *> &state_list)
-        : BaseType(range_list, ptr_list, bytes_list, state_list)
+    TensorField(const TensorField &tfc,
+                const MemoryOwner o,
+                const FieldStateType *pfs)
+        : BaseType()
     {
-        assert(this->components_.size() == NComponents);
+        // first component owns the field state
+        for (size_t i = 0; i < NComponents; ++i) {
+            components_.push_back(new FieldType(tfc[i], o, pfs));
+        }
     }
 
     /**
-     * @brief Default constructor generates an empty container
+     * @brief Low-level constructor for external memory management
+     * @param range_list Vector of index range
+     * @param ptr_list Vector of block data pointer
+     * @param bytes_list Number of bytes pointed to by pointer in ptr_list
+     * @param state_list Vector of field state pointer
+     * @param subfield Subfield component indicator
+     *
+     * The nested vector data structure is used to simplify the interface
+     * between scalar fields, tensor fields and face field containers.  A
+     * subfield component applies to higher rank tensors and face field
+     * containers which share the field state among each others.
      */
-    TensorField() = default;
-    TensorField(const TensorField &c) = default;
+    TensorField(const NestedVector<IndexRangeType> &range_list,
+                const NestedVector<DataType *> &ptr_list,
+                const NestedVector<size_t> &bytes_list,
+                const NestedVector<FieldStateType *> &state_list,
+                const bool subfield = false)
+        : BaseType()
+    {
+        // outer
+        assert(range_list.size() == 1);
+        assert(ptr_list.size() == 1);
+        assert(bytes_list.size() == 1);
+        assert(state_list.size() == 1);
+        // inner
+        assert(range_list[0].size() == NComponents);
+        assert(ptr_list[0].size() == NComponents);
+        assert(bytes_list[0].size() == NComponents);
+        assert(state_list[0].size() == NComponents);
+        std::vector<bool> is_subfield(NComponents, true);
+        if (!subfield) {
+            is_subfield[0] = false;
+        }
+        for (size_t i = 0; i < NComponents; ++i) {
+            const NestedVector<IndexRangeType> A(
+                1,
+                typename NestedVector<IndexRangeType>::value_type(
+                    1, range_list[0][i]));
+            const NestedVector<DataType *> B(
+                1,
+                typename NestedVector<DataType *>::value_type(1,
+                                                              ptr_list[0][i]));
+            const NestedVector<size_t> C(
+                1,
+                typename NestedVector<size_t>::value_type(1, bytes_list[0][i]));
+            const NestedVector<FieldStateType *> D(
+                1,
+                typename NestedVector<FieldStateType *>::value_type(
+                    1, state_list[0][i]));
+            components_.push_back(new FieldType(A, B, C, D, is_subfield[i]));
+        }
+    }
+
+    /**
+     * @brief Copy constructor
+     * @param c Tensor field to copy from
+     */
+    TensorField(const TensorField &c) : BaseType()
+    {
+        FieldType *first = new FieldType(c[0]);
+        FieldStateType *pfs = &first->getState();
+        components_.push_back(first);
+        for (size_t i = 1; i < NComponents; ++i) {
+            components_.push_back(
+                new FieldType(c[i], first->getMemoryOwnership(), pfs));
+        }
+    }
+
     TensorField(TensorField &&c) = default;
-    TensorField &operator=(const TensorField &c) = default;
+    TensorField &operator=(const TensorField &rhs) = default;
     TensorField &operator=(TensorField &&c) = default;
     ~TensorField() = default;
+
+    /**
+     * @brief Get field state
+     * @return Reference to state
+     *
+     * A tensor field shares one field state instance with all its components.
+     */
+    FieldStateType &getState() { return components_[0]->getState(); }
+
+    /**
+     * @brief Get field state
+     * @return ``const`` reference to state
+     *
+     * A tensor field shares one field state instance with all its components.
+     */
+    const FieldStateType &getState() const
+    {
+        return components_[0]->getState();
+    }
+
+    /**
+     * @brief Get memory ownership
+     * @return Enumeration type describing the memory ownership
+     */
+    MemoryOwner getMemoryOwnership() const
+    {
+        return components_[0]->getMemoryOwnership();
+    }
 
     /**
      * @brief Component field access
@@ -1476,25 +1419,287 @@ public:
     }
 };
 
-template <typename TField, size_t RANK>
-constexpr size_t TensorField<TField, RANK>::Rank;
+template <typename T,
+          size_t RANK,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+constexpr size_t TensorField<T, RANK, ET, Dimension, State, Alloc>::Rank;
 
-template <typename TField, size_t RANK>
-constexpr size_t TensorField<TField, RANK>::NComponents;
+template <typename T,
+          size_t RANK,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+constexpr size_t TensorField<T, RANK, ET, Dimension, State, Alloc>::NComponents;
 
-template <typename TField, size_t RANK>
-constexpr Cubism::EntityType TensorField<TField, RANK>::EntityType;
+template <typename T,
+          size_t RANK,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+constexpr Cubism::EntityType
+    TensorField<T, RANK, ET, Dimension, State, Alloc>::EntityType;
 
-/**
- * @brief Convenience type for vector fields
- * @tparam TField Field type
- */
+/** @brief Convenience type for vector fields
+ * @tparam T Field data type
+ * @tparam ET Entity type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator */
+template <typename T,
+          Cubism::EntityType ET,
+          size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+using VectorField = TensorField<T, 1, ET, Dimension, State, Alloc>;
+
+/** @brief Container class for all faces in a ``CUBISM_DIMENSION``-ional problem
+ * @tparam TField Face field type (scalar or tensor)
+ *
+ * @rst
+ * For ``CUBISM_DIMENSION`` in ``{1,2,3}``, the face field for faces with normal
+ * in the ``X`` direction can be obtained with ``ff[0]`` or
+ * ``ff[Cubism::Dir::X]`` for example, where ``ff`` is of type
+ * ``FaceContainer``.
+ * @endrst
+ * */
 template <typename TField>
-using VectorField = TensorField<TField, 1>;
+class FaceContainer : public FieldContainer<TField>
+{
+public:
+    using BaseType = FieldContainer<TField>;
+    using FaceComponentType = TField; // scalar or tensor
+    using typename BaseType::BlockDataType;
+    using typename BaseType::DataType;
+    using typename BaseType::FieldType;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
+    using FieldStateType = typename FieldType::FieldStateType;
+    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
+
+private:
+    template <typename U>
+    using NestedVector = std::vector<std::vector<U>>; // simplifies construction
+    using BaseType::components_;
+
+public:
+    static constexpr size_t Rank = FieldType::Rank;
+    static constexpr size_t NComponents = FieldType::NComponents;
+    static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
+    static_assert(
+        BlockDataType::EntityType == Cubism::EntityType::Face,
+        "FaceContainer: Entity type of field must be Cubism::EntityType::Face");
+    static_assert(IndexRangeType::Dim > 0,
+                  "Dimension must be greater than zero");
+
+    FaceContainer() = delete;
+
+    /**
+     * @brief Main constructor to generate a face container
+     * @param cell_domain Index range spanned by the cell domain
+     * @param fs Field state initial value
+     */
+    explicit FaceContainer(const IndexRangeType &cell_domain,
+                           const FieldStateType &fs = FieldStateType())
+        : BaseType()
+    {
+        const MultiIndex cells = cell_domain.getExtent(); // number of cells
+        const IndexRangeType r0(cells + MultiIndex::getUnitVector(0));
+        FaceComponentType *first = new FaceComponentType(r0, fs);
+        FieldStateType *pfs = &first->getState();
+        components_.push_back(first);
+        for (size_t i = 1; i < IndexRangeType::Dim; ++i) {
+            const IndexRangeType ri(cells + MultiIndex::getUnitVector(i));
+            components_.push_back(new FaceComponentType(ri, pfs));
+        }
+    }
+
+    /**
+     * @brief Low-level copy constructor for deep and shallow copies
+     * @param ffc Face field container to be copied
+     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
+     */
+    FaceContainer(const FaceContainer &ffc, const MemoryOwner o) : BaseType()
+    {
+        FaceComponentType *first = new FaceComponentType(ffc[0], o);
+        FieldStateType *pfs = &first->getState();
+        components_.push_back(first);
+        for (size_t i = 1; i < IndexRangeType::Dim; ++i) {
+            components_.push_back(new FaceComponentType(ffc[i], o, pfs));
+        }
+    }
+
+    /**
+     * @brief Low-level constructor for external memory management
+     * @param range_list Vector of index range
+     * @param ptr_list Vector of block data pointer
+     * @param bytes_list Number of bytes pointed to by pointer in ptr_list
+     * @param state_list Vector of field state pointer
+     * @param subfield Subfield component indicator
+     *
+     * The nested vector data structure is used to simplify the interface
+     * between scalar fields, tensor fields and face field containers.  A
+     * subfield component applies to higher rank tensors and face field
+     * containers which share the field state among each others.
+     */
+    FaceContainer(const NestedVector<IndexRangeType> &range_list,
+                  const NestedVector<DataType *> &ptr_list,
+                  const NestedVector<size_t> &bytes_list,
+                  const NestedVector<FieldStateType *> &state_list,
+                  const bool subfield = false)
+        : BaseType()
+    {
+        // outer
+        assert(range_list.size() == IndexRangeType::Dim);
+        assert(ptr_list.size() == IndexRangeType::Dim);
+        assert(bytes_list.size() == IndexRangeType::Dim);
+        assert(state_list.size() == IndexRangeType::Dim);
+        std::vector<bool> is_subfield(IndexRangeType::Dim, true);
+        if (!subfield) {
+            is_subfield[0] = false;
+        }
+        for (size_t i = 0; i < IndexRangeType::Dim; ++i) {
+            // inner
+            assert(range_list[i].size() == NComponents);
+            assert(ptr_list[i].size() == NComponents);
+            assert(bytes_list[i].size() == NComponents);
+            assert(state_list[i].size() == NComponents);
+            const NestedVector<IndexRangeType> A(
+                1,
+                typename NestedVector<IndexRangeType>::value_type(
+                    range_list[i]));
+            const NestedVector<DataType *> B(
+                1, typename NestedVector<DataType *>::value_type(ptr_list[i]));
+            const NestedVector<size_t> C(
+                1, typename NestedVector<size_t>::value_type(bytes_list[i]));
+            const NestedVector<FieldStateType *> D(
+                1,
+                typename NestedVector<FieldStateType *>::value_type(
+                    state_list[i]));
+            components_.push_back(
+                new FaceComponentType(A, B, C, D, is_subfield[i]));
+        }
+    }
+
+    /**
+     * @brief Copy constructor
+     * @param c Face container to copy from
+     */
+    FaceContainer(const FaceContainer &c)
+    {
+        FaceComponentType *first = new FaceComponentType(c[0]);
+        FieldStateType *pfs = &first->getState();
+        components_.push_back(first);
+        for (size_t i = 1; i < IndexRangeType::Dim; ++i) {
+            components_.push_back(
+                new FaceComponentType(c[i], first->getMemoryOwnership(), pfs));
+        }
+    }
+
+    FaceContainer(FaceContainer &&c) = default;
+    FaceContainer &operator=(const FaceContainer &rhs) = default;
+    FaceContainer &operator=(FaceContainer &&c) = default;
+    ~FaceContainer() = default;
+
+    /**
+     * @brief Get field state
+     * @return Reference to state
+     *
+     * A face field container shares one field state instance with all its
+     * components.
+     */
+    FieldStateType &getState() { return components_[0]->getState(); }
+
+    /**
+     * @brief Get field state
+     * @return ``const`` reference to state
+     *
+     * A face field container shares one field state instance with all its
+     * components.
+     */
+    const FieldStateType &getState() const
+    {
+        return components_[0]->getState();
+    }
+
+    /**
+     * @brief Get memory ownership
+     * @return Enumeration type describing the memory ownership
+     */
+    MemoryOwner getMemoryOwnership() const
+    {
+        return components_[0]->getMemoryOwnership();
+    }
+
+    /**
+     * @brief Face component access
+     * @param i Direction index
+     * @return Reference to face component
+     */
+    FaceComponentType &operator[](const size_t i)
+    {
+        assert(i < IndexRangeType::Dim);
+        return *components_[i];
+    }
+
+    /**
+     * @brief Face component access
+     * @param i Direction index
+     * @return ``const`` reference to face component
+     */
+    const FaceComponentType &operator[](const size_t i) const
+    {
+        assert(i < IndexRangeType::Dim);
+        return *components_[i];
+    }
+
+    /**
+     * @brief Face component access
+     * @tparam Dir Special type that defines a cast to ``size_t``
+     * @param t Direction of face
+     * @return Reference to face component
+     */
+    template <typename Dir>
+    FaceComponentType &operator[](const Dir &t)
+    {
+        return this->operator[](static_cast<size_t>(t));
+    }
+
+    /**
+     * @brief Face component access
+     * @tparam Dir Special type that defines a cast to ``size_t``
+     * @param t Direction of face
+     * @return ``const`` reference to face component
+     */
+    template <typename Dir>
+    const FaceComponentType &operator[](const Dir &t) const
+    {
+        return this->operator[](static_cast<size_t>(t));
+    }
+};
+
+template <typename TField>
+constexpr size_t FaceContainer<TField>::Rank;
+
+template <typename TField>
+constexpr size_t FaceContainer<TField>::NComponents;
+
+template <typename TField>
+constexpr Cubism::EntityType FaceContainer<TField>::EntityType;
 
 /**
  * @brief Field view type
  * @tparam TField Field type
+ *
+ * Provides a view (shallow copy) for scalar fields, tensor fields or face field
+ * containers.  The corresponding field interface is inherited.
  */
 template <typename TField>
 class FieldView : public TField
