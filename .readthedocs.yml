@@ -1,9 +1,9 @@
-version: 2
+# version: 2
 
-build:
-    image: latest
+# build:
+#     image: latest
 
 python:
-    version: 3.7
-    install:
-        - requirements: docs/requirements.txt
+    version: 3
+
+requirements_file: docs/requirements.txt
