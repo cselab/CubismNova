@@ -18,19 +18,19 @@ NAMESPACE_BEGIN(Grid)
  * @brief Block field assembler for an externally allocated region of memory
  * @tparam T Field data type
  * @tparam RANK Tensor rank
- * @tparam ET Entity type
+ * @tparam Entity Entity type
  * @tparam State Field state type
  * @tparam Mesh Mesh type of global and block meshes
  * */
 template <typename T,
           size_t RANK,
-          Cubism::EntityType ET,
+          Cubism::EntityType Entity,
           typename State,
           typename Mesh>
 struct BlockFieldAssembler {
     /** @brief Main field type */
-    using BaseType =
-        typename Block::FieldTypeFactory<T, RANK, ET, Mesh::Dim, State>::Type;
+    using BaseType = typename Block::
+        FieldTypeFactory<T, RANK, Entity, Mesh::Dim, State>::Type;
     /** @brief Container of tensor fields */
     using FieldContainer = Block::FieldContainer<BaseType>;
     /** @brief Scalar field type of components in main field */
@@ -153,7 +153,7 @@ struct BlockFieldAssembler {
             BB.clear();
             CC.clear();
             DD.clear();
-            if (ET == Cubism::EntityType::Face) {
+            if (Entity == Cubism::EntityType::Face) {
                 for (size_t d = 0; d < MeshType::Dim; ++d) {
                     for (size_t c = 0; c < BaseType::NComponents; ++c) {
                         char *dst = base + d * MeshType::Dim * component_bytes +
@@ -172,7 +172,7 @@ struct BlockFieldAssembler {
                     C.clear();
                     D.clear();
                 }
-            } else if (ET == Cubism::EntityType::Node) {
+            } else if (Entity == Cubism::EntityType::Node) {
                 for (size_t c = 0; c < BaseType::NComponents; ++c) {
                     char *dst = base + c * component_bytes + i * block_bytes;
                     A.push_back(node_range);
@@ -184,7 +184,7 @@ struct BlockFieldAssembler {
                 BB.push_back(B);
                 CC.push_back(C);
                 DD.push_back(D);
-            } else if (ET == Cubism::EntityType::Cell) {
+            } else if (Entity == Cubism::EntityType::Cell) {
                 for (size_t c = 0; c < BaseType::NComponents; ++c) {
                     char *dst = base + c * component_bytes + i * block_bytes;
                     A.push_back(cell_range);

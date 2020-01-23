@@ -42,8 +42,8 @@ struct FieldState {
 
 /** @brief Block scalar field base class
  * @tparam T Field data type
- * @tparam ET Entity type
- * @tparam Dimension Field dimension
+ * @tparam Entity Entity type
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator
  *
@@ -53,15 +53,15 @@ struct FieldState {
  * @endrst
  * */
 template <typename T,
-          Cubism::EntityType ET,
-          size_t Dimension = CUBISM_DIMENSION,
+          Cubism::EntityType Entity,
+          size_t DIM = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-class Field : public Data<T, ET, Dimension, Alloc<T>>
+class Field : public Data<T, Entity, DIM, Alloc<T>>
 {
 public:
     using FieldType = Field; // scalar field
-    using BlockDataType = Data<T, ET, Dimension, Alloc<T>>;
+    using BlockDataType = Data<T, Entity, DIM, Alloc<T>>;
     using typename BlockDataType::DataType;
     using typename BlockDataType::IndexRangeType;
     using typename BlockDataType::MultiIndex;
@@ -163,8 +163,7 @@ public:
     static constexpr size_t Rank = 0;
     static constexpr size_t NComponents = 1;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
-    static_assert(IndexRangeType::Dim > 0,
-                  "Dimension must be greater than zero");
+    static_assert(IndexRangeType::Dim > 0, "DIM must be greater than zero");
 
     Field() = delete;
 
@@ -546,28 +545,28 @@ private:
 };
 
 template <typename T,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
-constexpr size_t Field<T, ET, Dimension, State, Alloc>::Rank;
+constexpr size_t Field<T, Entity, DIM, State, Alloc>::Rank;
 
 template <typename T,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
-constexpr size_t Field<T, ET, Dimension, State, Alloc>::NComponents;
+constexpr size_t Field<T, Entity, DIM, State, Alloc>::NComponents;
 
 template <typename T,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
-constexpr Cubism::EntityType Field<T, ET, Dimension, State, Alloc>::EntityType;
+constexpr Cubism::EntityType Field<T, Entity, DIM, State, Alloc>::EntityType;
 
 #define FIELD_CONTAINER_OP_FIELD(OP)                                           \
     do {                                                                       \
@@ -1139,20 +1138,20 @@ private:
 /** @brief Generic tensor field
  * @tparam T Field data type
  * @tparam RANK Tensor rank
- * @tparam ET Entity type
- * @tparam Dimension Field dimension
+ * @tparam Entity Entity type
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator */
 template <typename T,
           size_t RANK,
-          Cubism::EntityType ET,
-          size_t Dimension = CUBISM_DIMENSION,
+          Cubism::EntityType Entity,
+          size_t DIM = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-class TensorField : public FieldContainer<Field<T, ET, Dimension, State, Alloc>>
+class TensorField : public FieldContainer<Field<T, Entity, DIM, State, Alloc>>
 {
 public:
-    using BaseType = FieldContainer<Field<T, ET, Dimension, State, Alloc>>;
+    using BaseType = FieldContainer<Field<T, Entity, DIM, State, Alloc>>;
     using typename BaseType::BlockDataType;
     using typename BaseType::DataType;
     using typename BaseType::FieldType; // scalar field sub-type
@@ -1180,8 +1179,7 @@ public:
         Power<IndexRangeType::Dim, RANK>::value;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
     static_assert(NComponents > 0, "Tensor has zero components");
-    static_assert(IndexRangeType::Dim > 0,
-                  "Dimension must be greater than zero");
+    static_assert(IndexRangeType::Dim > 0, "DIM must be greater than zero");
 
     TensorField() = delete;
 
@@ -1399,31 +1397,31 @@ public:
 
 template <typename T,
           size_t RANK,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
-constexpr size_t TensorField<T, RANK, ET, Dimension, State, Alloc>::Rank;
+constexpr size_t TensorField<T, RANK, Entity, DIM, State, Alloc>::Rank;
 
 template <typename T,
           size_t RANK,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
-constexpr size_t TensorField<T, RANK, ET, Dimension, State, Alloc>::NComponents;
+constexpr size_t TensorField<T, RANK, Entity, DIM, State, Alloc>::NComponents;
 
 template <typename T,
           size_t RANK,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
 constexpr Cubism::EntityType
-    TensorField<T, RANK, ET, Dimension, State, Alloc>::EntityType;
+    TensorField<T, RANK, Entity, DIM, State, Alloc>::EntityType;
 
 /** @brief Container class for all faces in a ``CUBISM_DIMENSION``-ional problem
  * @tparam TField Face field type (scalar or tensor)
@@ -1461,8 +1459,7 @@ public:
     static_assert(
         BlockDataType::EntityType == Cubism::EntityType::Face,
         "FaceContainer: Entity type of field must be Cubism::EntityType::Face");
-    static_assert(IndexRangeType::Dim > 0,
-                  "Dimension must be greater than zero");
+    static_assert(IndexRangeType::Dim > 0, "DIM must be greater than zero");
 
     FaceContainer() = delete;
 
@@ -1708,33 +1705,33 @@ public:
 /**
  * @brief Basic cell-centered data field
  * @tparam T Data type (must be POD)
- * @tparam Dimension
+ * @tparam DIM Field dimension
  * @tparam State State type
  * @tparam Alloc Allocator type
  */
 template <typename T,
-          size_t Dimension = CUBISM_DIMENSION,
+          size_t DIM = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-using CellField = Field<T, EntityType::Cell, Dimension, State, Alloc>;
+using CellField = Field<T, EntityType::Cell, DIM, State, Alloc>;
 
 /**
  * @brief Basic node-centered data field
  * @tparam T Data type (must be POD)
- * @tparam Dimension
+ * @tparam DIM Field dimension
  * @tparam State State type
  * @tparam Alloc Allocator type
  */
 template <typename T,
-          size_t Dimension = CUBISM_DIMENSION,
+          size_t DIM = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-using NodeField = Field<T, EntityType::Node, Dimension, State, Alloc>;
+using NodeField = Field<T, EntityType::Node, DIM, State, Alloc>;
 
 /**
  * @brief Basic face-centered data field.
  * @tparam T Data type (must be POD)
- * @tparam Dimension
+ * @tparam DIM Field dimension
  * @tparam State State type
  * @tparam Alloc Allocator type
  *
@@ -1745,101 +1742,87 @@ using NodeField = Field<T, EntityType::Node, Dimension, State, Alloc>;
  * @endrst
  */
 template <typename T,
-          size_t Dimension = CUBISM_DIMENSION,
+          size_t DIM = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-using FaceField = Field<T, EntityType::Face, Dimension, State, Alloc>;
+using FaceField = Field<T, EntityType::Face, DIM, State, Alloc>;
 
 /** @brief Convenience type for vector fields
  * @tparam T Field data type
- * @tparam ET Entity type
- * @tparam Dimension Field dimension
+ * @tparam Entity Entity type
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator */
 template <typename T,
-          Cubism::EntityType ET,
-          size_t Dimension = CUBISM_DIMENSION,
+          Cubism::EntityType Entity,
+          size_t DIM = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-using VectorField = TensorField<T, 1, ET, Dimension, State, Alloc>;
+using VectorField = TensorField<T, 1, Entity, DIM, State, Alloc>;
 
 /** @brief Field type factory for tensor fields
  * @tparam T Field data type
  * @tparam RANK Tensor rank
- * @tparam ET Entity type
- * @tparam Dimension Field dimension
+ * @tparam Entity Entity type
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator */
 template <typename T,
           size_t RANK,
-          Cubism::EntityType ET,
-          size_t Dimension = CUBISM_DIMENSION,
+          Cubism::EntityType Entity,
+          size_t DIM = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
 struct FieldTypeFactory {
-    using Type = TensorField<T, RANK, ET, Dimension, State, Alloc>;
+    using Type = TensorField<T, RANK, Entity, DIM, State, Alloc>;
 };
 
 /** @brief Field type factory for face tensor fields
  * @tparam T Field data type
  * @tparam RANK Tensor rank
- * @tparam Dimension Field dimension
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator */
 template <typename T,
           size_t RANK,
-          size_t Dimension,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
-struct FieldTypeFactory<T,
-                        RANK,
-                        Cubism::EntityType::Face,
-                        Dimension,
-                        State,
-                        Alloc> {
-    using Type = FaceContainer<TensorField<T,
-                                           RANK,
-                                           Cubism::EntityType::Face,
-                                           Dimension,
-                                           State,
-                                           Alloc>>;
+struct FieldTypeFactory<T, RANK, Cubism::EntityType::Face, DIM, State, Alloc> {
+    using Type = FaceContainer<
+        TensorField<T, RANK, Cubism::EntityType::Face, DIM, State, Alloc>>;
 };
 
 /** @brief Field type factory for scalar fields
  * @tparam T Field data type
- * @tparam ET Entity type
- * @tparam Dimension Field dimension
+ * @tparam Entity Entity type
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator */
 template <typename T,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
-struct FieldTypeFactory<T, 0, ET, Dimension, State, Alloc> {
-    using Type = Field<T, ET, Dimension, State, Alloc>;
+struct FieldTypeFactory<T, 0, Entity, DIM, State, Alloc> {
+    using Type = Field<T, Entity, DIM, State, Alloc>;
 };
 
 /** @brief Field type factory for face scalar fields
  * @tparam T Field data type
- * @tparam Dimension Field dimension
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator */
 template <typename T,
-          size_t Dimension,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
-struct FieldTypeFactory<T,
-                        0,
-                        Cubism::EntityType::Face,
-                        Dimension,
-                        State,
-                        Alloc> {
-    using Type = FaceContainer<
-        Field<T, Cubism::EntityType::Face, Dimension, State, Alloc>>;
+struct FieldTypeFactory<T, 0, Cubism::EntityType::Face, DIM, State, Alloc> {
+    using Type =
+        FaceContainer<Field<T, Cubism::EntityType::Face, DIM, State, Alloc>>;
 };
 
 NAMESPACE_END(Block)

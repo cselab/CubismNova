@@ -21,8 +21,8 @@ NAMESPACE_BEGIN(IO)
 /**
  * @brief Copy scalar field data into AoS buffer
  * @tparam T Field data type
- * @tparam ET Entity type
- * @tparam Dimension Field dimension
+ * @tparam Entity Entity type
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator
  * @param tf Source tensor field
@@ -34,19 +34,19 @@ NAMESPACE_BEGIN(IO)
  * which can be used in high-level I/O interfaces.
  */
 template <typename T,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
 void FieldAOS(
-    const Block::Field<T, ET, Dimension, State, Alloc> &f,
-    const typename Block::Field<T, ET, Dimension, State, Alloc>::IndexRangeType
+    const Block::Field<T, Entity, DIM, State, Alloc> &f,
+    const typename Block::Field<T, Entity, DIM, State, Alloc>::IndexRangeType
         &r,
-    typename Block::Field<T, ET, Dimension, State, Alloc>::DataType *buf)
+    typename Block::Field<T, Entity, DIM, State, Alloc>::DataType *buf)
 {
     using IRange =
-        typename Block::Field<T, ET, Dimension, State, Alloc>::IndexRangeType;
+        typename Block::Field<T, Entity, DIM, State, Alloc>::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
     // get index space intersection.  The index range r must be relative to the
@@ -67,8 +67,8 @@ void FieldAOS(
 /** @brief Generic tensor field
  * @tparam T Field data type
  * @tparam RANK Tensor rank
- * @tparam ET Entity type
- * @tparam Dimension Field dimension
+ * @tparam Entity Entity type
+ * @tparam DIM Field dimension
  * @tparam State Field state type
  * @tparam Alloc Memory allocator
  * @param tf Source tensor field
@@ -81,19 +81,19 @@ void FieldAOS(
  * */
 template <typename T,
           size_t RANK,
-          Cubism::EntityType ET,
-          size_t Dimension,
+          Cubism::EntityType Entity,
+          size_t DIM,
           typename State,
           template <typename>
           class Alloc>
 void FieldAOS(
-    const Block::TensorField<T, RANK, ET, Dimension, State, Alloc> &tf,
-    const typename Block::TensorField<T, RANK, ET, Dimension, State, Alloc>::
+    const Block::TensorField<T, RANK, Entity, DIM, State, Alloc> &tf,
+    const typename Block::TensorField<T, RANK, Entity, DIM, State, Alloc>::
         IndexRangeType &r,
-    typename Block::TensorField<T, RANK, ET, Dimension, State, Alloc>::DataType
+    typename Block::TensorField<T, RANK, Entity, DIM, State, Alloc>::DataType
         *buf)
 {
-    using FieldType = Block::TensorField<T, RANK, ET, Dimension, State, Alloc>;
+    using FieldType = Block::TensorField<T, RANK, Entity, DIM, State, Alloc>;
     using IRange = typename FieldType::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
