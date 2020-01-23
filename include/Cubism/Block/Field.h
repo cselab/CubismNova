@@ -60,12 +60,11 @@ template <typename T,
 class Field : public Data<T, ET, Dimension, Alloc<T>>
 {
 public:
-    using BaseType = Data<T, ET, Dimension, Alloc<T>>;
-    using FieldType = Field;
+    using FieldType = Field; // scalar field
     using BlockDataType = Data<T, ET, Dimension, Alloc<T>>;
-    using typename BaseType::DataType;
-    using typename BaseType::IndexRangeType;
-    using typename BaseType::MultiIndex;
+    using typename BlockDataType::DataType;
+    using typename BlockDataType::IndexRangeType;
+    using typename BlockDataType::MultiIndex;
     using FieldStateType = State;
 
 protected:
@@ -176,7 +175,7 @@ public:
      */
     explicit Field(const IndexRangeType &r,
                    const FieldStateType &fs = FieldStateType())
-        : BaseType(r), is_subfield_(false), state_(new FieldStateType())
+        : BlockDataType(r), is_subfield_(false), state_(new FieldStateType())
     {
         *state_ = fs;
     }
@@ -187,17 +186,18 @@ public:
      * @param pfs Field state pointer (externally managed)
      */
     explicit Field(const IndexRangeType &r, FieldStateType *pfs)
-        : BaseType(r), is_subfield_(true), state_(pfs)
+        : BlockDataType(r), is_subfield_(true), state_(pfs)
     {
     }
 
     /**
      * @brief Low-level copy constructor for deep and shallow copies
      * @param f Field to be copied
-     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
+     * @param o Memory ownership (``BlockDataType::MemoryOwner::Yes``: deep
+     * copy)
      */
-    Field(const Field &f, const typename BaseType::MemoryOwner o)
-        : BaseType(f, o), is_subfield_(false), state_(nullptr)
+    Field(const Field &f, const typename BlockDataType::MemoryOwner o)
+        : BlockDataType(f, o), is_subfield_(false), state_(nullptr)
     {
         if (!is_subfield_ && this->isMemoryOwner()) {
             state_ = new FieldStateType();
@@ -209,13 +209,14 @@ public:
      * @brief Low-level copy constructor for deep and shallow copies (for higher
      * rank tensors)
      * @param f Field to be copied
-     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
+     * @param o Memory ownership (``BlockDataType::MemoryOwner::Yes``: deep
+     * copy)
      * @param pfs External field state
      */
     Field(const Field &f,
-          const typename BaseType::MemoryOwner o,
+          const typename BlockDataType::MemoryOwner o,
           FieldStateType *pfs)
-        : BaseType(f, o), is_subfield_(true), state_(pfs)
+        : BlockDataType(f, o), is_subfield_(true), state_(pfs)
     {
     }
 
@@ -237,7 +238,7 @@ public:
           const NestedVector<size_t> &bytes_list,
           const NestedVector<FieldStateType *> &state_list,
           const bool subfield = false)
-        : BaseType(range_list[0][0], ptr_list[0][0], bytes_list[0][0]),
+        : BlockDataType(range_list[0][0], ptr_list[0][0], bytes_list[0][0]),
           is_subfield_(subfield), state_(state_list[0][0])
     {
         // outer
@@ -262,7 +263,7 @@ public:
      * data structures should be used instead (unless you know what you do).
      */
     Field(const Field &c)
-        : BaseType(c), is_subfield_(c.is_subfield_), state_(nullptr)
+        : BlockDataType(c), is_subfield_(c.is_subfield_), state_(nullptr)
     {
         if (!is_subfield_ && this->isMemoryOwner()) {
             state_ = new FieldStateType();
@@ -275,7 +276,7 @@ public:
      * @param c Field to move from
      */
     Field(Field &&c) noexcept
-        : BaseType(std::move(c)), is_subfield_(c.is_subfield_),
+        : BlockDataType(std::move(c)), is_subfield_(c.is_subfield_),
           state_(std::move(c.state_))
     {
         c.state_ = nullptr;
@@ -286,7 +287,7 @@ public:
      */
     ~Field() override
     {
-        if (is_subfield_ || !this->isMemoryOwner()) {
+        if (is_subfield_ || !this->isMemoryOwner() || this->external_memory_) {
             // state is not deallocated in the case of externally managed memory
             state_ = nullptr;
         }
@@ -307,7 +308,7 @@ public:
             } else if (is_subfield_ && !this->isMemoryOwner()) {
                 state_ = c.state_;
             }
-            BaseType::operator=(c);
+            BlockDataType::operator=(c);
         }
         return *this;
     };
@@ -321,7 +322,7 @@ public:
     {
         assert(range_.size() == c.range_.size());
         if (this != &c) {
-            BaseType::operator=(std::move(c));
+            BlockDataType::operator=(std::move(c));
             if (is_subfield_ || !this->isMemoryOwner()) {
                 // state is not deallocated in the case of externally managed
                 // memory
@@ -568,51 +569,6 @@ template <typename T,
           class Alloc>
 constexpr Cubism::EntityType Field<T, ET, Dimension, State, Alloc>::EntityType;
 
-/**
- * @brief Basic cell-centered data field
- * @tparam T Data type (must be POD)
- * @tparam Dimension
- * @tparam State State type
- * @tparam Alloc Allocator type
- */
-template <typename T,
-          size_t Dimension = CUBISM_DIMENSION,
-          typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator>
-using CellField = Field<T, EntityType::Cell, Dimension, State, Alloc>;
-
-/**
- * @brief Basic node-centered data field
- * @tparam T Data type (must be POD)
- * @tparam Dimension
- * @tparam State State type
- * @tparam Alloc Allocator type
- */
-template <typename T,
-          size_t Dimension = CUBISM_DIMENSION,
-          typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator>
-using NodeField = Field<T, EntityType::Node, Dimension, State, Alloc>;
-
-/**
- * @brief Basic face-centered data field.
- * @tparam T Data type (must be POD)
- * @tparam Dimension
- * @tparam State State type
- * @tparam Alloc Allocator type
- *
- * @rst
- * Faces are stored individually for the dimensionality specified by
- * ``CUBISM_DIMENSION`` at compile time.  See the ``FaceContainer`` type for a
- * container of size ``CUBISM_DIMENSION``.
- * @endrst
- */
-template <typename T,
-          size_t Dimension = CUBISM_DIMENSION,
-          typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator>
-using FaceField = Field<T, EntityType::Face, Dimension, State, Alloc>;
-
 #define FIELD_CONTAINER_OP_FIELD(OP)                                           \
     do {                                                                       \
         for (size_t i = 0; i < components_.size(); ++i) {                      \
@@ -655,7 +611,7 @@ public:
     using BlockDataType = typename FieldType::BlockDataType;
     using IndexRangeType = typename BaseType::IndexRangeType;
     using MultiIndex = typename BaseType::MultiIndex;
-    using MemoryOwner = typename TField::BaseType::MemoryOwner;
+    using MemoryOwner = typename BlockDataType::MemoryOwner;
     using ContainerType = std::vector<BaseType *>;
 
 private:
@@ -1199,11 +1155,11 @@ public:
     using BaseType = FieldContainer<Field<T, ET, Dimension, State, Alloc>>;
     using typename BaseType::BlockDataType;
     using typename BaseType::DataType;
-    using typename BaseType::FieldType;
+    using typename BaseType::FieldType; // scalar field sub-type
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
     using FieldStateType = typename FieldType::FieldStateType;
-    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
+    using MemoryOwner = typename BlockDataType::MemoryOwner;
 
 private:
     template <size_t B, size_t E>
@@ -1263,7 +1219,8 @@ public:
     /**
      * @brief Low-level copy constructor for deep and shallow copies
      * @param tfc Tensor field container to be copied
-     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
+     * @param o Memory ownership (``BlockDataType::MemoryOwner::Yes``: deep
+     * copy)
      */
     TensorField(const TensorField &tfc, const MemoryOwner o) : BaseType()
     {
@@ -1280,7 +1237,8 @@ public:
      * @brief Low-level copy constructor for deep and shallow copies (for higher
      * rank tensors)
      * @param tfc Tensor field container to be copied
-     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
+     * @param o Memory ownership (``BlockDataType::MemoryOwner::Yes``: deep
+     * copy)
      * @param pfs External field state
      */
     TensorField(const TensorField &tfc,
@@ -1467,19 +1425,6 @@ template <typename T,
 constexpr Cubism::EntityType
     TensorField<T, RANK, ET, Dimension, State, Alloc>::EntityType;
 
-/** @brief Convenience type for vector fields
- * @tparam T Field data type
- * @tparam ET Entity type
- * @tparam Dimension Field dimension
- * @tparam State Field state type
- * @tparam Alloc Memory allocator */
-template <typename T,
-          Cubism::EntityType ET,
-          size_t Dimension = CUBISM_DIMENSION,
-          typename State = FieldState,
-          template <typename> class Alloc = AlignedBlockAllocator>
-using VectorField = TensorField<T, 1, ET, Dimension, State, Alloc>;
-
 /** @brief Container class for all faces in a ``CUBISM_DIMENSION``-ional problem
  * @tparam TField Face field type (scalar or tensor)
  *
@@ -1495,14 +1440,14 @@ class FaceContainer : public FieldContainer<TField>
 {
 public:
     using BaseType = FieldContainer<TField>;
-    using FaceComponentType = TField; // scalar or tensor
+    using FaceComponentType = TField; // scalar field or tensor field
     using typename BaseType::BlockDataType;
     using typename BaseType::DataType;
-    using typename BaseType::FieldType;
+    using typename BaseType::FieldType; // scalar field sub-type
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
     using FieldStateType = typename FieldType::FieldStateType;
-    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
+    using MemoryOwner = typename BlockDataType::MemoryOwner;
 
 private:
     template <typename U>
@@ -1510,8 +1455,8 @@ private:
     using BaseType::components_;
 
 public:
-    static constexpr size_t Rank = FieldType::Rank;
-    static constexpr size_t NComponents = FieldType::NComponents;
+    static constexpr size_t Rank = FaceComponentType::Rank;
+    static constexpr size_t NComponents = FaceComponentType::NComponents;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
     static_assert(
         BlockDataType::EntityType == Cubism::EntityType::Face,
@@ -1544,7 +1489,8 @@ public:
     /**
      * @brief Low-level copy constructor for deep and shallow copies
      * @param ffc Face field container to be copied
-     * @param o Memory ownership (``Data::MemoryOwner::Yes``: deep copy)
+     * @param o Memory ownership (``BlockDataType::MemoryOwner::Yes``: deep
+     * copy)
      */
     FaceContainer(const FaceContainer &ffc, const MemoryOwner o) : BaseType()
     {
@@ -1731,7 +1677,7 @@ public:
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
     using FieldStateType = typename FieldType::FieldStateType;
-    using MemoryOwner = typename FieldType::BaseType::MemoryOwner;
+    using MemoryOwner = typename BaseType::BlockDataType::MemoryOwner;
 
     /**
      * @brief Main constructor to generate a field view
@@ -1757,6 +1703,143 @@ public:
      * @return Deep copy (new allocation) of field view
      */
     BaseType copy() const { return BaseType(*this, MemoryOwner::Yes); }
+};
+
+/**
+ * @brief Basic cell-centered data field
+ * @tparam T Data type (must be POD)
+ * @tparam Dimension
+ * @tparam State State type
+ * @tparam Alloc Allocator type
+ */
+template <typename T,
+          size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+using CellField = Field<T, EntityType::Cell, Dimension, State, Alloc>;
+
+/**
+ * @brief Basic node-centered data field
+ * @tparam T Data type (must be POD)
+ * @tparam Dimension
+ * @tparam State State type
+ * @tparam Alloc Allocator type
+ */
+template <typename T,
+          size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+using NodeField = Field<T, EntityType::Node, Dimension, State, Alloc>;
+
+/**
+ * @brief Basic face-centered data field.
+ * @tparam T Data type (must be POD)
+ * @tparam Dimension
+ * @tparam State State type
+ * @tparam Alloc Allocator type
+ *
+ * @rst
+ * Faces are stored individually for the dimensionality specified by
+ * ``CUBISM_DIMENSION`` at compile time.  See the ``FaceContainer`` type for a
+ * container of size ``CUBISM_DIMENSION``.
+ * @endrst
+ */
+template <typename T,
+          size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+using FaceField = Field<T, EntityType::Face, Dimension, State, Alloc>;
+
+/** @brief Convenience type for vector fields
+ * @tparam T Field data type
+ * @tparam ET Entity type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator */
+template <typename T,
+          Cubism::EntityType ET,
+          size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+using VectorField = TensorField<T, 1, ET, Dimension, State, Alloc>;
+
+/** @brief Field type factory for tensor fields
+ * @tparam T Field data type
+ * @tparam RANK Tensor rank
+ * @tparam ET Entity type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator */
+template <typename T,
+          size_t RANK,
+          Cubism::EntityType ET,
+          size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+struct FieldTypeFactory {
+    using Type = TensorField<T, RANK, ET, Dimension, State, Alloc>;
+};
+
+/** @brief Field type factory for face tensor fields
+ * @tparam T Field data type
+ * @tparam RANK Tensor rank
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator */
+template <typename T,
+          size_t RANK,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+struct FieldTypeFactory<T,
+                        RANK,
+                        Cubism::EntityType::Face,
+                        Dimension,
+                        State,
+                        Alloc> {
+    using Type = FaceContainer<TensorField<T,
+                                           RANK,
+                                           Cubism::EntityType::Face,
+                                           Dimension,
+                                           State,
+                                           Alloc>>;
+};
+
+/** @brief Field type factory for scalar fields
+ * @tparam T Field data type
+ * @tparam ET Entity type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator */
+template <typename T,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+struct FieldTypeFactory<T, 0, ET, Dimension, State, Alloc> {
+    using Type = Field<T, ET, Dimension, State, Alloc>;
+};
+
+/** @brief Field type factory for face scalar fields
+ * @tparam T Field data type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator */
+template <typename T,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+struct FieldTypeFactory<T,
+                        0,
+                        Cubism::EntityType::Face,
+                        Dimension,
+                        State,
+                        Alloc> {
+    using Type = FaceContainer<
+        Field<T, Cubism::EntityType::Face, Dimension, State, Alloc>>;
 };
 
 NAMESPACE_END(Block)
