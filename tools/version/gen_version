@@ -6,9 +6,34 @@
 # Copyright 2020 ETH Zurich. All Rights Reserved.
 set -e
 
-BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-VERSION="$(git describe --abbrev=0)"
-VHEAD="$(git describe --long --dirty --broken)"
+BRANCH=""
+VERSION=""
+VHEAD=""
+if [[ ! -d '.git' ]]; then
+    # this is a release
+    found=$(find ../ -maxdepth 1 -type d -name "CubismNova-*" | wc -l)
+    if [[ ${found:-0} -gt 0 ]]; then
+        release=$(find ../ -maxdepth 1 -type d -name "CubismNova-*" | sort | tail -n1)
+        release="$(basename ${release})"
+        release="${release#CubismNova-}"
+        if [[ ${found} -gt 1 ]]; then
+            echo "WARNING: More than one CubismNova releases found.  Will use latest ${release}"
+        fi
+        BRANCH="master"
+        VERSION="${release}"
+        VHEAD="${release}"
+    else
+        BRANCH="UNKNOWN-BRANCH"
+        VERSION="UNKNOWN-RELEASE"
+        VHEAD="UNKNOWN-HEAD"
+    fi
+else
+    # this is a git repository
+    BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+    VERSION="$(git describe --abbrev=0)"
+    VHEAD="$(git describe --long --dirty --broken)"
+fi
+
 
 cat <<EOF > ${1}/Version.cpp
 // File       : Version.cpp
