@@ -9,5 +9,5 @@ set -e
 # version argument must be passed following the specifications at
 # https://semver.org/
 VERSION="${1}"; shift
-git tag -a "v${VERSION}" -m "Release version ${VERSION}"
+git tag -e -a "v${VERSION}" -m "Release version ${VERSION}"
 exit $?
