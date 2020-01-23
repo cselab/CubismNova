@@ -8,9 +8,6 @@
 CubismNova
 **********
 
-.. image:: https://img.shields.io/badge/license-BSD%202--Clause-orange.svg
-   :target: LICENSE
-   :alt: License
 .. image:: https://circleci.com/gh/cselab/CubismNova.svg?style=shield
    :target: https://circleci.com/gh/cselab/CubismNova
    :alt: Build Status
