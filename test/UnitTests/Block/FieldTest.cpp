@@ -39,16 +39,6 @@ TEST(Field, Construction)
     { // default
         CellField cf(cell_domain);
         EXPECT_TRUE(cf.isScalar());
-        EXPECT_EQ(cf.getRank(), 0);
-        EXPECT_EQ(cf.getComp(), 0);
-
-        FieldState fs;
-        fs.rank = 1;
-        fs.comp = 1;
-        CellField cf1(cell_domain, fs);
-        EXPECT_FALSE(cf1.isScalar());
-        EXPECT_EQ(cf1.getRank(), 1);
-        EXPECT_EQ(cf1.getComp(), 1);
     }
 
     { // low-level
@@ -57,8 +47,6 @@ TEST(Field, Construction)
         CellField cf(cell_domain);
         CellField cf1(cf, CellField::BaseType::MemoryOwner::Yes);
         FieldState fs;
-        fs.rank = cf.getRank();
-        fs.comp = cf.getComp();
         DataType *pdata = new DataType[cf.size()];
         const size_t bytes = cf.size() * sizeof(DataType);
         CellField cf2(cell_domain, pdata, bytes, &fs);
@@ -66,14 +54,10 @@ TEST(Field, Construction)
         EXPECT_EQ(cf.isMemoryOwner(), cf1.isMemoryOwner());
         EXPECT_NE(cf.getBlockPtr(), cf1.getBlockPtr());
         EXPECT_EQ(cf.isScalar(), cf1.isScalar());
-        EXPECT_EQ(cf.getRank(), cf1.getRank());
-        EXPECT_EQ(cf.getComp(), cf1.getComp());
 
         EXPECT_EQ(cf.isMemoryOwner(), cf2.isMemoryOwner());
         EXPECT_NE(cf.getBlockPtr(), cf2.getBlockPtr());
         EXPECT_EQ(cf.isScalar(), cf2.isScalar());
-        EXPECT_EQ(cf.getRank(), cf2.getRank());
-        EXPECT_EQ(cf.getComp(), cf2.getComp());
 
         delete[] pdata;
     }
@@ -86,45 +70,23 @@ TEST(Field, Construction)
         EXPECT_EQ(cf.isMemoryOwner(), cf_copy.isMemoryOwner());
         EXPECT_NE(cf.getBlockPtr(), cf_copy.getBlockPtr());
         EXPECT_EQ(cf.isScalar(), cf_copy.isScalar());
-        EXPECT_EQ(cf.getRank(), cf_copy.getRank());
-        EXPECT_EQ(cf.getComp(), cf_copy.getComp());
 
         EXPECT_NE(cf.isMemoryOwner(), cf_view.isMemoryOwner());
         EXPECT_EQ(cf.getBlockPtr(), cf_view.getBlockPtr());
         EXPECT_EQ(cf.isScalar(), cf_view.isScalar());
-        EXPECT_EQ(cf.getRank(), cf_view.getRank());
-        EXPECT_EQ(cf.getComp(), cf_view.getComp());
     }
 
     { // copy assignment
         CellField cf(cell_domain);
 
-        FieldState fs;
-        fs.rank = 1;
-        fs.comp = 1;
-        CellField cf1(cell_domain, fs);
         CellField cf_copy(cf);
         FieldView cf_view(cf);
 
-        EXPECT_EQ(cf.getRank(), 0);
-        EXPECT_EQ(cf.getComp(), 0);
-        EXPECT_EQ(cf_copy.getRank(), 0);
-        EXPECT_EQ(cf_copy.getComp(), 0);
-        EXPECT_EQ(cf_view.getRank(), 0);
-        EXPECT_EQ(cf_view.getComp(), 0);
-        EXPECT_EQ(cf1.getRank(), 1);
-        EXPECT_EQ(cf1.getComp(), 1);
         EXPECT_NE(cf.getBlockPtr(), cf1.getBlockPtr());
         EXPECT_EQ(cf.getBlockPtr(), cf_view.getBlockPtr());
         EXPECT_EQ(&cf.getState(), &cf_view.getState());
 
         cf = cf1; // deep copy
-        EXPECT_EQ(cf.getRank(), 1);
-        EXPECT_EQ(cf.getComp(), 1);
-        EXPECT_EQ(cf_copy.getRank(), 0);
-        EXPECT_EQ(cf_copy.getComp(), 0);
-        EXPECT_EQ(cf_view.getRank(), 1);
-        EXPECT_EQ(cf_view.getComp(), 1);
         EXPECT_NE(cf.getBlockPtr(), cf1.getBlockPtr());
         EXPECT_EQ(cf.getBlockPtr(), cf_view.getBlockPtr());
         EXPECT_EQ(&cf.getState(), &cf_view.getState());
@@ -136,17 +98,11 @@ TEST(Field, Construction)
         FieldView cfv(cf);
 
         EXPECT_TRUE(cf.isScalar());
-        EXPECT_EQ(cf.getRank(), 0);
-        EXPECT_EQ(cf.getComp(), 0);
 
         CellField cf_move(std::move(cf));
         EXPECT_EQ(cf.getBlockPtr(), nullptr);
         EXPECT_EQ(&cf.getState(), nullptr);
         EXPECT_TRUE(cf_move.isScalar());
-        EXPECT_EQ(cf_move.getRank(), 0);
-        EXPECT_EQ(cf_move.getComp(), 0);
-        EXPECT_EQ(cfv.getRank(), 0);
-        EXPECT_EQ(cfv.getComp(), 0);
         EXPECT_EQ(cfv.getBlockPtr(), cf_move.getBlockPtr());
         EXPECT_EQ(&cfv.getState(), &cf_move.getState());
     }
@@ -156,18 +112,12 @@ TEST(Field, Construction)
         FieldView cfv(cf);
 
         EXPECT_TRUE(cf.isScalar());
-        EXPECT_EQ(cf.getRank(), 0);
-        EXPECT_EQ(cf.getComp(), 0);
 
         CellField cf_move(cell_domain);
         cf_move = std::move(cf);
         EXPECT_EQ(cf.getBlockPtr(), nullptr);
         EXPECT_EQ(&cf.getState(), nullptr);
         EXPECT_TRUE(cf_move.isScalar());
-        EXPECT_EQ(cf_move.getRank(), 0);
-        EXPECT_EQ(cf_move.getComp(), 0);
-        EXPECT_EQ(cfv.getRank(), 0);
-        EXPECT_EQ(cfv.getComp(), 0);
         EXPECT_EQ(cfv.getBlockPtr(), cf_move.getBlockPtr());
         EXPECT_EQ(&cfv.getState(), &cf_move.getState());
     }
@@ -186,10 +136,6 @@ TEST(Field, Interface)
     const FieldState fs = ff.getState();
 
     EXPECT_TRUE(ff.isScalar());
-    EXPECT_EQ(ff.getRank(), 0);
-    EXPECT_EQ(ff.getComp(), 0);
-    EXPECT_EQ(ff.getRank(), fs.rank);
-    EXPECT_EQ(ff.getComp(), fs.comp);
 }
 
 TEST(Field, Iterator)
@@ -559,8 +505,6 @@ TEST(FieldContainer, Construction)
         }
         FC fc1(rl, pl, bl, sl); // never owns data
         for (size_t i = 0; i < fc.size(); ++i) {
-            EXPECT_EQ(fc1[i].getRank(), 0);
-            EXPECT_EQ(fc1[i].getComp(), i);
             EXPECT_TRUE(fc1[i].isMemoryOwner());
             EXPECT_EQ(fc1[i].getBlockPtr(), fc[i].getBlockPtr());
             EXPECT_EQ(&fc1[i].getState(), &fc[i].getState());
@@ -1031,11 +975,6 @@ TEST(FaceContainer, Construction)
     IRange cell_domain(cells);
     FaceField ff(cell_domain);
     EXPECT_EQ(ff.size(), CUBISM_DIMENSION);
-    size_t k = 0;
-    for (const auto f : ff) {
-        EXPECT_EQ(f->getRank(), 0);
-        EXPECT_EQ(f->getComp(), k++);
-    }
 
     { // low-level
         std::vector<IRange> rl;
@@ -1129,11 +1068,6 @@ TEST(TensorField, Construction)
     EXPECT_EQ(tf[MyIndex::XY].getBlockSize(), cell_domain.size());
 
     EXPECT_EQ(tf.size(), std::pow(IRange::Dim, TensorField::Rank));
-    size_t k = 0;
-    for (const auto c : tf) {
-        EXPECT_EQ(c->getRank(), TensorField::Rank);
-        EXPECT_EQ(c->getComp(), k++);
-    }
 
     { // low-level
         std::vector<IRange> rl;

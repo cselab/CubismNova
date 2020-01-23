@@ -28,30 +28,13 @@ NAMESPACE_BEGIN(Block)
  * @brief Default meta data (state) of a block field
  *
  * @rst
- * Minimal (default) state of a field, composed of the field ``rank`` (e.g.
- * scalar field ``rank=0``) and its component identified ``comp`` (only non-zero
- * if ``rank>0``).  Custom field state types must include ``rank`` and ``comp``.
+ * Minimal (default) state of a field is empty.  Custom field state types my add
+ * additional state to describe meta data of a field.  A field state type must
+ * define copy semantics.  Components in ``TensorField`` types and
+ * ``FaceContainer`` types share one instance of a state.
  * @endrst
  */
 struct FieldState {
-    /**
-     * @brief Tensor rank of field associated to the state
-     *
-     * @rst
-     * * ``rank=0``: Scalar field
-     * * ``rank=1``: Vector field
-     * * ``rank=n``: Rank-``n`` tensor field
-     * @endrst
-     */
-    size_t rank;
-    /**
-     * @brief Component of associated field.
-     *
-     * @rst
-     * Only non-zero if ``rank>0``.
-     * @endrst
-     */
-    size_t comp; // field component in rank dimension
 };
 
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
@@ -350,18 +333,7 @@ public:
      * @brief Test if field belongs to scalar class
      * @return Boolean (true if scalar, false if higher rank tensor class)
      */
-    bool isScalar() const { return (0 == state_->rank); }
-    /**
-     * @brief Rank of field
-     * @return Rank of tensor field (0 = scalar, 1 = vector, ...)
-     */
-    size_t getRank() const { return state_->rank; }
-    /**
-     * @brief Component ID if the field belongs to a set of fields (e.g. higher
-     * rank tensor or field belongs to a field container)
-     * @return Component ID (integral type >= 0)
-     */
-    size_t getComp() const { return state_->comp; }
+    bool isScalar() const { return (0 == Rank); }
     /**
      * @brief Access to field state
      * @return Non-const reference to state
