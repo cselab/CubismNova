@@ -8,9 +8,6 @@
 CubismNova
 **********
 
-.. image:: https://badge.fury.io/gh/cselab%2FCubismNova.svg
-   :target: https://badge.fury.io/gh/cselab%2FCubismNova
-   :alt: Version
 .. image:: https://img.shields.io/badge/license-BSD%202--Clause-orange.svg
    :target: LICENSE
    :alt: License
