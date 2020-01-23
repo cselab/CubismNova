@@ -72,8 +72,15 @@ public:
  * @tparam DIM Data dimensionality
  * @tparam BlockAlloc Allocator type
  *
+ * @rst
  * Data type that manages memory allocation and data access for the specified
  * index range spanned by the data.
+ *
+ * .. note::
+ *    The memory allocation for a block may be larger than the  minimum required
+ *    data specified by the index range.
+ *
+ * @endrst
  */
 template <typename T,
           Cubism::EntityType Entity,
@@ -145,14 +152,7 @@ public:
      * @param ptr Block data pointer to first element
      * @param bytes Number of bytes of block data.
      *
-     * @rst
      * The block owns the memory but does not deallocate it at destruction.
-     *
-     * .. note::
-     *    This may be larger than the  minimum required data specified by the
-     *    index range!
-     *
-     * @endrst
      */
     Data(const IndexRangeType &r, DataType *ptr, const size_t bytes)
         : BaseType(), range_(r), owner_(MemoryOwner::Yes),

@@ -9,7 +9,36 @@
 Field
 -----
 
-.. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
+This header defines various block field types.  The essential block field is a
+*scalar* field.  Components of higher rank tensors are built using the
+corresponding scalar field type.  The memory layout of a field is a structure of
+arrays.  Face fields are handled separately for each dimension in ``DIM``.  The
+``FaceContainer`` type is a convenience type for a compound of ``DIM`` face
+fields with the corresponding index range for each direction.
+
+.. doxygenstruct:: FieldState
+   :project: CubismNova
+   :members:
+
+.. doxygenclass:: Field
+   :project: CubismNova
+   :members:
+
+.. doxygenclass:: TensorField
+   :project: CubismNova
+   :members:
+
+.. doxygenclass:: FaceContainer
+   :project: CubismNova
+   :members:
+
+.. doxygenclass:: FieldContainer
+   :project: CubismNova
+   :members:
+
+.. doxygenclass:: FieldView
+   :project: CubismNova
+   :members:
 
 .. doxygentypedef:: CellField
    :project: CubismNova
@@ -20,29 +49,5 @@ Field
 .. doxygentypedef:: FaceField
    :project: CubismNova
 
-.. doxygenstruct:: FieldState
-   :project: CubismNova
-   :members:
-
-.. doxygenclass:: Field
-   :project: CubismNova
-   :members:
-
-.. doxygenclass:: FieldContainer
-   :project: CubismNova
-   :members:
-
-.. doxygenclass:: FaceFieldAll
-   :project: CubismNova
-   :members:
-
-.. doxygenclass:: TensorField
-   :project: CubismNova
-   :members:
-
 .. doxygentypedef:: VectorField
    :project: CubismNova
-
-.. doxygenclass:: FieldView
-   :project: CubismNova
-   :members:
