@@ -20,9 +20,12 @@ NAMESPACE_BEGIN(IO)
 
 /**
  * @brief Copy scalar field data into AoS buffer
- * @tparam U Field block data type
- * @tparam V Field state type
- * @param f Source scalar field
+ * @tparam T Field data type
+ * @tparam ET Entity type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator
+ * @param tf Source tensor field
  * @param r Index space for the copy (describes the memory region of buf)
  * @param buf Destination buffer
  *
@@ -30,12 +33,20 @@ NAMESPACE_BEGIN(IO)
  * structures (AoS) buffer for I/O operation.  This is a low-level function
  * which can be used in high-level I/O interfaces.
  */
-template <typename U, typename V>
-void FieldAOS(const Block::Field<U, V> &f,
-              const typename Block::Field<U, V>::IndexRangeType &r,
-              typename Block::Field<U, V>::DataType *buf)
+template <typename T,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+void FieldAOS(
+    const Block::Field<T, ET, Dimension, State, Alloc> &f,
+    const typename Block::Field<T, ET, Dimension, State, Alloc>::IndexRangeType
+        &r,
+    typename Block::Field<T, ET, Dimension, State, Alloc>::DataType *buf)
 {
-    using IRange = typename Block::Field<U, V>::IndexRangeType;
+    using IRange =
+        typename Block::Field<T, ET, Dimension, State, Alloc>::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
     // get index space intersection.  The index range r must be relative to the

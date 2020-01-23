@@ -7,8 +7,6 @@
 #include "Core/Index.h"
 #include "gtest/gtest.h"
 
-#include "Alloc/AlignedBlockAllocator.h"
-
 #include <algorithm>
 #include <cmath>
 #include <type_traits>
@@ -18,16 +16,9 @@ namespace
 {
 using namespace Cubism;
 
-template <typename T, template <typename> class TAlloc, size_t DIM>
-using CellData = Block::Data<T, EntityType::Cell, DIM, TAlloc<T>>;
-template <typename T, template <typename> class TAlloc, size_t DIM>
-using NodeData = Block::Data<T, EntityType::Node, DIM, TAlloc<T>>;
-template <typename T, template <typename> class TAlloc, size_t DIM>
-using FaceData = Block::Data<T, EntityType::Face, DIM, TAlloc<T>>;
-
 TEST(Field, Construction)
 {
-    using CellField = Block::Field<CellData<int, AlignedBlockAllocator, 3>>;
+    using CellField = Block::Field<int, EntityType::Cell, 3>; // 3D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using FieldView = Block::FieldView<CellField>;
@@ -103,7 +94,7 @@ TEST(Field, Construction)
 
 TEST(Field, Interface)
 {
-    using FaceField = Block::Field<FaceData<double, AlignedBlockAllocator, 3>>;
+    using FaceField = Block::Field<double, EntityType::Face, 3>; // 3D
     using IRange = typename FaceField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -117,7 +108,7 @@ TEST(Field, Interface)
 
 TEST(Field, Iterator)
 {
-    using CellField = Block::Field<CellData<float, AlignedBlockAllocator, 4>>;
+    using CellField = Block::Field<float, EntityType::Cell, 4>; // 4D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -136,7 +127,7 @@ TEST(Field, Iterator)
 
 TEST(Field, View)
 {
-    using NodeField = Block::Field<NodeData<int, AlignedBlockAllocator, 2>>;
+    using NodeField = Block::Field<int, EntityType::Node, 2>; // 2D
     using IRange = typename NodeField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -250,7 +241,7 @@ TEST(Field, View)
 
 TEST(Field, Arithmetic)
 {
-    using CellField = Block::Field<CellData<float, AlignedBlockAllocator, 3>>;
+    using CellField = Block::Field<float, EntityType::Cell, 3>; // 3D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using DataType = typename CellField::DataType;
@@ -405,7 +396,7 @@ TEST(Field, Arithmetic)
 
 TEST(FieldContainer, Construction)
 {
-    using NodeField = Block::Field<NodeData<char, AlignedBlockAllocator, 5>>;
+    using NodeField = Block::Field<char, EntityType::Node, 5>; // 5D
     using IRange = typename NodeField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -592,7 +583,7 @@ TEST(FieldContainer, Construction)
 
 TEST(FieldContainer, Iterator)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 5>>;
+    using CellField = Block::Field<double, EntityType::Cell, 5>; // 5D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -624,7 +615,7 @@ TEST(FieldContainer, Iterator)
 
 TEST(FieldContainer, Interface)
 {
-    using NodeField = Block::Field<NodeData<size_t, AlignedBlockAllocator, 5>>;
+    using NodeField = Block::Field<size_t, EntityType::Node, 5>; // 5D
     using IRange = typename NodeField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -722,7 +713,7 @@ TEST(FieldContainer, Interface)
 
 TEST(FieldContainer, Arithmetic)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 2>>;
+    using CellField = Block::Field<double, EntityType::Cell, 2>; // 2D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using DataType = typename CellField::DataType;
@@ -946,8 +937,7 @@ TEST(TensorField, Construction)
     }
 
     { // low-level
-        TensorField tf_copy(tf,
-                            TensorField::FieldType::BaseType::MemoryOwner::Yes);
+        TensorField tf_copy(tf, TensorField::BlockDataType::MemoryOwner::Yes);
         EXPECT_EQ(tf_copy.size(), tf.size());
         const auto *pstate = &tf_copy.getState();
         for (auto c : tf_copy) {
@@ -1019,8 +1009,8 @@ TEST(TensorField, Construction)
 
 TEST(FaceContainer, Construction)
 {
-    using FaceField = Block::FaceContainer<
-        Block::Field<FaceData<double, AlignedBlockAllocator, 3>>>;
+    using FaceField =
+        Block::FaceContainer<Block::Field<double, EntityType::Face, 3>>;
     using IRange = typename FaceField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -1034,7 +1024,7 @@ TEST(FaceContainer, Construction)
     }
 
     { // low-level
-        FaceField ff_copy(ff, FaceField::FieldType::BaseType::MemoryOwner::Yes);
+        FaceField ff_copy(ff, FaceField::BlockDataType::MemoryOwner::Yes);
         EXPECT_EQ(ff_copy.size(), ff.size());
         const auto *pstate = &ff_copy.getState();
         for (auto c : ff_copy) {
@@ -1132,7 +1122,7 @@ TEST(FaceContainer, TensorConstruction)
 
 TEST(FieldView, Construction)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 3>>;
+    using CellField = Block::Field<double, EntityType::Cell, 3>; // 3D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using FieldView = Block::FieldView<CellField>;
@@ -1149,7 +1139,7 @@ TEST(FieldView, Construction)
 
 TEST(FieldView, Copy)
 {
-    using CellField = Block::Field<CellData<double, AlignedBlockAllocator, 3>>;
+    using CellField = Block::Field<double, EntityType::Cell, 3>; // 3D
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using FieldView = Block::FieldView<CellField>;

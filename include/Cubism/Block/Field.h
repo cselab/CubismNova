@@ -40,39 +40,54 @@ struct FieldState {
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-01]
 // class FieldUnit // for physical units of carried data
 
-/**
- * @brief Block scalar field base class
- * @tparam TBlockData Block data type
- * @tparam TState Field state type
+/** @brief Block scalar field base class
+ * @tparam T Field data type
+ * @tparam ET Entity type
+ * @tparam Dimension Field dimension
+ * @tparam State Field state type
+ * @tparam Alloc Memory allocator
  *
  * @rst
  * Generic block scalar field type used by :ref:`grid` classes to compose a
  * certain topology of block fields.
  * @endrst
- */
-template <typename TBlockData, typename TState = FieldState>
-class Field : public TBlockData
+ * */
+template <typename T,
+          Cubism::EntityType ET,
+          size_t Dimension = CUBISM_DIMENSION,
+          typename State = FieldState,
+          template <typename> class Alloc = AlignedBlockAllocator>
+class Field : public Data<T, ET, Dimension, Alloc<T>>
 {
+public:
+    using BaseType = Data<T, ET, Dimension, Alloc<T>>;
+    using FieldType = Field;
+    using BlockDataType = Data<T, ET, Dimension, Alloc<T>>;
+    using typename BaseType::DataType;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
+    using FieldStateType = State;
+
 protected:
     template <typename U>
     using NestedVector = std::vector<std::vector<U>>; // simplifies construction
 
-    using TBlockData::block_;
-    using TBlockData::range_;
+    using BlockDataType::block_;
+    using BlockDataType::range_;
 
     /**
      * @brief Generic iterator for block data
-     * @tparam T Iterator type
+     * @tparam U Iterator base type
      */
-    template <typename T>
+    template <typename U>
     class IteratorBase
     {
     public:
         using iterator_category = std::random_access_iterator_tag;
-        using value_type = T;
+        using value_type = U;
         using difference_type = std::ptrdiff_t;
-        using pointer = T *;
-        using reference = T &;
+        using pointer = U *;
+        using reference = U &;
 
         IteratorBase(pointer ptr) : ptr_(ptr) {}
         IteratorBase(const IteratorBase &c) = default;
@@ -146,14 +161,6 @@ protected:
     };
 
 public:
-    using BaseType = TBlockData;
-    using FieldType = Field;
-    using BlockDataType = TBlockData;
-    using typename BaseType::DataType;
-    using typename BaseType::IndexRangeType;
-    using typename BaseType::MultiIndex;
-    using FieldStateType = TState;
-
     static constexpr size_t Rank = 0;
     static constexpr size_t NComponents = 1;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
@@ -537,14 +544,29 @@ private:
     }
 };
 
-template <typename TBlockData, typename TState>
-constexpr size_t Field<TBlockData, TState>::Rank;
+template <typename T,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+constexpr size_t Field<T, ET, Dimension, State, Alloc>::Rank;
 
-template <typename TBlockData, typename TState>
-constexpr size_t Field<TBlockData, TState>::NComponents;
+template <typename T,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+constexpr size_t Field<T, ET, Dimension, State, Alloc>::NComponents;
 
-template <typename TBlockData, typename TState>
-constexpr Cubism::EntityType Field<TBlockData, TState>::EntityType;
+template <typename T,
+          Cubism::EntityType ET,
+          size_t Dimension,
+          typename State,
+          template <typename>
+          class Alloc>
+constexpr Cubism::EntityType Field<T, ET, Dimension, State, Alloc>::EntityType;
 
 /**
  * @brief Basic cell-centered data field
@@ -557,7 +579,7 @@ template <typename T,
           size_t Dimension = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-using CellField = Field<Data<T, EntityType::Cell, Dimension, Alloc<T>>, State>;
+using CellField = Field<T, EntityType::Cell, Dimension, State, Alloc>;
 
 /**
  * @brief Basic node-centered data field
@@ -570,7 +592,7 @@ template <typename T,
           size_t Dimension = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-using NodeField = Field<Data<T, EntityType::Node, Dimension, Alloc<T>>, State>;
+using NodeField = Field<T, EntityType::Node, Dimension, State, Alloc>;
 
 /**
  * @brief Basic face-centered data field.
@@ -589,7 +611,7 @@ template <typename T,
           size_t Dimension = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-using FaceField = Field<Data<T, EntityType::Face, Dimension, Alloc<T>>, State>;
+using FaceField = Field<T, EntityType::Face, Dimension, State, Alloc>;
 
 #define FIELD_CONTAINER_OP_FIELD(OP)                                           \
     do {                                                                       \
@@ -1171,12 +1193,10 @@ template <typename T,
           size_t Dimension = CUBISM_DIMENSION,
           typename State = FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
-class TensorField
-    : public FieldContainer<Field<Data<T, ET, Dimension, Alloc<T>>, State>>
+class TensorField : public FieldContainer<Field<T, ET, Dimension, State, Alloc>>
 {
 public:
-    using BaseType =
-        FieldContainer<Field<Data<T, ET, Dimension, Alloc<T>>, State>>;
+    using BaseType = FieldContainer<Field<T, ET, Dimension, State, Alloc>>;
     using typename BaseType::BlockDataType;
     using typename BaseType::DataType;
     using typename BaseType::FieldType;
