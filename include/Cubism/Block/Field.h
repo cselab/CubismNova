@@ -1558,7 +1558,7 @@ public:
      * @brief Copy constructor
      * @param c Face container to copy from
      */
-    FaceContainer(const FaceContainer &c)
+    FaceContainer(const FaceContainer &c) : BaseType()
     {
         FaceComponentType *first = new FaceComponentType(c[0]);
         FieldStateType *pfs = &first->getState();
