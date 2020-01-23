@@ -93,6 +93,12 @@ public:
     /** @brief Specifies memory ownership */
     enum class MemoryOwner { No = 0, Yes };
 
+    /** @brief Byte utilization compound */
+    struct BlockBytes {
+        size_t allocated; // allocated bytes
+        size_t used;      // used bytes
+    };
+
     /** @brief Specifies entity type of data */
     static constexpr Cubism::EntityType EntityType = Entity;
 
@@ -371,8 +377,6 @@ public:
      */
     void copyData(const Data &c) { copyBlockDeep_(c); }
 
-    // TODO: [fabianw@mavt.ethz.ch; 2020-01-01] resize(IndexRangeType) method?
-
     /**
      * @brief Get index range
      * @return Index range spanned by the data
@@ -390,6 +394,18 @@ public:
      * @return Enumeration type describing the memory ownership
      */
     MemoryOwner getMemoryOwnership() const { return owner_; }
+
+    /**
+     * @brief Get byte utilization of block
+     * @return Structure of byte usage for this instance
+     */
+    BlockBytes getMemoryFootprint() const
+    {
+        BlockBytes bb = {};
+        bb.allocated = bytes_;
+        bb.used = range_.size() * sizeof(DataType);
+        return bb;
+    }
 
 protected:
     const IndexRangeType range_; // range of DIM-dimensional data

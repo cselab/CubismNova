@@ -165,6 +165,7 @@ public:
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
     static_assert(IndexRangeType::Dim > 0, "DIM must be greater than zero");
 
+    /** @brief Default constructor */
     Field() = delete;
 
     /**
@@ -1181,6 +1182,7 @@ public:
     static_assert(NComponents > 0, "Tensor has zero components");
     static_assert(IndexRangeType::Dim > 0, "DIM must be greater than zero");
 
+    /** @brief Default constructor */
     TensorField() = delete;
 
     /**
@@ -1461,6 +1463,7 @@ public:
         "FaceContainer: Entity type of field must be Cubism::EntityType::Face");
     static_assert(IndexRangeType::Dim > 0, "DIM must be greater than zero");
 
+    /** @brief Default constructor */
     FaceContainer() = delete;
 
     /**
