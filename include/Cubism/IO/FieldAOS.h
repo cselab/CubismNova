@@ -10,113 +10,104 @@
 #include "Block/Field.h"
 #include "Common.h"
 #include <cstddef>
+#include <stdexcept>
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(IO)
+
+template <Block::FieldClass Class>
+struct AOSDriver {
+    template <typename Field, typename Range, typename Buffer>
+    void write(const Field &, const Range &, Buffer *) const
+    {
+        throw std::runtime_error(
+            "AOSDriver::write not implemented for this Block::FieldClass");
+    }
+};
+
+template <>
+struct AOSDriver<Block::FieldClass::Scalar> {
+    template <typename Field, typename Range, typename Buffer>
+    void write(const Field &f, const Range &r, Buffer *buf) const
+    {
+        using MIndex = typename Range::MultiIndex;
+
+        // get index space intersection.  The Range r must be relative to the
+        // memory region allocated in buf.
+        const Range indices = r.getIntersection(f.getIndexRange());
+
+        // local block offset
+        const MIndex base = indices.getBegin();
+        const MIndex offset = base - f.getIndexRange().getBegin();
+
+        // iterate over local (sub) index space and copy into buf
+        for (const auto &p : indices) {
+            const size_t i = r.getFlatIndexFromGlobal(base + p);
+            buf[i] = f[offset + p];
+        }
+    }
+};
+
+template <>
+struct AOSDriver<Block::FieldClass::Tensor> {
+    template <typename Field, typename Range, typename Buffer>
+    void write(const Field &f, const Range &r, Buffer *buf) const
+    {
+        using MIndex = typename Range::MultiIndex;
+
+        // get index space intersection.  The Range r must be relative to the
+        // memory region allocated in buf.
+        const Range indices = r.getIntersection(f[0].getIndexRange());
+
+        // local block offset
+        const MIndex base = indices.getBegin();
+        const MIndex offset = base - f[0].getIndexRange().getBegin();
+
+        // iterate over local (sub) index space and copy into buf
+        constexpr size_t Nc = Field::NComponents;
+        for (const auto &p : indices) {
+            const size_t i = r.getFlatIndexFromGlobal(base + p);
+            const size_t j = f[0].getIndexRange().getFlatIndex(offset + p);
+            for (size_t c = 0; c < Nc; ++c) {
+                buf[c + Nc * i] = f[c][j];
+            }
+        }
+    }
+};
+
 /**
  * @addtogroup IO
  * @{
- */
-
-/**
- * @brief Copy scalar field data into AoS buffer
- * @tparam T Field data type
- * @tparam Entity Entity type
- * @tparam DIM Field dimension
- * @tparam State Field state type
- * @tparam Alloc Memory allocator
- * @param tf Source tensor field
- * @param r Index space for the copy (describes the memory region of buf)
- * @param buf Destination buffer
  *
+ * @brief Write field data into AoS buffer
+ * @tparam Buffer Data type of AoS buffer
+ * @tparam Field Field type
+ * @param f Input field
+ * @param r Index space for the copy (describes the memory region of buf)
+ * @param buf Output buffer
+ *
+ * @rst
  * Copy the data from a structure of arrays (SoA) field into an array of
  * structures (AoS) buffer for I/O operation.  This is a low-level function
- * which can be used in high-level I/O interfaces.
+ * which can be used in high-level I/O interfaces.  The interface is defined for
+ * ``Block::FieldClass::Scalar`` and ``Block::FieldClass::Tensor`` fields.  The
+ * index range r may describe a sub-region of the index range spanned by the
+ * field ``f``.  The size of the output buffer ``buf`` is determined by the
+ * index range ``r`` and ``Field::NComponents``.
+ * @endrst
  */
-template <typename T,
-          Cubism::EntityType Entity,
-          size_t DIM,
-          typename State,
-          template <typename>
-          class Alloc>
-void FieldAOS(
-    const Block::Field<T, Entity, DIM, State, Alloc> &f,
-    const typename Block::Field<T, Entity, DIM, State, Alloc>::IndexRangeType
-        &r,
-    typename Block::Field<T, Entity, DIM, State, Alloc>::DataType *buf)
+template <typename Buffer, typename Field>
+void FieldWriteAOS(const Field &f,
+                   const typename Field::IndexRangeType &r,
+                   Buffer *buf)
 {
-    using IRange =
-        typename Block::Field<T, Entity, DIM, State, Alloc>::IndexRangeType;
-    using MIndex = typename IRange::MultiIndex;
-
-    // get index space intersection.  The index range r must be relative to the
-    // memory region allocated in buf.
-    const IRange indices = r.getIntersection(f.getIndexRange());
-
-    // local block offset
-    const MIndex base = indices.getBegin();
-    const MIndex offset = base - f.getIndexRange().getBegin();
-
-    // iterate over local (sub) index space and copy into buf
-    for (const auto &p : indices) {
-        const size_t i = r.getFlatIndexFromGlobal(base + p);
-        buf[i] = f[offset + p];
-    }
+    AOSDriver<Field::Class> driver;
+    driver.write(f, r, buf);
 }
 
-/** @brief Generic tensor field
- * @tparam T Field data type
- * @tparam RANK Tensor rank
- * @tparam Entity Entity type
- * @tparam DIM Field dimension
- * @tparam State Field state type
- * @tparam Alloc Memory allocator
- * @param tf Source tensor field
- * @param r Index space for the copy (describes the memory region of buf)
- * @param buf Destination buffer
- *
- * Copy the data from a structure of arrays (SoA) field into an array of
- * structures (AoS) buffer for I/O operation.  This is a low-level function
- * which can be used in high-level I/O interfaces.
- * */
-template <typename T,
-          size_t RANK,
-          Cubism::EntityType Entity,
-          size_t DIM,
-          typename State,
-          template <typename>
-          class Alloc>
-void FieldAOS(
-    const Block::TensorField<T, RANK, Entity, DIM, State, Alloc> &tf,
-    const typename Block::TensorField<T, RANK, Entity, DIM, State, Alloc>::
-        IndexRangeType &r,
-    typename Block::TensorField<T, RANK, Entity, DIM, State, Alloc>::DataType
-        *buf)
-{
-    using FieldType = Block::TensorField<T, RANK, Entity, DIM, State, Alloc>;
-    using IRange = typename FieldType::IndexRangeType;
-    using MIndex = typename IRange::MultiIndex;
-
-    // get index space intersection.  The IRange r must be relative to the
-    // memory region allocated in buf.
-    const IRange indices = r.getIntersection(tf[0].getIndexRange());
-
-    // local block offset
-    const MIndex base = indices.getBegin();
-    const MIndex offset = base - tf[0].getIndexRange().getBegin();
-
-    // iterate over local (sub) index space and copy into buf
-    constexpr size_t Nc = FieldType::NComponents;
-    for (const auto &p : indices) {
-        const size_t i = r.getFlatIndexFromGlobal(base + p);
-        const size_t j = tf[0].getIndexRange().getFlatIndex(offset + p);
-        for (size_t c = 0; c < Nc; ++c) {
-            buf[c + Nc * i] = tf[c][j];
-        }
-    }
-}
-
+// TODO: [fabianw@mavt.ethz.ch; 2020-01-24] Read
 /**  @} */
+
 NAMESPACE_END(IO)
 NAMESPACE_END(Cubism)
 
