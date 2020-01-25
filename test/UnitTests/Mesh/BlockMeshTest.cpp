@@ -22,7 +22,7 @@ TEST(BlockMesh, Field)
     using MIndex = typename IRange::MultiIndex;
 
     using Mesh = Mesh::StructuredUniform<double, IRange::Dim>;
-    using MeshHull = typename Mesh::MeshHull;
+    using MeshIntegrity = typename Mesh::MeshIntegrity;
     using PointType = typename Mesh::PointType;
     using Entity = typename Mesh::EntityType;
     using Range = typename Mesh::RangeType;
@@ -33,7 +33,7 @@ TEST(BlockMesh, Field)
     // global mesh
     const PointType end(1);
     const MIndex cells = nblocks * block_cells;
-    Mesh m(end, cells, MeshHull::FullMesh);
+    Mesh m(end, cells, MeshIntegrity::FullMesh);
 
     // custom field state
     struct MyFieldState {
@@ -71,7 +71,7 @@ TEST(BlockMesh, Field)
                                            IRange(cells),
                                            IRange(nodes),
                                            vfaces,
-                                           MeshHull::SubMesh));
+                                           MeshIntegrity::SubMesh));
                 fs.idx = bi;
                 fs.mesh = mfields.back();
                 fields.pushBack(new CellField(IRange(cells), fs));

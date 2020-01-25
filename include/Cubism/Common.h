@@ -24,6 +24,7 @@
 #define CUBISM_ALIGNMENT 32
 #endif /* CUBISM_ALIGNMENT */
 
+// FIXME: [fabianw@mavt.ethz.ch; 2020-01-25] Maybe in CMakeLists.txt
 // Boolean compile switches for commandline:
 // CUBISM_32BIT_INDEX
 // CUBISM_OPTIMIZED_FIELD_OP
@@ -102,13 +103,13 @@ enum class FieldClass { Scalar = 0, Tensor, FaceContainer };
 /** @brief Mesh class descriptor */
 enum class MeshClass { Uniform = 0, Stretched };
 
-/** @brief Mesh hull type
+/** @brief Mesh integrity type
  *
  * @rst
  * A ``FullMesh`` is one that describes the full domain local to a process.
  * A ``SubMesh`` is one that describes a sub-region of a ``FullMesh``.
  * @endrst */
-enum class MeshHull { FullMesh = 0, SubMesh };
+enum class MeshIntegrity { FullMesh = 0, SubMesh };
 NAMESPACE_END(Cubism)
 
 #endif /* COMMON_H_C0GYQV59 */

@@ -40,10 +40,8 @@ public:
     using MultiIndex = typename IndexRangeType::MultiIndex;
     /** @brief Mesh entity type */
     using EntityType = Cubism::EntityType;
-    /** @brief Mesh class */
-    using MeshClass = Cubism::MeshClass;
-    /** @brief Mesh hull */
-    using MeshHull = Cubism::MeshHull;
+    /** @brief Mesh integrity */
+    using MeshIntegrity = Cubism::MeshIntegrity;
 
     static constexpr size_t Dim = DIM;
 
@@ -156,17 +154,14 @@ public:
      * @param start Lower left point of physical domain
      * @param end Upper right point of physical domain
      * @param cells Number of cells in mesh
-     * @param type Mesh hull type (full mesh or sub-mesh)
-     * @param cl Class of mesh (uniform, stretched)
+     * @param type Mesh integrity type (full mesh or sub-mesh)
      */
     StructuredBase(const PointType &start,
                    const PointType &end,
                    const MultiIndex &cells,
-                   const MeshHull type,
-                   const MeshClass cl)
-        : type_(type), class_(cl), range_(start, end),
-          global_origin_(range_.getBegin()), crange_(cells),
-          nrange_(crange_.getBegin(), crange_.getEnd() + 1)
+                   const MeshIntegrity type)
+        : type_(type), range_(start, end), global_origin_(range_.getBegin()),
+          crange_(cells), nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
     }
@@ -175,18 +170,15 @@ public:
      * @brief Standard mesh constructor
      * @param end Upper right point of physical domain
      * @param cells Number of cells in mesh
-     * @param type Mesh hull type (full mesh or sub-mesh)
-     * @param cl Class of mesh (uniform, stretched)
+     * @param type Mesh integrity type (full mesh or sub-mesh)
      *
      * Physical origin starts at 0
      */
     StructuredBase(const PointType &end,
                    const MultiIndex &cells,
-                   const MeshHull type,
-                   const MeshClass cl)
-        : type_(type), class_(cl), range_(end),
-          global_origin_(range_.getBegin()), crange_(cells),
-          nrange_(crange_.getBegin(), crange_.getEnd() + 1)
+                   const MeshIntegrity type)
+        : type_(type), range_(end), global_origin_(range_.getBegin()),
+          crange_(cells), nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
     }
@@ -196,18 +188,16 @@ public:
      * @param gorigin Global domain origin
      * @param range Domain range spanned by this mesh
      * @param crange Cell range spanned by this mesh
-     * @param type Mesh hull type (full mesh or sub-mesh)
-     * @param cl Class of mesh (uniform, stretched)
+     * @param type Mesh integrity type (full mesh or sub-mesh)
      *
      * Used for MPI subdomains
      */
     StructuredBase(const PointType &gorigin,
                    const RangeType &range,
                    const IndexRangeType &crange,
-                   const MeshHull type,
-                   const MeshClass cl)
-        : type_(type), class_(cl), range_(range), global_origin_(gorigin),
-          crange_(crange), nrange_(crange_.getBegin(), crange_.getEnd() + 1)
+                   const MeshIntegrity type)
+        : type_(type), range_(range), global_origin_(gorigin), crange_(crange),
+          nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
     }
@@ -219,8 +209,7 @@ public:
      * @param crange Cell range spanned by this mesh
      * @param nrange Node range spanned by this mesh
      * @param frange Face range spanned by this mesh
-     * @param type Mesh hull type (full mesh or sub-mesh)
-     * @param cl Class of mesh (uniform, stretched)
+     * @param type Mesh integrity type (full mesh or sub-mesh)
      *
      * Used for grid topology classes and sub-meshes
      */
@@ -229,10 +218,9 @@ public:
                    const IndexRangeType &crange,
                    const IndexRangeType &nrange,
                    const std::vector<IndexRangeType> &frange,
-                   const MeshHull type,
-                   const MeshClass cl)
-        : type_(type), class_(cl), range_(range), global_origin_(gorigin),
-          crange_(crange), nrange_(nrange), frange_(frange)
+                   const MeshIntegrity type)
+        : type_(type), range_(range), global_origin_(gorigin), crange_(crange),
+          nrange_(nrange), frange_(frange)
     {
     }
 
@@ -241,9 +229,8 @@ public:
     virtual ~StructuredBase() = default;
 
     StructuredBase(const StructuredBase &c)
-        : type_(c.type_), class_(c.class_), range_(c.range_),
-          global_origin_(c.global_origin_), crange_(c.crange_),
-          nrange_(c.nrange_), frange_(c.frange_)
+        : type_(c.type_), range_(c.range_), global_origin_(c.global_origin_),
+          crange_(c.crange_), nrange_(c.nrange_), frange_(c.frange_)
     {
     }
 
@@ -461,7 +448,7 @@ public:
      * @brief Test if this is a sub-mesh
      * @return True if this is a sub-mesh of some full mesh
      */
-    bool isSubMesh() const { return type_ == MeshHull::SubMesh; }
+    bool isSubMesh() const { return type_ == MeshIntegrity::SubMesh; }
 
     /**
      * @brief Convert local flat index to multi-dimensional index
@@ -1000,8 +987,7 @@ public:
     }
 
 protected:
-    const MeshHull type_;           // mesh hull type (full mesh or sub-mesh)
-    const MeshClass class_;         // class category of mesh
+    const MeshIntegrity type_;      // mesh integrity type (full or sub-mesh)
     const RangeType range_;         // range of mesh domain in physical space
     const PointType global_origin_; // origin in global mesh
     const IndexRangeType crange_;   // index range spanned by cells

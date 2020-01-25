@@ -26,12 +26,13 @@ public:
     using BaseMesh = StructuredBase<TReal, DIM>;
     using typename BaseMesh::EntityType;
     using typename BaseMesh::IndexRangeType;
-    using typename BaseMesh::MeshClass;
-    using typename BaseMesh::MeshHull;
+    using typename BaseMesh::MeshIntegrity;
     using typename BaseMesh::MultiIndex;
     using typename BaseMesh::PointType;
     using typename BaseMesh::RangeType;
     using typename BaseMesh::RealType;
+
+    static constexpr Cubism::MeshClass Class = Cubism::MeshClass::Uniform;
 
 private:
     using BaseMesh::crange_;
@@ -45,13 +46,13 @@ public:
      * @param start Lower left point of physical domain
      * @param end Upper right point of physical domain
      * @param cells Number of cells in mesh
-     * @param type Mesh hull type (full mesh or sub-mesh)
+     * @param type Mesh integrity type (full mesh or sub-mesh)
      */
     StructuredUniform(const PointType &start,
                       const PointType &end,
                       const MultiIndex &cells,
-                      const MeshHull type)
-        : BaseMesh(start, end, cells, type, MeshClass::Uniform),
+                      const MeshIntegrity type)
+        : BaseMesh(start, end, cells, type),
           mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
           cell_volume_(mesh_spacing_.prod())
     {
@@ -61,14 +62,14 @@ public:
      * @brief Standard mesh constructor
      * @param end Upper right point of physical domain
      * @param cells Number of cells in mesh
-     * @param type Mesh hull type (full mesh or sub-mesh)
+     * @param type Mesh integrity type (full mesh or sub-mesh)
      *
      * Physical origin starts at 0
      */
     StructuredUniform(const PointType &end,
                       const MultiIndex &cells,
-                      const MeshHull type)
-        : BaseMesh(end, cells, type, MeshClass::Uniform),
+                      const MeshIntegrity type)
+        : BaseMesh(end, cells, type),
           mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
           cell_volume_(mesh_spacing_.prod())
     {
@@ -79,15 +80,15 @@ public:
      * @param gorigin Global domain origin
      * @param range Domain range spanned by this mesh
      * @param crange Cell range spanned by this mesh
-     * @param type Mesh hull type (full mesh or sub-mesh)
+     * @param type Mesh integrity type (full mesh or sub-mesh)
      *
      * Used for MPI subdomains
      */
     StructuredUniform(const PointType &gorigin,
                       const RangeType &range,
                       const IndexRangeType &crange,
-                      const MeshHull type)
-        : BaseMesh(gorigin, range, crange, type, MeshClass::Uniform),
+                      const MeshIntegrity type)
+        : BaseMesh(gorigin, range, crange, type),
           mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
           cell_volume_(mesh_spacing_.prod())
     {
@@ -100,7 +101,7 @@ public:
      * @param crange Cell range spanned by this mesh
      * @param nrange Node range spanned by this mesh
      * @param frange Face range spanned by this mesh
-     * @param type Mesh hull type (full mesh or sub-mesh)
+     * @param type Mesh integrity type (full mesh or sub-mesh)
      *
      * Used for grid topology classes and sub-meshes
      */
@@ -109,9 +110,8 @@ public:
                       const IndexRangeType &crange,
                       const IndexRangeType &nrange,
                       const std::vector<IndexRangeType> &frange,
-                      const MeshHull type)
-        : BaseMesh(
-              gorigin, range, crange, nrange, frange, type, MeshClass::Uniform),
+                      const MeshIntegrity type)
+        : BaseMesh(gorigin, range, crange, nrange, frange, type),
           mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
           cell_volume_(mesh_spacing_.prod())
     {
@@ -179,6 +179,9 @@ private:
     const PointType mesh_spacing_;
     const RealType cell_volume_;
 };
+
+template <typename TReal, size_t DIM>
+constexpr Cubism::MeshClass StructuredUniform<TReal, DIM>::Class;
 
 /**  @} */
 NAMESPACE_END(Mesh)

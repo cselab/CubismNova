@@ -18,7 +18,7 @@ TEST(StructuredUniform, Construction)
     using IRange = Core::IndexRange<3>;
     using MIndex = typename IRange::MultiIndex;
     using Mesh = Mesh::StructuredUniform<double, IRange::Dim>;
-    using MeshHull = typename Mesh::MeshHull;
+    using MeshIntegrity = typename Mesh::MeshIntegrity;
     using PointType = typename Mesh::PointType;
     using Entity = typename Mesh::EntityType;
     using Range = typename Mesh::RangeType;
@@ -33,7 +33,7 @@ TEST(StructuredUniform, Construction)
     const PointType h = extent / PointType(cells);
 
     { // local and global origin at 0
-        Mesh m(end, cells, MeshHull::FullMesh);
+        Mesh m(end, cells, MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent / 2);
         EXPECT_EQ(m.getOrigin(), MIndex(0));
         EXPECT_EQ(m.getGlobalOrigin(), MIndex(0));
@@ -44,7 +44,7 @@ TEST(StructuredUniform, Construction)
     }
 
     { // local and global origin at start
-        Mesh m(start, end, cells, MeshHull::FullMesh);
+        Mesh m(start, end, cells, MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent);
         EXPECT_EQ(m.getOrigin(), start);
         EXPECT_EQ(m.getGlobalOrigin(), start);
@@ -58,7 +58,7 @@ TEST(StructuredUniform, Construction)
         const PointType gorigin = start;
         const Range phys_domain(MIndex(0), end);
         const IRange cell_domain(cells);
-        Mesh m(gorigin, phys_domain, cell_domain, MeshHull::FullMesh);
+        Mesh m(gorigin, phys_domain, cell_domain, MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent / 2);
         EXPECT_EQ(m.getOrigin(), MIndex(0));
         EXPECT_EQ(m.getGlobalOrigin(), start);
@@ -77,7 +77,7 @@ TEST(StructuredUniform, Construction)
             IRange(cells),                                 // cells
             IRange(cells + 1),                             // nodes
             std::vector<IRange>(Mesh::Dim, IRange(cells)), // faces base domain
-            MeshHull::FullMesh);
+            MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent / 2);
         EXPECT_EQ(m.getOrigin(), MIndex(0));
         EXPECT_EQ(m.getGlobalOrigin(), start);
@@ -88,7 +88,7 @@ TEST(StructuredUniform, Construction)
     }
 
     {
-        Mesh m0(end, cells, MeshHull::FullMesh);
+        Mesh m0(end, cells, MeshIntegrity::FullMesh);
         Mesh m1(m0);
         for (const auto &c : m0.getIterator(Entity::Cell)) {
             EXPECT_EQ(m0.getCellSize(c), m1.getCellSize(c));
@@ -96,7 +96,7 @@ TEST(StructuredUniform, Construction)
     }
 
     {
-        Mesh m0(end, cells, MeshHull::FullMesh);
+        Mesh m0(end, cells, MeshIntegrity::FullMesh);
         Mesh m1(m0);
         Mesh m2(std::move(m1));
         for (const auto &c : m0.getIterator(Entity::Cell)) {
@@ -110,14 +110,14 @@ TEST(StructuredUniform, Iterator)
     using IRange = Core::IndexRange<4>;
     using MIndex = typename IRange::MultiIndex;
     using Mesh = Mesh::StructuredUniform<double, IRange::Dim>;
-    using MeshHull = typename Mesh::MeshHull;
+    using MeshIntegrity = typename Mesh::MeshIntegrity;
     using PointType = typename Mesh::PointType;
     using Entity = typename Mesh::EntityType;
 
     const PointType end(1);
     const MIndex cells(4);
     const PointType h = 1 / PointType(cells);
-    Mesh m(end, cells, MeshHull::FullMesh);
+    Mesh m(end, cells, MeshIntegrity::FullMesh);
 
     { // cells
         for (const auto &c : m.getIterator(Entity::Cell)) {
@@ -168,7 +168,7 @@ TEST(StructuredUniform, BasicInterface)
     using IRange = Core::IndexRange<2>;
     using MIndex = typename IRange::MultiIndex;
     using Mesh = Mesh::StructuredUniform<float, IRange::Dim>;
-    using MeshHull = typename Mesh::MeshHull;
+    using MeshIntegrity = typename Mesh::MeshIntegrity;
     using Range = typename Mesh::RangeType;
     using RealType = typename Mesh::RealType;
     using PointType = typename Mesh::PointType;
@@ -180,7 +180,7 @@ TEST(StructuredUniform, BasicInterface)
     const MIndex cells{4, 2};
     const PointType domain = end - start;
     const PointType h = (end - start) / PointType(cells);
-    Mesh m(origin, Range(start, end), IRange(cells), MeshHull::FullMesh);
+    Mesh m(origin, Range(start, end), IRange(cells), MeshIntegrity::FullMesh);
 
     { // iterator cell
         auto it = m.getIterator(Entity::Cell).begin();

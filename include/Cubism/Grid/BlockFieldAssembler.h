@@ -44,7 +44,7 @@ struct BlockFieldAssembler {
     /** @brief Type of mesh */
     using MeshType = Mesh;
     /** @brief Type of mesh hull (full mesh or sub-mesh) */
-    using MeshHull = typename MeshType::MeshHull;
+    using MeshIntegrity = typename MeshType::MeshIntegrity;
     /** @brief Index range type */
     using IndexRangeType = typename MeshType::IndexRangeType;
     /** @brief Type for higher dimensional index */
@@ -138,7 +138,7 @@ struct BlockFieldAssembler {
                                         cell_range,
                                         node_range,
                                         face_ranges,
-                                        MeshHull::SubMesh);
+                                        MeshIntegrity::SubMesh);
             assert(fm != nullptr);
             field_meshes.push_back(fm);
             fs->idx = bi;

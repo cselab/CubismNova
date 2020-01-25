@@ -70,7 +70,7 @@ public:
 
 protected:
     /** @brief Type of mesh hull (full mesh or sub-mesh) */
-    using MeshHull = typename MeshType::MeshHull;
+    using MeshIntegrity = typename MeshType::MeshIntegrity;
     /** @brief Type of block assembler */
     using Assembler =
         BlockFieldAssembler<T, RANK, Entity, FieldState, MeshType>;
@@ -354,7 +354,7 @@ protected:
         mesh_ = new MeshType(gorigin,
                              RangeType(start, end),
                              IndexRangeType(nblocks_ * block_cells_),
-                             MeshHull::FullMesh);
+                             MeshIntegrity::FullMesh);
         // assemble the block fields
         assembler_.assemble(data_,
                             *mesh_,
