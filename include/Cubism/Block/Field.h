@@ -25,9 +25,6 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
-/** @brief Field class identifier */
-enum class FieldClass { Scalar = 0, Tensor, FaceContainer };
-
 /**
  * @brief Default meta data (state) of a block field
  *
@@ -167,7 +164,7 @@ public:
     static constexpr size_t Rank = 0;
     static constexpr size_t NComponents = 1;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
-    static constexpr FieldClass Class = FieldClass::Scalar;
+    static constexpr Cubism::FieldClass Class = Cubism::FieldClass::Scalar;
     static_assert(IndexRangeType::Dim > 0, "DIM must be greater than zero");
 
     /** @brief Default constructor */
@@ -580,7 +577,7 @@ template <typename T,
           typename State,
           template <typename>
           class Alloc>
-constexpr FieldClass Field<T, Entity, DIM, State, Alloc>::Class;
+constexpr Cubism::FieldClass Field<T, Entity, DIM, State, Alloc>::Class;
 
 #define FIELD_CONTAINER_OP_FIELD(OP)                                           \
     do {                                                                       \
@@ -1192,7 +1189,7 @@ public:
     static constexpr size_t NComponents =
         Power<IndexRangeType::Dim, RANK>::value;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
-    static constexpr FieldClass Class = FieldClass::Tensor;
+    static constexpr Cubism::FieldClass Class = Cubism::FieldClass::Tensor;
     static_assert(NComponents > 0, "Tensor has zero components");
     static_assert(IndexRangeType::Dim > 0, "DIM must be greater than zero");
 
@@ -1446,7 +1443,8 @@ template <typename T,
           typename State,
           template <typename>
           class Alloc>
-constexpr FieldClass TensorField<T, RANK, Entity, DIM, State, Alloc>::Class;
+constexpr Cubism::FieldClass
+    TensorField<T, RANK, Entity, DIM, State, Alloc>::Class;
 
 /** @brief Container class for all faces in a ``CUBISM_DIMENSION``-ional problem
  * @tparam TField Face field type (scalar or tensor)
@@ -1481,7 +1479,8 @@ public:
     static constexpr size_t Rank = FaceComponentType::Rank;
     static constexpr size_t NComponents = FaceComponentType::NComponents;
     static constexpr Cubism::EntityType EntityType = BlockDataType::EntityType;
-    static constexpr FieldClass Class = FieldClass::FaceContainer;
+    static constexpr Cubism::FieldClass Class =
+        Cubism::FieldClass::FaceContainer;
     static_assert(
         BlockDataType::EntityType == Cubism::EntityType::Face,
         "FaceContainer: Entity type of field must be Cubism::EntityType::Face");
@@ -1685,7 +1684,7 @@ template <typename TField>
 constexpr Cubism::EntityType FaceContainer<TField>::EntityType;
 
 template <typename TField>
-constexpr FieldClass FaceContainer<TField>::Class;
+constexpr Cubism::FieldClass FaceContainer<TField>::Class;
 
 /**
  * @brief Field view type

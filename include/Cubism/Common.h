@@ -96,6 +96,9 @@ enum class Tensor { XX = 0, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ };
  */
 enum class EntityType { Cell = 0, Node, Face, Undefined };
 
+/** @brief Field class identifier */
+enum class FieldClass { Scalar = 0, Tensor, FaceContainer };
+
 /** @brief Mesh class descriptor */
 enum class MeshClass { Uniform = 0, Stretched };
 

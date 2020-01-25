@@ -16,9 +16,6 @@ arrays.  Face fields are handled separately for each dimension in ``DIM``.  The
 ``FaceContainer`` type is a convenience type for a compound of ``DIM`` face
 fields with the corresponding index range for each direction.
 
-.. doxygenenum:: FieldClass
-   :project: CubismNova
-
 .. doxygenstruct:: FieldState
    :project: CubismNova
    :members:

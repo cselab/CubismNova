@@ -34,6 +34,9 @@ Tensor
 .. doxygenenum:: EntityType
    :project: CubismNova
 
+.. doxygenenum:: FieldClass
+   :project: CubismNova
+
 .. doxygenenum:: MeshClass
    :project: CubismNova
 
