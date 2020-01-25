@@ -95,6 +95,17 @@ enum class Tensor { XX = 0, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ };
  * @endrst
  */
 enum class EntityType { Cell = 0, Node, Face, Undefined };
+
+/** @brief Mesh class descriptor */
+enum class MeshClass { Uniform = 0, Stretched };
+
+/** @brief Mesh hull type
+ *
+ * @rst
+ * A ``FullMesh`` is one that describes the full domain local to a process.
+ * A ``SubMesh`` is one that describes a sub-region of a ``FullMesh``.
+ * @endrst */
+enum class MeshHull { FullMesh = 0, SubMesh };
 NAMESPACE_END(Cubism)
 
 #endif /* COMMON_H_C0GYQV59 */

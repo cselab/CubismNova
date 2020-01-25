@@ -40,16 +40,10 @@ public:
     using MultiIndex = typename IndexRangeType::MultiIndex;
     /** @brief Mesh entity type */
     using EntityType = Cubism::EntityType;
-
-    /** @brief Mesh hull type
-     *
-     * @rst
-     * A ``FullMesh`` is one that describes the full domain local to a process.
-     * A ``SubMesh`` is one that describes a sub-region of a ``FullMesh``.
-     * @endrst */
-    enum class MeshHull { FullMesh = 0, SubMesh };
     /** @brief Mesh class */
-    enum class MeshClass { Uniform = 0, Stretched };
+    using MeshClass = Cubism::MeshClass;
+    /** @brief Mesh hull */
+    using MeshHull = Cubism::MeshHull;
 
     static constexpr size_t Dim = DIM;
 
