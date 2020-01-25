@@ -7,26 +7,20 @@
 #ifndef FIELDAOS_H_DOY3MTA8
 #define FIELDAOS_H_DOY3MTA8
 
-#include "Block/Field.h"
 #include "Common.h"
 #include <cstddef>
-#include <stdexcept>
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(IO)
 
-template <Block::FieldClass Class>
+template <Cubism::FieldClass Class>
 struct AOSDriver {
     template <typename Field, typename Range, typename Buffer>
-    void write(const Field &, const Range &, Buffer *) const
-    {
-        throw std::runtime_error(
-            "AOSDriver::write not implemented for this Block::FieldClass");
-    }
+    void write(const Field &, const Range &, Buffer *) const;
 };
 
 template <>
-struct AOSDriver<Block::FieldClass::Scalar> {
+struct AOSDriver<Cubism::FieldClass::Scalar> {
     template <typename Field, typename Range, typename Buffer>
     void write(const Field &f, const Range &r, Buffer *buf) const
     {
@@ -49,7 +43,7 @@ struct AOSDriver<Block::FieldClass::Scalar> {
 };
 
 template <>
-struct AOSDriver<Block::FieldClass::Tensor> {
+struct AOSDriver<Cubism::FieldClass::Tensor> {
     template <typename Field, typename Range, typename Buffer>
     void write(const Field &f, const Range &r, Buffer *buf) const
     {
@@ -80,8 +74,8 @@ struct AOSDriver<Block::FieldClass::Tensor> {
  * @{
  *
  * @brief Write field data into AoS buffer
- * @tparam Buffer Data type of AoS buffer
  * @tparam Field Field type
+ * @tparam Buffer Data type of AoS buffer
  * @param f Input field
  * @param r Index space for the copy (describes the memory region of buf)
  * @param buf Output buffer
@@ -90,13 +84,13 @@ struct AOSDriver<Block::FieldClass::Tensor> {
  * Copy the data from a structure of arrays (SoA) field into an array of
  * structures (AoS) buffer for I/O operation.  This is a low-level function
  * which can be used in high-level I/O interfaces.  The interface is defined for
- * ``Block::FieldClass::Scalar`` and ``Block::FieldClass::Tensor`` fields.  The
- * index range r may describe a sub-region of the index range spanned by the
+ * ``Cubism::FieldClass::Scalar`` and ``Cubism::FieldClass::Tensor`` fields.
+ * The index range r may describe a sub-region of the index range spanned by the
  * field ``f``.  The size of the output buffer ``buf`` is determined by the
  * index range ``r`` and ``Field::NComponents``.
  * @endrst
  */
-template <typename Buffer, typename Field>
+template <typename Field, typename Buffer>
 void FieldWriteAOS(const Field &f,
                    const typename Field::IndexRangeType &r,
                    Buffer *buf)
@@ -107,7 +101,6 @@ void FieldWriteAOS(const Field &f,
 
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-24] Read
 /**  @} */
-
 NAMESPACE_END(IO)
 NAMESPACE_END(Cubism)
 
