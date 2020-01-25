@@ -91,9 +91,9 @@ struct AOSDriver<Cubism::FieldClass::Tensor> {
  * @endrst
  */
 template <typename Field, typename Buffer>
-void FieldWriteAOS(const Field &f,
-                   const typename Field::IndexRangeType &r,
-                   Buffer *buf)
+void Field2AOS(const Field &f,
+               const typename Field::IndexRangeType &r,
+               Buffer *buf)
 {
     AOSDriver<Field::Class> driver;
     driver.write(f, r, buf);

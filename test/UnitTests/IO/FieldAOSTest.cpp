@@ -28,7 +28,7 @@ TEST(IO, FieldAOS)
         CellField cf(cell_domain);
         std::fill(cf.begin(), cf.end(), 1.234);
         DataType *buf = new DataType[cell_domain.size()];
-        IO::FieldWriteAOS(cf, cell_domain, buf);
+        IO::Field2AOS(cf, cell_domain, buf);
         for (size_t i = 0; i < cf.size(); ++i) {
             EXPECT_EQ(buf[i], cf[i]);
         }
@@ -42,7 +42,7 @@ TEST(IO, FieldAOS)
             k += 1;
         }
         buf = new DataType[VecCellField::NComponents * cell_domain.size()];
-        IO::FieldWriteAOS(vf, cell_domain, buf);
+        IO::Field2AOS(vf, cell_domain, buf);
         for (size_t i = 0; i < cf.size(); ++i) {
             for (size_t c = 0; c < VecCellField::NComponents; ++c) {
                 EXPECT_EQ(buf[c + i * VecCellField::NComponents], vf[c][i]);
@@ -60,7 +60,7 @@ TEST(IO, FieldAOS)
             }
         }
         DataType *buf = new DataType[subrange.size()];
-        IO::FieldWriteAOS(cf, subrange, buf);
+        IO::Field2AOS(cf, subrange, buf);
         for (auto &p : cf.getIndexRange()) {
             if (subrange.isGlobalIndex(p)) {
                 EXPECT_EQ(buf[subrange.getFlatIndexFromGlobal(p)], cf[p]);
@@ -91,7 +91,7 @@ TEST(IO, FieldAOS)
         }
         DataType *buf =
             new DataType[VecCellField::NComponents * subrange.size()];
-        IO::FieldWriteAOS(vf, subrange, buf);
+        IO::Field2AOS(vf, subrange, buf);
         k = 1;
         for (auto c : vf) {
             auto &bf = *c;
