@@ -5,7 +5,6 @@
 // Copyright 2020 ETH Zurich. All Rights Reserved.
 #include "IO/FieldHDF.h"
 #include "Block/Field.h"
-#include "Core/Index.h"
 #include "Mesh/StructuredUniform.h"
 #include "gtest/gtest.h"
 
@@ -15,8 +14,10 @@ using namespace Cubism;
 
 TEST(IO, FieldWriteHDF)
 {
-    using CellField = Block::CellField<float>;
-    using IRange = typename CellField::IndexRangeType;
+    // using Field = Block::CellField<float>;
+    using Field = Block::NodeField<int>;
+    // using Field = Block::FaceField<int>;
+    using IRange = typename Field::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     using Mesh = Mesh::StructuredUniform<double, IRange::Dim>;
     using MeshIntegrity = typename Mesh::MeshIntegrity;
@@ -26,11 +27,33 @@ TEST(IO, FieldWriteHDF)
     const PointType end(1);
     const MIndex cells{6, 7, 8};
     Mesh m(start, end, cells, MeshIntegrity::FullMesh);
-    CellField cf(m.getIndexRange(Cubism::EntityType::Cell));
+    // Field cf(m.getIndexRange(Cubism::EntityType::Cell));
+    Field cf(m.getIndexRange(Cubism::EntityType::Node));
+    // Field cf(m.getIndexRange(Cubism::EntityType::Face));
     int k = 0;
     for (auto &c : cf) {
         c = k++;
     }
-    IO::FieldWriteHDF<typename CellField::DataType>("test", "test", cf, m);
+
+    // all of the field
+    IO::FieldWriteHDF<typename Field::DataType>("field", "field", cf, m);
+
+    // sub-mesh selections
+    const auto block = m.getSubMesh(PointType(-0.5), PointType(0.5));
+    const auto slice = m.getSubMesh(PointType(-0.5), PointType{-0.5, 0.5, 0.5});
+    const auto xxl = m.getSubMesh(PointType(-10.0), PointType(10.0));
+    const auto lefty = m.getSubMesh(PointType{-10.0, -1.0, -10.0},
+                                    PointType{10.0, -1.0, 10.0});
+    const auto righty =
+        m.getSubMesh(PointType{-10.0, 1.0, -10.0}, PointType{10.0, 1.0, 10.0});
+    const auto linez =
+        m.getSubMesh(PointType{0.0, 0.0, -10.0}, PointType{0.0, 0.0, 10.0});
+    IO::FieldWriteHDF<typename Field::DataType>("block", "block", cf, *block);
+    IO::FieldWriteHDF<typename Field::DataType>("slice", "slice", cf, *slice);
+    IO::FieldWriteHDF<typename Field::DataType>("xxl", "xxl", cf, *xxl);
+    IO::FieldWriteHDF<typename Field::DataType>("lefty", "lefty", cf, *lefty);
+    IO::FieldWriteHDF<typename Field::DataType>(
+        "righty", "righty", cf, *righty);
+    IO::FieldWriteHDF<typename Field::DataType>("linez", "linez", cf, *linez);
 }
 } // namespace

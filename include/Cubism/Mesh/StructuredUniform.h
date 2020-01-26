@@ -6,7 +6,11 @@
 #ifndef STRUCTUREDUNIFORM_H_L4AIO9HT
 #define STRUCTUREDUNIFORM_H_L4AIO9HT
 
+#include "Math.h"
 #include "Mesh/StructuredBase.h"
+#include <limits>
+#include <memory>
+#include <stdexcept>
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Mesh)
@@ -124,6 +128,38 @@ public:
     StructuredUniform &operator=(StructuredUniform &&c) = delete;
     ~StructuredUniform() = default;
 
+    /**
+     * @brief Get sub-mesh instance
+     * @param start Lower left point of physical domain for sub-mesh
+     * @param end Upper right point of physical domain for sub-mesh
+     * @return New sub-mesh instance
+     *
+     * @rst
+     * If ``start`` or ``end`` is outside of the physical range spanned by this
+     * mesh, then they will be adjusted to the start and/or end points of the
+     * range corresponding to this mesh, respectively.  The coordinates given by
+     * ``start`` and ``end`` will be extended to include the complete cells that
+     * they intersect with.
+     *
+     * This method is not part of the ``BaseMesh`` interface.
+     * @endrst
+     */
+    virtual std::unique_ptr<StructuredUniform>
+    getSubMesh(const PointType &start, const PointType &end) const
+    {
+        const IndexRangeType sub_crange = getSubCellRange_(start, end);
+        const PointType sub_start = getCoords_(
+            sub_crange.getBegin() - crange_.getBegin(), EntityType::Node, 0);
+        const PointType sub_end = getCoords_(
+            (sub_crange.getEnd() - crange_.getBegin()), EntityType::Node, 0);
+        const RangeType sub_range(sub_start, sub_end);
+        return std::unique_ptr<StructuredUniform>(
+            new StructuredUniform(this->getGlobalOrigin(),
+                                  sub_range,
+                                  sub_crange,
+                                  MeshIntegrity::SubMesh));
+    }
+
 protected:
     PointType getCoords_(const MultiIndex &p,
                          const EntityType t,
@@ -178,6 +214,58 @@ protected:
 private:
     const PointType mesh_spacing_;
     const RealType cell_volume_;
+
+    IndexRangeType getSubCellRange_(PointType start, PointType end) const
+    {
+        const PointType end_init = end;
+        const PointType start_r = range_.getBegin();
+        const PointType end_r = range_.getEnd();
+        if (start > end) {
+            throw std::runtime_error("StructuredUniform: Can not create "
+                                     "sub-cell range for start > end");
+        } else if (end_r < start) {
+            throw std::runtime_error("StructuredUniform: Start point is not "
+                                     "contained in mesh range");
+        } else if (end < start_r) {
+            throw std::runtime_error("StructuredUniform: End point is not "
+                                     "contained in mesh range");
+        }
+
+        for (size_t i = 0; i < DIM; ++i) {
+            // strip to this mesh range
+            start[i] = (start[i] < start_r[i]) ? start_r[i] : start[i];
+            end[i] = (end[i] > end_r[i]) ? end_r[i] : end[i];
+
+            // boundaries
+            start[i] = (Cubism::myAbs(start[i] - end_r[i]) < mesh_spacing_[i])
+                           ? start[i] - 1.0 * mesh_spacing_[i]
+                           : start[i];
+
+            end[i] = (Cubism::myAbs(end[i] - start_r[i]) < mesh_spacing_[i])
+                         ? end[i] + 1.0 * mesh_spacing_[i]
+                         : end[i];
+
+            // round up (internal region only)
+            const int idx = (end[i] - start_r[i]) / mesh_spacing_[i];
+            const RealType ep1 = start_r[i] + (idx + 1) * mesh_spacing_[i];
+            const RealType adiff = Cubism::myAbs(ep1 - end[i]);
+            const RealType inner = Cubism::myAbs(end_r[i] - end[i]);
+            end[i] = (inner > mesh_spacing_[i] && 0 < adiff &&
+                      adiff < mesh_spacing_[i])
+                         ? end[i] + 1.0 * mesh_spacing_[i]
+                         : end[i];
+
+            // ensure at least one cell thick
+            const RealType diff_rel = Cubism::myAbs(end[i] - start[i]);
+            end[i] = (diff_rel < mesh_spacing_[i])
+                         ? end[i] + 1.0 * mesh_spacing_[i]
+                         : end[i];
+
+        }
+        MultiIndex ds((start - range_.getBegin()) / mesh_spacing_);
+        MultiIndex de((end - range_.getBegin()) / mesh_spacing_);
+        return IndexRangeType(crange_.getBegin() + ds, crange_.getBegin() + de);
+    }
 };
 
 template <typename TReal, size_t DIM>
