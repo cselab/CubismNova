@@ -301,7 +301,7 @@ public:
 
     /**
      * @brief Linear data access
-     * @param i Local multi-dimensional index
+     * @param p Local multi-dimensional index
      * @return Reference to data element
      */
     DataType &operator[](const MultiIndex &p)
@@ -311,7 +311,7 @@ public:
 
     /**
      * @brief Linear data access
-     * @param i Local multi-dimensional index
+     * @param p Local multi-dimensional index
      * @return ``const`` reference to data element
      */
     const DataType &operator[](const MultiIndex &p) const
