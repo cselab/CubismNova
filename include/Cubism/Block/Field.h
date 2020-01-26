@@ -260,9 +260,11 @@ public:
      * @brief Standard copy constructor for a scalar field
      * @param c Field to copy from
      *
+     * @rst
      * This constructor is not designed to be used with individual components of
-     * a rank > 0 tensor or face containers.  The copy constructors of these
+     * a ``rank > 0`` tensor or face containers.  The copy constructors of these
      * data structures should be used instead (unless you know what you do).
+     * @endrst
      */
     Field(const Field &c)
         : BlockDataType(c), is_subfield_(c.is_subfield_), state_(nullptr)
@@ -299,17 +301,23 @@ public:
     /**
      * @brief Standard copy assignment operator
      * @param c Field to copy from
-     * @return This field with contents copied from c (data and state)
+     * @return This field with contents copied from c
+     *
+     * @rst
+     * .. note:: Only field *data* is copied by this operator, not state.
+     * @endrst
      */
     Field &operator=(const Field &c)
     {
         assert(range_.size() == c.range_.size());
         if (this != &c) {
-            if (!is_subfield_) {
-                copyState_(c);
-            } else if (is_subfield_ && !this->isMemoryOwner()) {
-                state_ = c.state_;
-            }
+            // XXX: [fabianw@mavt.ethz.ch; 2020-01-26] this copies state too
+            // here?
+            // if (!is_subfield_) {
+            //     copyState_(c);
+            // } else if (is_subfield_ && !this->isMemoryOwner()) {
+            //     state_ = c.state_;
+            // }
             BlockDataType::operator=(c);
         }
         return *this;
@@ -318,7 +326,11 @@ public:
     /**
      * @brief Standard move assignment operator
      * @param c Field to move from
-     * @return This field with contents moved from c (data and state)
+     * @return This field with contents moved from c
+     *
+     * @rst
+     * .. note:: This operator moves data *and* state.
+     * @endrst
      */
     Field &operator=(Field &&c)
     {
