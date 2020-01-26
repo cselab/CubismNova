@@ -61,7 +61,8 @@ void FieldWriteHDF(const std::string &fname,
         }
         FileDataType *buf = new FileDataType[iextent.prod() * NComp];
         Field2AOS(field, irange, buf);
-        HDFDriver<FileDataType, Mesh> hdf_driver;
+        HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class>
+            hdf_driver;
         hdf_driver.write(fname,
                          aname,
                          buf,

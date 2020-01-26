@@ -20,7 +20,7 @@ template <typename T>
 hid_t getH5T();
 #endif /* CUBISM_USE_HDF */
 
-template <typename FileDataType, typename Mesh>
+template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 struct HDFDriver {
     void write(const std::string &fname,
                const std::string &aname,
@@ -57,7 +57,7 @@ struct HDFDriver {
         if (create_xdmf && entity != Cubism::EntityType::Face) {
             // TODO: [fabianw@mavt.ethz.ch; 2020-01-25] face storage location is
             // currently not supported by ParaView
-            XDMFDriver<FileDataType, Mesh::Class> xdmf;
+            XDMFDriver<FileDataType, Class> xdmf;
             xdmf.write(fname, aname, mesh, fclass, entity, NComp, time);
         }
         fapl_id = H5Pcreate(H5P_DATASET_XFER);
@@ -124,7 +124,8 @@ inline hid_t getH5T<char>()
 #define UNIFORM_HDFDRIVER(HDFType, MeshReal)                                   \
     template struct HDFDriver<                                                 \
         HDFType,                                                               \
-        Mesh::StructuredUniform<MeshReal, CUBISM_DIMENSION>>
+        Mesh::StructuredBase<MeshReal, CUBISM_DIMENSION>,                      \
+        Cubism::MeshClass::Uniform>
 UNIFORM_HDFDRIVER(float, float);
 UNIFORM_HDFDRIVER(float, double);
 UNIFORM_HDFDRIVER(double, float);

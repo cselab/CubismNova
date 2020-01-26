@@ -17,7 +17,7 @@ NAMESPACE_BEGIN(IO)
  * @tparam FileDataType File data taype
  * @tparam Mesh Mesh type
  * */
-template <typename FileDataType, typename Mesh>
+template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 struct HDFDriver {
     void write(const std::string &,
                const std::string &,
