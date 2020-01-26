@@ -105,6 +105,9 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
         std::string mesh_origin(orig.str());
         std::string mesh_spacing(spac.str());
 
+        // XXX: [fabianw@mavt.ethz.ch; 2020-01-26] Remove path; Linux/Mac only
+        const std::string basename = fname.substr(fname.find_last_of("/") + 1);
+
         std::FILE *xmf = 0;
         xmf = fopen((fname + ".xmf").c_str(), "w");
         fprintf(xmf, "<?xml version=\"1.0\" ?>\n");
@@ -143,7 +146,7 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
                 data_dimZYXC.c_str(),
                 data_type.c_str(),
                 sizeof(DataType));
-        fprintf(xmf, "\t\t\t\t%s:/data\n", (fname + ".h5").c_str());
+        fprintf(xmf, "\t\t\t\t./%s:/data\n", (basename + ".h5").c_str());
         fprintf(xmf, "\t\t\t</DataItem>\n");
         fprintf(xmf, "\t\t</Attribute>\n");
         fprintf(xmf, "\t</Grid>\n");
