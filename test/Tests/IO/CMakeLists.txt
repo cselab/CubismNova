@@ -1,0 +1,8 @@
+set(EXE IOTests)
+add_executable(${EXE})
+
+# HDF5
+target_sources(${EXE} PRIVATE HDF/FieldHDFTest.cpp)
+
+target_link_libraries(${EXE} gtest gtest_main IO)
+gtest_discover_tests(${EXE})

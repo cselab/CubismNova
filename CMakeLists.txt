@@ -13,13 +13,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 
-# MPI
-find_package(MPI REQUIRED)
-
-# warnings
+# compiler flags
 set(CMAKE_C_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_CXX_FLAGS}")
 
+# MPI
+find_package(MPI REQUIRED)
+
+# HDF5
+set(HDF5_PREFER_PARALLEL ON)
+find_package(HDF5)
+if (HDF5_FOUND)
+    add_compile_definitions(CUBISM_USE_HDF)
+else ()
+    message("HDF library not found")
+endif ()
+
+# Cubism sources
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(include/Cubism)
 install(DIRECTORY include/Cubism DESTINATION ${INC_DIR})
