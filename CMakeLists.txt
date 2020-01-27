@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.12.0)
 
 project("CubismNova")
 
+# build options
+option(CUBISM_IO "Build CubismNova IO library" ON)
+option(CUBISM_TESTS "Build CubismNova tests" ON)
+option(CUBISM_UTIL "Build CubismNova utilities library" ON)
+
 # install destinations
 set(EXE_DIR bin)
 set(INC_DIR include)
@@ -20,13 +25,13 @@ set(CMAKE_CXX_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_CXX_FLAGS}")
 # MPI
 find_package(MPI REQUIRED)
 
-# HDF5
-set(HDF5_PREFER_PARALLEL ON)
-find_package(HDF5)
-if (HDF5_FOUND)
-    add_compile_definitions(CUBISM_USE_HDF)
-else ()
-    message("HDF library not found")
+# IO
+if (CUBISM_IO)
+    set(HDF5_PREFER_PARALLEL ON)
+    find_package(HDF5)
+    if (HDF5_FOUND)
+        add_compile_definitions(CUBISM_USE_HDF)
+    endif ()
 endif ()
 
 # Cubism sources
@@ -42,7 +47,6 @@ set(THIRD_DIR third)
 add_subdirectory(${THIRD_DIR})
 
 # testing
-option(CUBISM_TESTS "Build CubismNova tests" ON)
 file(GLOB RESULT "test/googletest/*")
 list(LENGTH RESULT RES_LEN)
 if (RES_LEN EQUAL 0)

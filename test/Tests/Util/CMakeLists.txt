@@ -11,5 +11,5 @@ add_custom_command(TARGET ${EXE} POST_BUILD
 # Cubism version strings
 target_sources(${EXE} PRIVATE Version/VersionTest.cpp)
 
-target_link_libraries(${EXE} gtest gtest_main Util)
+target_link_libraries(${EXE} gtest gtest_main ${LIBUTIL})
 gtest_discover_tests(${EXE})
