@@ -7,6 +7,7 @@
 #define FIELDHDF_H_SZ10D4OW
 
 #include "Common.h"
+#include "Compiler.h"
 #include "IO/FieldAOS.h"
 #include "IO/HDFDriver.h"
 #include <cstdio>
@@ -14,6 +15,9 @@
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(IO)
+
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
 
 /**
  * @addtogroup IO
@@ -87,6 +91,9 @@ void FieldWriteHDF(const std::string &fname,
 
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-24] Read
 /**  @} */
+
+DISABLE_WARNING_POP
+
 NAMESPACE_END(IO)
 NAMESPACE_END(Cubism)
 

@@ -18,7 +18,6 @@ NAMESPACE_BEGIN(IO)
 
 template <typename T>
 hid_t getH5T();
-#endif /* CUBISM_USE_HDF */
 
 template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 struct HDFDriver {
@@ -33,7 +32,6 @@ struct HDFDriver {
                const size_t face_dir,
                const bool create_xdmf) const
     {
-#ifdef CUBISM_USE_HDF
         using IRange = typename Mesh::IndexRangeType;
         using MIndex = typename IRange::MultiIndex;
         const IRange irange = mesh.getIndexRange(entity, face_dir);
@@ -88,11 +86,9 @@ struct HDFDriver {
         (H5Fclose(file_id) < 0) ? H5Eprint1(stderr) : 0;
         H5close();
     }
-#endif /* CUBISM_USE_HDF */
 };
 
 // HDF5 type specializations
-#ifdef CUBISM_USE_HDF
 template <>
 inline hid_t getH5T<float>()
 {
@@ -118,25 +114,23 @@ inline hid_t getH5T<char>()
 {
     return H5T_NATIVE_CHAR;
 }
-#endif /* CUBISM_USE_HDF */
 
 // explicit instantiations for CUBISM_DIMENSION
-#define UNIFORM_HDFDRIVER(HDFType, MeshReal)                                   \
-    template struct HDFDriver<                                                 \
-        HDFType,                                                               \
-        Mesh::StructuredBase<MeshReal, CUBISM_DIMENSION>,                      \
-        Cubism::MeshClass::Uniform>
-UNIFORM_HDFDRIVER(float, float);
-UNIFORM_HDFDRIVER(float, double);
-UNIFORM_HDFDRIVER(double, float);
-UNIFORM_HDFDRIVER(double, double);
-UNIFORM_HDFDRIVER(size_t, float);
-UNIFORM_HDFDRIVER(size_t, double);
-UNIFORM_HDFDRIVER(int, float);
-UNIFORM_HDFDRIVER(int, double);
-UNIFORM_HDFDRIVER(char, float);
-UNIFORM_HDFDRIVER(char, double);
+#define UNIFORM_HDFDRIVER(HDFType)                                             \
+    template struct HDFDriver<HDFType,                                         \
+                              Mesh::StructuredBase<float, CUBISM_DIMENSION>,   \
+                              Cubism::MeshClass::Uniform>;                     \
+    template struct HDFDriver<HDFType,                                         \
+                              Mesh::StructuredBase<double, CUBISM_DIMENSION>,  \
+                              Cubism::MeshClass::Uniform>;
+UNIFORM_HDFDRIVER(float)
+UNIFORM_HDFDRIVER(double)
+UNIFORM_HDFDRIVER(size_t)
+UNIFORM_HDFDRIVER(int)
+UNIFORM_HDFDRIVER(char)
 #undef UNIFORM_HDFDRIVER
+
+#endif /* CUBISM_USE_HDF */
 
 NAMESPACE_END(IO)
 NAMESPACE_END(Cubism)
