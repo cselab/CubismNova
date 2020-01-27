@@ -8,7 +8,12 @@ jobs:
         steps:
             - run:
                 name: Install dependencies
-                command: apt-get update && apt-get -y install mpich cmake git
+                command: >
+                    apt-get update && apt-get -y install
+                    mpich
+                    cmake
+                    git
+                    libhdf5-dev
 
             - checkout
 
@@ -17,15 +22,22 @@ jobs:
                 command: git submodule update --init
 
             - run:
-                name: Debug build
-                command: |
+                name: Debug build (full)
+                command: >
                     ./cmake_init.sh debug ./ &&
                     cd debug &&
                     make -j && make test
 
             - run:
-                name: Release build
-                command: |
+                name: Release build (full)
+                command: >
                     ./cmake_init.sh release ./ &&
                     cd release &&
+                    make -j && make test
+
+            - run:
+                name: Debug build (no libCubismIO.a)
+                command: >
+                    ./cmake_init.sh debug ./ -DCUBISM_IO=OFF &&
+                    cd debug &&
                     make -j && make test
