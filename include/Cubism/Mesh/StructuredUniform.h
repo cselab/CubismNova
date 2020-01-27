@@ -137,11 +137,13 @@ public:
      * @rst
      * If ``start`` or ``end`` is outside of the physical range spanned by this
      * mesh, then they will be adjusted to the start and/or end points of the
-     * range corresponding to this mesh, respectively.  The coordinates given by
-     * ``start`` and ``end`` will be extended to include the complete cells that
-     * they intersect with.
+     * range corresponding to this mesh, respectively.  The extracted discrete
+     * mesh is always guaranteed to include the ``start`` and ``end`` points.
+     * Therefore, ``getRange().getBegin()`` of the extracted sub-mesh may be
+     * smaller in any component than ``start`` and vice versa
+     * ``getRange().getEnd()`` may be larger in any component than ``end``.
      *
-     * This method is not part of the ``BaseMesh`` interface.
+     * .. note:: This method is not part of the ``BaseMesh`` interface.
      * @endrst
      */
     virtual std::unique_ptr<StructuredUniform>
@@ -236,7 +238,9 @@ private:
             start[i] = (start[i] < start_r[i]) ? start_r[i] : start[i];
             end[i] = (end[i] > end_r[i]) ? end_r[i] : end[i];
 
-            // boundaries
+            // boundaries: this ensures the correct resulting cell index if
+            // start (and consequently end) happen to lie in the same cell
+            // adjacent to the boundary
             start[i] = (Cubism::myAbs(start[i] - end_r[i]) < mesh_spacing_[i])
                            ? start[i] - 1.0 * mesh_spacing_[i]
                            : start[i];
@@ -245,7 +249,9 @@ private:
                          ? end[i] + 1.0 * mesh_spacing_[i]
                          : end[i];
 
-            // round up (internal region only)
+            // round up (internal region only): round up to closest cell index
+            // (this ensures that the requested physical region is contained in
+            // the extracted discrete index space)
             const int idx = (end[i] - start_r[i]) / mesh_spacing_[i];
             const RealType ep1 = start_r[i] + (idx + 1) * mesh_spacing_[i];
             const RealType adiff = Cubism::myAbs(ep1 - end[i]);
@@ -255,7 +261,9 @@ private:
                          ? end[i] + 1.0 * mesh_spacing_[i]
                          : end[i];
 
-            // ensure at least one cell thick
+            // ensure at least one cell thick: the extracted region must be at
+            // least one cell thick.  This criterion is ensured by always
+            // rounding up.
             const RealType diff_rel = Cubism::myAbs(end[i] - start[i]);
             end[i] = (diff_rel < mesh_spacing_[i])
                          ? end[i] + 1.0 * mesh_spacing_[i]
