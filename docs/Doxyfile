@@ -30,6 +30,13 @@ QUIET                = YES
 WARN_IF_UNDOCUMENTED = NO
 AUTOLINK_SUPPORT     = NO
 
+ENABLE_PREPROCESSING = YES
+MACRO_EXPANSION      = YES
+EXPAND_ONLY_PREDEF   = YES
+PREDEFINED           = DISABLE_WARNING_PUSH= \
+                       DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER= \
+                       DISABLE_WARNING_POP
+
 # embedded markup aliases
 ALIASES = "rst=@verbatim embed:rst:leading-asterisk"
 ALIASES += "endrst=@endverbatim"
