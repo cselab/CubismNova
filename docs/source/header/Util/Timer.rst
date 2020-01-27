@@ -6,8 +6,8 @@
 
 .. _timer:
 
-Timer
------
+Timer.h
+-------
 
 .. doxygenclass:: Timer
    :project: CubismNova

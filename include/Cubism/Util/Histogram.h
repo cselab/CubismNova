@@ -14,9 +14,18 @@
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
+/**
+ * @defgroup Util Utilities
+ * @rst
+ * The members of this group are optional utilities that are not required to
+ * implement a working application.  Its components form the content of
+ * ``libCubismUtil.a``.  An application using these utilities must link to
+ * ``-lCubismUtil``.
+ * @endrst
+ */
 
-/** @addtogroup MPI
- * @{
+/**
+ * @ingroup Util MPI
  * @brief MPI profiling using histograms
  *
  * Collects samples for a profiled quantity of interest on individual ranks.
@@ -65,7 +74,6 @@ private:
     void homogenizeCollection_();
 };
 
-/**  @} */
 NAMESPACE_END(Util)
 NAMESPACE_END(Cubism)
 

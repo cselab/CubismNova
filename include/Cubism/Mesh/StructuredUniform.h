@@ -14,10 +14,13 @@
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Mesh)
+/**
+ * @defgroup Mesh Mesh Classes
+ * The members of this group belong to mesh classes.
+ */
 
 /**
- * @addtogroup Mesh
- * @{
+ * @ingroup Mesh
  * @brief Structured uniform mesh
  * @tparam TReal Float type for mesh entities
  * @tparam DIM Mesh dimension
@@ -279,7 +282,6 @@ private:
 template <typename TReal, size_t DIM>
 constexpr Cubism::MeshClass StructuredUniform<TReal, DIM>::Class;
 
-/**  @} */
 NAMESPACE_END(Mesh)
 NAMESPACE_END(Cubism)
 

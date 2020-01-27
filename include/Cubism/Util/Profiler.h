@@ -18,8 +18,8 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
-/** @addtogroup MPI
- * @{
+/**
+ * @ingroup Util MPI
  * @brief Runtime profiler
  *
  * @rst
@@ -90,7 +90,6 @@ private:
     size_t batch_count_;
 };
 
-/**  @} */
 NAMESPACE_END(Util)
 NAMESPACE_END(Cubism)
 

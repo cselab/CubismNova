@@ -12,6 +12,7 @@ NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
 /**
+ * @ingroup Util
  * @brief Cubism release version string
  *
  * @rst
@@ -27,6 +28,7 @@ NAMESPACE_BEGIN(Util)
 extern const char *CubismVersion;
 
 /**
+ * @ingroup Util
  * @brief Cubism HEAD at build time
  *
  * @rst
@@ -46,6 +48,7 @@ extern const char *CubismVersion;
 extern const char *CubismVersionHEAD;
 
 /**
+ * @ingroup Util
  * @brief Cubism build branch
  *
  * @rst

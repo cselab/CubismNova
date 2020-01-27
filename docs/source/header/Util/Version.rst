@@ -6,8 +6,8 @@
 
 .. _version:
 
-Version
--------
+Version.h
+---------
 
 .. doxygenvariable:: CubismVersion
    :project: CubismNova

@@ -4,8 +4,8 @@
 .. Description: Alloc/AlignedBlockAllocator.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-AlignedBlockAllocator
----------------------
+AlignedBlockAllocator.h
+-----------------------
 
 .. doxygenclass:: AlignedBlockAllocator
    :project: CubismNova

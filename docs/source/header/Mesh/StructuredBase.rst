@@ -4,8 +4,8 @@
 .. Description: Mesh/StructuredBase.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-StructuredBase
---------------
+StructuredBase.h
+----------------
 
 .. doxygenclass:: StructuredBase
    :project: CubismNova

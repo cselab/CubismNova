@@ -20,9 +20,7 @@ DISABLE_WARNING_PUSH
 DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
 
 /**
- * @addtogroup IO
- * @{
- *
+ * @ingroup IO
  * @brief Write field data to HDF file
  * @tparam FileDataType HDF file data type
  * @tparam Field Field type
@@ -36,6 +34,12 @@ DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
  * @param create_xdmf Flag for XDMF wrapper
  *
  * @rst
+ * Write the data carried by ``field`` to an HDF5 container file.  The data that
+ * is written to the file is specified by the index space described in ``mesh``.
+ * The ``Field`` type may be ``Cubism::FieldClass::Scalar`` or
+ * ``Cubism::FieldClass::Tensor``.
+ *
+ * .. todo:: example for sub-space
  * @endrst
  */
 template <typename FileDataType, typename Field, typename Mesh>
@@ -90,7 +94,6 @@ void FieldWriteHDF(const std::string &fname,
 }
 
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-24] Read
-/**  @} */
 
 DISABLE_WARNING_POP
 

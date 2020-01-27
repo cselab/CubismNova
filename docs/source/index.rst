@@ -16,8 +16,15 @@
    header/Common.rst
    header/Core/index.rst
    header/Grid/index.rst
+   header/IO/index.rst
    header/Mesh/index.rst
    header/Util/index.rst
+
+.. toctree::
+   :caption: Groups
+   :name: groups
+
+   groups/index.rst
 
 .. toctree::
    :caption: Tools

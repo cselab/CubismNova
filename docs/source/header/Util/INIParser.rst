@@ -6,8 +6,8 @@
 
 .. _iniparser:
 
-INIParser
----------
+INIParser.h
+-----------
 
 .. doxygenclass:: INIParser
    :project: CubismNova

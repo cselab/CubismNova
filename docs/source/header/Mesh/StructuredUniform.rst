@@ -4,8 +4,8 @@
 .. Description: Mesh/StructuredUniform.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-StructuredUniform
------------------
+StructuredUniform.h
+-------------------
 
 .. doxygenclass:: StructuredUniform
    :project: CubismNova

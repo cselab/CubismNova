@@ -11,7 +11,6 @@ Core
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
-.. toctree::
-   Index.rst
-   Range.rst
-   Vector.rst
+.. include:: Index.rst
+.. include:: Range.rst
+.. include:: Vector.rst

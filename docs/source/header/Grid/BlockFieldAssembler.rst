@@ -4,8 +4,8 @@
 .. Description: Grid/BlockFieldAssembler.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-BlockFieldAssembler
--------------------
+BlockFieldAssembler.h
+---------------------
 
 .. doxygenstruct:: BlockFieldAssembler
    :project: CubismNova

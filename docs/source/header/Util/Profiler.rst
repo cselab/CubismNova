@@ -6,8 +6,8 @@
 
 .. _profiler:
 
-Profiler
---------
+Profiler.h
+----------
 
 .. doxygenclass:: Profiler
    :project: CubismNova

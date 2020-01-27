@@ -4,8 +4,8 @@
 .. Description: Core/Index.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-Index
------
+Index.h
+-------
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 

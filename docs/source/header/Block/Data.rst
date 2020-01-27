@@ -6,8 +6,8 @@
 
 .. _data:
 
-Data
-----
+Data.h
+------
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 

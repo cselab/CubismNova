@@ -11,10 +11,9 @@ Util
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
-.. toctree::
-   Histogram.rst
-   INIParser.rst
-   Profiler.rst
-   Sampler.rst
-   Timer.rst
-   Version.rst
+.. include:: Histogram.rst
+.. include:: INIParser.rst
+.. include:: Profiler.rst
+.. include:: Sampler.rst
+.. include:: Timer.rst
+.. include:: Version.rst

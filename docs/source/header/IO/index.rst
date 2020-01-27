@@ -1,15 +1,14 @@
 .. File       : index.rst
 .. Created    : Thu Jan 16 2020 06:28:48 PM (+0100)
 .. Author     : Fabian Wermelinger
-.. Description: Block namespace documentation
+.. Description: IO namespace documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-.. _block:
+.. _io:
 
-Block
-=====
+IO
+==
 
-.. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
-
-.. include:: Data.rst
-.. include:: Field.rst
+.. include:: FieldAOS.rst
+.. include:: FieldHDF.rst
+.. .. include:: FieldFPZIP.rst

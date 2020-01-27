@@ -11,10 +11,9 @@ Grid
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
-.. toctree::
-   Cartesian.rst
-   CartesianMPI.rst
+.. include:: Cartesian.rst
+.. include:: CartesianMPI.rst
 
 .. This code is low level and must not necessarily be in the public docs.  Check
 .. the source code
-.. BlockFieldAssembler.rst
+.. .. include:: BlockFieldAssembler.rst

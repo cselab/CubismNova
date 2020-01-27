@@ -6,8 +6,8 @@
 
 .. _cartesian:
 
-Cartesian
----------
+Cartesian.h
+-----------
 
 .. doxygenclass:: Cartesian
    :project: CubismNova

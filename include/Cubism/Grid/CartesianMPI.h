@@ -14,10 +14,16 @@
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Grid)
+/**
+ * @defgroup MPI Message Passing Interface
+ * @rst
+ * The members of this group are parallelized using the distributed memory model
+ * implemented by the MPI library.
+ * @endrst
+ */
 
 /**
- * @addtogroup MPI
- * @{
+ * @ingroup MPI
  * @brief Cartesian MPI block (tensor) field
  * @tparam T Field data type
  * @tparam Mesh Mesh type to be associated with fields
@@ -170,7 +176,6 @@ private:
     int rank_cart_;         // Cartesian MPI rank
 };
 
-/**  @} */
 NAMESPACE_END(Grid)
 NAMESPACE_END(Cubism)
 

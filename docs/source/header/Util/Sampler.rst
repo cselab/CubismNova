@@ -6,8 +6,8 @@
 
 .. _sampler:
 
-Sampler
--------
+Sampler.h
+---------
 
 .. doxygenclass:: Sampler
    :project: CubismNova

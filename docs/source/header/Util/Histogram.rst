@@ -6,8 +6,8 @@
 
 .. _histogram:
 
-Histogram
----------
+Histogram.h
+-----------
 
 .. doxygenclass:: Histogram
    :project: CubismNova

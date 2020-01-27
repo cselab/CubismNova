@@ -6,8 +6,8 @@
 
 .. _field:
 
-Field
------
+Field.h
+-------
 
 This header defines various block field types.  The essential block field is a
 *scalar* field.  Components of higher rank tensors are built using the

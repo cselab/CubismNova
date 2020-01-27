@@ -70,9 +70,18 @@ struct AOSDriver<Cubism::FieldClass::Tensor> {
 };
 
 /**
- * @addtogroup IO
- * @{
- *
+ * @defgroup IO Input/Output
+ * @rst
+ * Input/Output routines are functions that can be used with a block
+ * :ref:`field` object or block field compounds described in :ref:`grid`.  The
+ * components of this group form the contents of ``libCubismIO.a``.
+ * Consequently an application must link to ``-lCubismIO`` to make use of I/O
+ * group.
+ * @endrst
+ */
+
+/**
+ * @ingroup IO
  * @brief Write field data into AoS buffer
  * @tparam Field Field type
  * @tparam Buffer Data type of AoS buffer
@@ -100,7 +109,7 @@ void Field2AOS(const Field &f,
 }
 
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-24] Read
-/**  @} */
+
 NAMESPACE_END(IO)
 NAMESPACE_END(Cubism)
 

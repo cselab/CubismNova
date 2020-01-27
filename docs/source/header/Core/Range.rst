@@ -4,8 +4,8 @@
 .. Description: Core/Range.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-Range
------
+Range.h
+-------
 
 .. doxygenclass:: Range
    :project: CubismNova

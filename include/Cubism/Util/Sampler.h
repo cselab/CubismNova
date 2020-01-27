@@ -16,7 +16,9 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
-/** @brief Sample collector
+/**
+ * @ingroup Util
+ * @brief Sample collector
  *
  * @rst
  * Used to collect time samples (by default) for a code section that is enclosed

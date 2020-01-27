@@ -1,13 +1,13 @@
 .. File       : Common.rst
 .. Created    : Fri Jan 17 2020 08:04:13 PM (+0100)
 .. Author     : Fabian Wermelinger
-.. Description: Common header
+.. Description: Common.h header
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
 .. _common:
 
-Common
-======
+Common.h
+========
 
 The ``Common.h`` header contains global definitions used in many places of the
 code.  The following compile time constants are defined:
@@ -40,5 +40,5 @@ Tensor
 .. doxygenenum:: MeshClass
    :project: CubismNova
 
-.. doxygenenum:: MeshHull
+.. doxygenenum:: MeshIntegrity
    :project: CubismNova

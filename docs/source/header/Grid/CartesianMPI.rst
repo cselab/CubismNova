@@ -6,8 +6,8 @@
 
 .. _cartesianmpi:
 
-CartesianMPI
-------------
+CartesianMPI.h
+--------------
 
 .. doxygenclass:: CartesianMPI
    :project: CubismNova

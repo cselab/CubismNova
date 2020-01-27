@@ -4,8 +4,8 @@
 .. Description: Core/Vector.h documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-Vector
-------
+Vector.h
+--------
 
 .. doxygenclass:: Vector
    :project: CubismNova

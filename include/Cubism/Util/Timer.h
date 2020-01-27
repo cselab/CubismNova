@@ -13,7 +13,10 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
-/** @brief Simple timer class */
+/**
+ * @ingroup Util
+ * @brief Simple timer class
+ * */
 class Timer
 {
     using Clock = std::chrono::steady_clock;

@@ -19,6 +19,7 @@ NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
 
 /**
+ * @ingroup Util
  * @brief INI config file parser
  *
  * @rst
