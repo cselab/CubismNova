@@ -13,7 +13,7 @@ jobs:
                     mpich
                     cmake
                     git
-                    libhdf5-dev
+                    libhdf5-mpich-dev
 
             - checkout
 
