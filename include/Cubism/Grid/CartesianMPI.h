@@ -36,18 +36,21 @@ NAMESPACE_BEGIN(Grid)
  * type.  As opposed to an individual block :ref:`field`, this class manages a
  * structure of arrays (SoA) memory layout for *all* the blocks in the rank
  * local Cartesian topology instead of just individual blocks.  See the
- * :ref:`cartesian` grid section for a non-distributed variant of this class.
+ * :ref:`cartesian` grid section for a non-distributed variant of this class as
+ * well as the ``UserState`` extension.
  * @endrst
  */
 template <typename T,
           typename Mesh,
           Cubism::EntityType Entity = Cubism::EntityType::Cell,
           size_t RANK = 0,
+          typename UserState = Block::FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
 class CartesianMPI
-    : public Cubism::Grid::Cartesian<T, Mesh, Entity, RANK, Alloc>
+    : public Cubism::Grid::Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>
 {
-    using BaseType = Cubism::Grid::Cartesian<T, Mesh, Entity, RANK, Alloc>;
+    using BaseType =
+        Cubism::Grid::Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>;
     using IntVec = typename Core::Vector<int, BaseType::Dim>;
 
     using BaseType::block_cells_;

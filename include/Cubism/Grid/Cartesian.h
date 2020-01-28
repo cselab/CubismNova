@@ -7,6 +7,7 @@
 #define CARTESIAN_H_QBSFTWK7
 
 #include "Cubism/Alloc/AlignedBlockAllocator.h"
+#include "Cubism/Block/Field.h"
 #include "Cubism/Common.h"
 #include "Cubism/Grid/BlockFieldAssembler.h"
 #include <cassert>
@@ -20,6 +21,7 @@ NAMESPACE_BEGIN(Grid)
  * @tparam Mesh Mesh type to be associated with fields
  * @tparam Entity Entity type
  * @tparam RANK Rank of (tensor) fields
+ * @tparam UserState Type for field state user extension
  * @tparam Alloc Allocator for field data
  *
  * @rst
@@ -27,13 +29,16 @@ NAMESPACE_BEGIN(Grid)
  * type.  As opposed to an individual block :ref:`field`, this class manages a
  * structure of arrays (SoA) memory layout for *all* the blocks in the Cartesian
  * topology instead of just individual blocks.  See the :ref:`cartesianmpi` grid
- * section for a distributed variant of this class.
+ * section for a distributed variant of this class.  The field state can be
+ * extended with the ``UserState`` extension.  The ``UserState`` type must be
+ * trivially copyable.
  * @endrst
  */
 template <typename T,
           typename Mesh,
           Cubism::EntityType Entity = Cubism::EntityType::Cell,
           size_t RANK = 0,
+          typename UserState = Block::FieldState,
           template <typename> class Alloc = AlignedBlockAllocator>
 class Cartesian
 {
@@ -55,10 +60,12 @@ public:
      * @brief Field state
      *
      * @rst
-     * State (meta data) for individual block fields This data structure carries
-     * individual meta data information for each block field in the Cartesian
-     * topology.  The mesh pointer points to the block (sub) mesh if topological
-     * information is required.
+     * State (meta data) for individual block fields. This data structure
+     * carries individual meta data information for each block field in the
+     * Cartesian topology.  The mesh pointer points to the block (sub) mesh if
+     * topological information is required.  The ``user`` addition can be
+     * customized depending on the needs of the application.  The ``user`` field
+     * is not initialized during construction.
      * @endrst
      */
     struct FieldState {
@@ -66,6 +73,8 @@ public:
         MultiIndex idx;
         /** @brief Block mesh */
         MeshType *mesh;
+        /** @brief User extension */
+        UserState user;
     };
 
 protected:
@@ -452,34 +461,39 @@ template <typename T,
           typename Mesh,
           Cubism::EntityType Entity,
           size_t RANK,
+          typename UserState,
           template <typename>
           class Alloc>
-constexpr size_t Cartesian<T, Mesh, Entity, RANK, Alloc>::Dim;
+constexpr size_t Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>::Dim;
 
 template <typename T,
           typename Mesh,
           Cubism::EntityType Entity,
           size_t RANK,
+          typename UserState,
           template <typename>
           class Alloc>
-constexpr size_t Cartesian<T, Mesh, Entity, RANK, Alloc>::Rank;
+constexpr size_t Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>::Rank;
 
 template <typename T,
           typename Mesh,
           Cubism::EntityType Entity,
           size_t RANK,
+          typename UserState,
           template <typename>
           class Alloc>
-constexpr size_t Cartesian<T, Mesh, Entity, RANK, Alloc>::NComponents;
+constexpr size_t
+    Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>::NComponents;
 
 template <typename T,
           typename Mesh,
           Cubism::EntityType Entity,
           size_t RANK,
+          typename UserState,
           template <typename>
           class Alloc>
 constexpr typename Cubism::EntityType
-    Cartesian<T, Mesh, Entity, RANK, Alloc>::EntityType;
+    Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>::EntityType;
 
 NAMESPACE_END(Grid)
 NAMESPACE_END(Cubism)
