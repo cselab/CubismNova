@@ -7,7 +7,7 @@ option(CUBISM_IO "Build IO library" ON)
 option(CUBISM_TESTS "Build tests" ON)
 option(CUBISM_UTIL "Build Util library" ON)
 option(CUBISM_32BIT_INDEX
-    "Build library with 32bit signed indexing (default: signed 64bit)" OFF)
+    "Enable 32bit signed indexing (default: signed 64bit)" OFF)
 # option(CUBISM_OPTIMIZED_KERNELS
 #     "Build library with performance optimized kernels" OFF)
 
