@@ -6,7 +6,7 @@
 #ifndef RANGE_H_JDWNYXZA
 #define RANGE_H_JDWNYXZA
 
-#include "Core/Vector.h"
+#include "Cubism/Core/Vector.h"
 #include <string>
 
 NAMESPACE_BEGIN(Cubism)

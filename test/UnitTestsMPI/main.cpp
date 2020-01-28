@@ -3,6 +3,7 @@
 // Author     : Fabian Wermelinger
 // Description: Main MPI test driver
 // Copyright 2020 ETH Zurich. All Rights Reserved.
+
 #include "gtest-mpi-listener.hpp"
 #include "gtest/gtest.h"
 #include <mpi.h>

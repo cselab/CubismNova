@@ -3,9 +3,10 @@
 // Author     : Fabian Wermelinger
 // Description: Block field HDF IO
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "IO/FieldHDF.h"
-#include "Block/Field.h"
-#include "Mesh/StructuredUniform.h"
+
+#include "Cubism/IO/FieldHDF.h"
+#include "Cubism/Block/Field.h"
+#include "Cubism/Mesh/StructuredUniform.h"
 #include "gtest/gtest.h"
 
 namespace

@@ -6,7 +6,7 @@
 #ifndef INDEX_H_CPAHO0UM
 #define INDEX_H_CPAHO0UM
 
-#include "Core/Range.h"
+#include "Cubism/Core/Range.h"
 #include <cassert>
 #include <cstddef>
 

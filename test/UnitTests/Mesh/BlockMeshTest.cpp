@@ -3,13 +3,12 @@
 // Author     : Fabian Wermelinger
 // Description: Block mesh / sub-mesh tests
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "Block/Field.h"
-#include "Core/Index.h"
+
+#include "Cubism/Alloc/AlignedBlockAllocator.h"
+#include "Cubism/Block/Field.h"
+#include "Cubism/Core/Index.h"
+#include "Cubism/Mesh/StructuredUniform.h"
 #include "gtest/gtest.h"
-
-#include "Alloc/AlignedBlockAllocator.h"
-#include "Mesh/StructuredUniform.h"
-
 #include <vector>
 
 namespace

@@ -3,12 +3,11 @@
 // Author     : Fabian Wermelinger
 // Description: Basic block data test for various allocator types
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Block/Data.h"
-#include "Core/Index.h"
+
+#include "Cubism/Block/Data.h"
+#include "Cubism/Alloc/AlignedBlockAllocator.h"
+#include "Cubism/Core/Index.h"
 #include "gtest/gtest.h"
-
-#include "Alloc/AlignedBlockAllocator.h"
-
 #include <utility>
 
 namespace

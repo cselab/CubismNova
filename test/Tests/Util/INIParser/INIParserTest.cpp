@@ -3,9 +3,9 @@
 // Author     : Fabian Wermelinger
 // Description: Parse test for .ini parser
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Util/INIParser.h"
-#include "gtest/gtest.h"
 
+#include "Cubism/Util/INIParser.h"
+#include "gtest/gtest.h"
 #include <iostream>
 #include <stdexcept>
 #include <vector>

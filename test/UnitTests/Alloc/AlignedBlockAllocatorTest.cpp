@@ -3,7 +3,8 @@
 // Author     : Fabian Wermelinger
 // Description: Test aligned POSIX block allocator
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Alloc/AlignedBlockAllocator.h"
+
+#include "Cubism/Alloc/AlignedBlockAllocator.h"
 #include "gtest/gtest.h"
 
 namespace

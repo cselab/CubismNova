@@ -3,9 +3,9 @@
 // Author     : Fabian Wermelinger
 // Description: Unit tests for Cubism/Core/Vector.h
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Core/Vector.h"
-#include "gtest/gtest.h"
 
+#include "Cubism/Core/Vector.h"
+#include "gtest/gtest.h"
 #include <algorithm>
 #include <array>
 #include <cmath>

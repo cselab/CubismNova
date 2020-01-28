@@ -3,9 +3,10 @@
 // Author     : Fabian Wermelinger
 // Description: HDF IO routines implementation
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "Common.h"
-#include "IO/XDMFDriver.h"
-#include "Mesh/StructuredUniform.h"
+
+#include "Cubism/Common.h"
+#include "Cubism/IO/XDMFDriver.h"
+#include "Cubism/Mesh/StructuredUniform.h"
 #include <cstddef>
 #include <cstdio>
 #include <string>

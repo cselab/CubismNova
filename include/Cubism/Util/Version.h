@@ -6,7 +6,7 @@
 #ifndef VERSION_H_BPFXCOEG
 #define VERSION_H_BPFXCOEG
 
-#include "Common.h"
+#include "Cubism/Common.h"
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)

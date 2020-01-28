@@ -6,7 +6,7 @@
 #ifndef XDMFDRIVER_H_WQMJLHYN
 #define XDMFDRIVER_H_WQMJLHYN
 
-#include "Common.h"
+#include "Cubism/Common.h"
 #include <cstdio>
 #include <sstream>
 #include <string>

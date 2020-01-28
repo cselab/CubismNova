@@ -6,8 +6,8 @@
 #ifndef BLOCKFIELDASSEMBLER_H_GXHBUCPV
 #define BLOCKFIELDASSEMBLER_H_GXHBUCPV
 
-#include "Block/Field.h"
-#include "Common.h"
+#include "Cubism/Block/Field.h"
+#include "Cubism/Common.h"
 #include <cstddef>
 #include <vector>
 

@@ -3,10 +3,10 @@
 // Author     : Fabian Wermelinger
 // Description: Cartesian Grid test
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "Grid/Cartesian.h"
-#include "Mesh/StructuredUniform.h"
-#include "gtest/gtest.h"
 
+#include "Cubism/Grid/Cartesian.h"
+#include "Cubism/Mesh/StructuredUniform.h"
+#include "gtest/gtest.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>

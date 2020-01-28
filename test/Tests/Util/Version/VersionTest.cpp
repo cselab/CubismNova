@@ -3,9 +3,9 @@
 // Author     : Fabian Wermelinger
 // Description: Cubism version string tests
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "Util/Version.h"
-#include "gtest/gtest.h"
 
+#include "Cubism/Util/Version.h"
+#include "gtest/gtest.h"
 #include <iostream>
 
 namespace

@@ -6,8 +6,7 @@
 #ifndef MATH_H_ODQVPXYD
 #define MATH_H_ODQVPXYD
 
-#include "Common.h"
-
+#include "Cubism/Common.h"
 #include <cmath>
 #include <cstdlib>
 

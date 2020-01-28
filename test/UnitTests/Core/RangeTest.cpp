@@ -3,7 +3,8 @@
 // Author     : Fabian Wermelinger
 // Description: Generic ranges test
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Core/Range.h"
+
+#include "Cubism/Core/Range.h"
 #include "gtest/gtest.h"
 
 namespace

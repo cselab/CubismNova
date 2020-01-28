@@ -11,6 +11,7 @@ endif ()
 
 set(LIBUTIL "Cubism${DIR_UTIL}" CACHE INTERNAL "Cubism library archives")
 
+include_directories(${PROJECT_SOURCE_DIR}/)
 add_library(${LIBUTIL} STATIC Histogram.cpp Profiler.cpp INIParser.cpp
     Version.cpp)
 target_link_libraries(${LIBUTIL} inih)

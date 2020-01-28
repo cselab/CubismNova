@@ -3,10 +3,10 @@
 // Author     : Fabian Wermelinger
 // Description: Structured uniform mesh test
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "Mesh/StructuredUniform.h"
-#include "Core/Index.h"
-#include "gtest/gtest.h"
 
+#include "Cubism/Mesh/StructuredUniform.h"
+#include "Cubism/Core/Index.h"
+#include "gtest/gtest.h"
 #include <iostream>
 
 namespace

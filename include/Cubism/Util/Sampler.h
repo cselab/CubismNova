@@ -6,8 +6,7 @@
 #ifndef SAMPLER_H_PV1MECI3
 #define SAMPLER_H_PV1MECI3
 
-#include "Timer.h"
-
+#include "Cubism/Util/Timer.h"
 #include <map>
 #include <stack>
 #include <string>

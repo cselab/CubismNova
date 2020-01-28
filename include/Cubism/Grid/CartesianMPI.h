@@ -6,9 +6,9 @@
 #ifndef CARTESIANMPI_H_INHL4O2K
 #define CARTESIANMPI_H_INHL4O2K
 
-#include "Common.h"
-#include "Core/Vector.h"
-#include "Grid/Cartesian.h"
+#include "Cubism/Common.h"
+#include "Cubism/Core/Vector.h"
+#include "Cubism/Grid/Cartesian.h"
 #include <cassert>
 #include <mpi.h>
 

@@ -3,8 +3,8 @@
 // Author     : Fabian Wermelinger
 // Description: Histogram implementation
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Util/Histogram.h"
 
+#include "Cubism/Util/Histogram.h"
 #include <cmath>
 #include <stdexcept>
 #include <utility>

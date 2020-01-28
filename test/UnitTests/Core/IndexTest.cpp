@@ -3,7 +3,8 @@
 // Author     : Fabian Wermelinger
 // Description: Test indexing space
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Core/Index.h"
+
+#include "Cubism/Core/Index.h"
 #include "gtest/gtest.h"
 
 namespace

@@ -3,12 +3,12 @@
 // Author     : Fabian Wermelinger
 // Description: Cartesian Grid test
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "Core/Vector.h"
-#include "Grid/CartesianMPI.h"
-#include "Mesh/StructuredUniform.h"
+
+#include "Cubism/Core/Vector.h"
+#include "Cubism/Grid/CartesianMPI.h"
+#include "Cubism/Mesh/StructuredUniform.h"
 #include "gtest-mpi-listener.hpp"
 #include "gtest/gtest.h"
-
 #include <mpi.h>
 
 namespace

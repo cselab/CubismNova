@@ -6,9 +6,8 @@
 #ifndef VECTOR_H_8YBMEXHP
 #define VECTOR_H_8YBMEXHP
 
-#include "Common.h"
-#include "Math.h"
-
+#include "Cubism/Common.h"
+#include "Cubism/Math.h"
 #include <algorithm>
 #include <array>
 #include <cassert>

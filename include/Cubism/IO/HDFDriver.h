@@ -6,7 +6,7 @@
 #ifndef HDFDRIVER_H_I1VZGUDV
 #define HDFDRIVER_H_I1VZGUDV
 
-#include "Common.h"
+#include "Cubism/Common.h"
 #include <string>
 
 NAMESPACE_BEGIN(Cubism)

@@ -3,8 +3,9 @@
 // Author     : Fabian Wermelinger
 // Description: Convert SoA fields to AoS for I/O
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#include "IO/FieldAOS.h"
-#include "Block/Field.h"
+
+#include "Cubism/IO/FieldAOS.h"
+#include "Cubism/Block/Field.h"
 #include "gtest/gtest.h"
 #include <algorithm>
 

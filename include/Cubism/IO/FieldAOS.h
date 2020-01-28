@@ -7,7 +7,7 @@
 #ifndef FIELDAOS_H_DOY3MTA8
 #define FIELDAOS_H_DOY3MTA8
 
-#include "Common.h"
+#include "Cubism/Common.h"
 #include <cstddef>
 
 NAMESPACE_BEGIN(Cubism)

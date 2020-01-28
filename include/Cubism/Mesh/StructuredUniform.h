@@ -6,8 +6,8 @@
 #ifndef STRUCTUREDUNIFORM_H_L4AIO9HT
 #define STRUCTUREDUNIFORM_H_L4AIO9HT
 
-#include "Math.h"
-#include "Mesh/StructuredBase.h"
+#include "Cubism/Math.h"
+#include "Cubism/Mesh/StructuredBase.h"
 #include <limits>
 #include <memory>
 #include <stdexcept>

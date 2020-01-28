@@ -6,9 +6,9 @@
 #ifndef CARTESIAN_H_QBSFTWK7
 #define CARTESIAN_H_QBSFTWK7
 
-#include "Alloc/AlignedBlockAllocator.h"
-#include "Common.h"
-#include "Grid/BlockFieldAssembler.h"
+#include "Cubism/Alloc/AlignedBlockAllocator.h"
+#include "Cubism/Common.h"
+#include "Cubism/Grid/BlockFieldAssembler.h"
 #include <cassert>
 
 NAMESPACE_BEGIN(Cubism)

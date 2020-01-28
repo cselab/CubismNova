@@ -6,9 +6,8 @@
 #ifndef HISTOGRAM_H_6SPETKCI
 #define HISTOGRAM_H_6SPETKCI
 
-#include "Common.h"
-#include "Util/Sampler.h"
-
+#include "Cubism/Common.h"
+#include "Cubism/Util/Sampler.h"
 #include <mpi.h>
 #include <string>
 

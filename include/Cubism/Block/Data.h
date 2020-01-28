@@ -6,10 +6,9 @@
 #ifndef DATA_H_W5KVJG9U
 #define DATA_H_W5KVJG9U
 
-#include "Alloc/AlignedBlockAllocator.h"
-#include "Common.h"
-#include "Core/Index.h"
-
+#include "Cubism/Alloc/AlignedBlockAllocator.h"
+#include "Cubism/Common.h"
+#include "Cubism/Core/Index.h"
 #include <cassert>
 #include <cstring>
 #include <type_traits>

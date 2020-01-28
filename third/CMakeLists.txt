@@ -1,3 +1,5 @@
+include_directories(${CMAKE_SOURCE_DIR})
+
 # inih parser
 if (CUBISM_UTIL)
     # https://github.com/benhoyt/inih.git

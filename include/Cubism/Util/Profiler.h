@@ -6,9 +6,8 @@
 #ifndef PROFILER_H_LQ95Z7KM
 #define PROFILER_H_LQ95Z7KM
 
-#include "Common.h"
-#include "Util/Sampler.h"
-
+#include "Cubism/Common.h"
+#include "Cubism/Util/Sampler.h"
 #include <cassert>
 #include <map>
 #include <mpi.h>

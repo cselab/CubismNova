@@ -3,8 +3,8 @@
 // Author     : Fabian Wermelinger
 // Description: Histogram implementation
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Util/Profiler.h"
 
+#include "Cubism/Util/Profiler.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>

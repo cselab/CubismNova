@@ -3,9 +3,9 @@
 // Author     : Fabian Wermelinger
 // Description: .ini file parser implementation.
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Util/INIParser.h"
-#include "third/inih/ini.h"
 
+#include "Cubism/Util/INIParser.h"
+#include "third/inih/ini.h"
 #include <algorithm>
 #include <cctype>
 #include <chrono>

@@ -6,8 +6,7 @@
 #ifndef ALIGNEDBLOCKALLOCATOR_H_ARTMHJKM
 #define ALIGNEDBLOCKALLOCATOR_H_ARTMHJKM
 
-#include "Common.h"
-
+#include "Cubism/Common.h"
 #include <cassert>
 #include <cstdlib>
 

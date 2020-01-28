@@ -3,10 +3,10 @@
 // Author     : Fabian Wermelinger
 // Description: Basic block field test
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Block/Field.h"
-#include "Core/Index.h"
-#include "gtest/gtest.h"
 
+#include "Cubism/Block/Field.h"
+#include "Cubism/Core/Index.h"
+#include "gtest/gtest.h"
 #include <algorithm>
 #include <cmath>
 #include <type_traits>

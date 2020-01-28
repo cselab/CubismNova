@@ -3,8 +3,8 @@
 // Author     : Fabian Wermelinger
 // Description: Profiler sandbox tests
 // Copyright 2019 ETH Zurich. All Rights Reserved.
-#include "Util/Profiler.h"
 
+#include "Cubism/Util/Profiler.h"
 #include <chrono>
 #include <mpi.h>
 #include <thread>

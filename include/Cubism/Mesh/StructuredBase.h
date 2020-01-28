@@ -6,10 +6,9 @@
 #ifndef STRUCTUREDBASE_H_QETR3VEW
 #define STRUCTUREDBASE_H_QETR3VEW
 
-#include "Common.h"
-#include "Core/Index.h"
-#include "Core/Range.h"
-
+#include "Cubism/Common.h"
+#include "Cubism/Core/Index.h"
+#include "Cubism/Core/Range.h"
 #include <cassert>
 #include <iterator>
 #include <vector>

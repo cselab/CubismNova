@@ -37,17 +37,15 @@ if (CUBISM_IO)
     endif ()
 endif ()
 
-# Cubism sources
-include_directories(${CMAKE_SOURCE_DIR})
-include_directories(include/Cubism)
-install(DIRECTORY include/Cubism DESTINATION ${INC_DIR})
-
-add_subdirectory(src)
-add_subdirectory(tools)
-
 # third party
 set(THIRD_DIR third)
 add_subdirectory(${THIRD_DIR})
+
+# Cubism sources
+include_directories(include)
+install(DIRECTORY include/Cubism DESTINATION ${INC_DIR})
+add_subdirectory(src)
+add_subdirectory(tools)
 
 # testing
 file(GLOB RESULT "test/googletest/*")

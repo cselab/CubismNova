@@ -6,8 +6,7 @@
 #ifndef TIMER_H_1TOI9LUC
 #define TIMER_H_1TOI9LUC
 
-#include "Common.h"
-
+#include "Cubism/Common.h"
 #include <chrono>
 
 NAMESPACE_BEGIN(Cubism)
