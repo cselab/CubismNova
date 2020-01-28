@@ -42,7 +42,7 @@ cat <<EOF > ${1}/Version.cpp
 // Description: CubismNova build version strings
 // Copyright 2020 ETH Zurich. All Rights Reserved.
 
-#include "Common.h"
+#include "Cubism/Common.h"
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Util)
