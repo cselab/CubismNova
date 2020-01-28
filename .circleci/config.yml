@@ -36,6 +36,13 @@ jobs:
                     make -j && make test
 
             - run:
+                name: Debug build (full; 32bit index)
+                command: >
+                    ./cmake_init.sh debug ./ -DCUBISM_32BIT_INDEX &&
+                    cd debug &&
+                    make -j && make test
+
+            - run:
                 name: Debug build (no libCubismIO.a)
                 command: >
                     ./cmake_init.sh debug ./ -DCUBISM_IO=OFF &&

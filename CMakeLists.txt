@@ -3,9 +3,13 @@ cmake_minimum_required(VERSION 3.12.0)
 project("CubismNova")
 
 # build options
-option(CUBISM_IO "Build CubismNova IO library" ON)
-option(CUBISM_TESTS "Build CubismNova tests" ON)
-option(CUBISM_UTIL "Build CubismNova utilities library" ON)
+option(CUBISM_IO "Build IO library" ON)
+option(CUBISM_TESTS "Build tests" ON)
+option(CUBISM_UTIL "Build Util library" ON)
+option(CUBISM_32BIT_INDEX
+    "Build library with 32bit signed indexing (default: signed 64bit)" OFF)
+# option(CUBISM_OPTIMIZED_KERNELS
+#     "Build library with performance optimized kernels" OFF)
 
 # install destinations
 set(EXE_DIR bin)
@@ -21,6 +25,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 # compiler flags
 set(CMAKE_C_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "-Wall -Wpedantic -Wextra -Werror ${CMAKE_CXX_FLAGS}")
+if (CUBISM_32BIT_INDEX)
+    add_compile_definitions(CUBISM_32BIT_INDEX)
+endif ()
 
 # MPI
 find_package(MPI REQUIRED)

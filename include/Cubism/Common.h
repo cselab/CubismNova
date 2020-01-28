@@ -24,11 +24,6 @@
 #define CUBISM_ALIGNMENT 32
 #endif /* CUBISM_ALIGNMENT */
 
-// FIXME: [fabianw@mavt.ethz.ch; 2020-01-25] Maybe in CMakeLists.txt
-// Boolean compile switches for commandline:
-// CUBISM_32BIT_INDEX
-// CUBISM_OPTIMIZED_FIELD_OP
-
 static_assert(CUBISM_DIMENSION > 0, "CUBISM_DIMENSION must be > 0");
 
 NAMESPACE_BEGIN(Cubism)
