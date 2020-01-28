@@ -11,6 +11,8 @@
 #include "Cubism/IO/FieldAOS.h"
 #include "Cubism/IO/HDFDriver.h"
 #include <cstdio>
+#include <fstream>
+#include <stdexcept>
 #include <string>
 
 NAMESPACE_BEGIN(Cubism)
@@ -93,7 +95,73 @@ void FieldWriteHDF(const std::string &fname,
 #endif /* CUBISM_USE_HDF */
 }
 
-// TODO: [fabianw@mavt.ethz.ch; 2020-01-24] Read
+/**
+ * @ingroup IO
+ * @brief Read field data from HDF file
+ * @tparam FileDataType HDF file data type
+ * @tparam Field Field type
+ * @tparam Mesh Mesh type
+ * @param fname Input full filename without file extension
+ * @param field Field populated with file data
+ * @param mesh Field (sub)mesh
+ * @param face_dir Face direction (relevant for ``Cubism::EntityType::Face``)
+ *
+ * @rst
+ * Read the data of an HDF5 container file into ``field``.  The data that is
+ * read from the file is specified by the index space described in ``mesh``.
+ * The ``Field`` type may be ``Cubism::FieldClass::Scalar`` or
+ * ``Cubism::FieldClass::Tensor``.
+ * @endrst
+ */
+template <typename FileDataType, typename Field, typename Mesh>
+void FieldReadHDF(const std::string &fname,
+                  Field &field,
+                  const Mesh &mesh,
+                  const size_t face_dir = 0)
+{
+#ifdef CUBISM_USE_HDF
+    static_assert(Field::Class == Cubism::FieldClass::Scalar ||
+                      Field::Class == Cubism::FieldClass::Tensor,
+                  "FieldReadHDF: Unsupported Cubism::FieldClass");
+    {
+        std::ifstream file(fname + ".h5");
+        if (!file.good()) {
+            throw std::runtime_error("FieldReadHDF: File '" + fname +
+                                     "' does not exist");
+        }
+    }
+    // XXX: [fabianw@mavt.ethz.ch; 2020-01-28] Instead of a mesh, an IndexRange
+    // would be sufficient for the read operation; at the cost of an
+    // inhomogeneous interface between FieldWriteHDF and FieldReadHDF.  I prefer
+    // the mesh variant for this reason.
+    using IRange = typename Mesh::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    if (Mesh::Dim > 1 && Mesh::Dim <= 3) {
+        const IRange irange =
+            mesh.getIndexRange(Field::BlockDataType::EntityType, face_dir);
+        const MIndex iextent = irange.getExtent();
+        constexpr size_t NComp = Field::NComponents;
+        FileDataType *buf = new FileDataType[iextent.prod() * NComp];
+        HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class>
+            hdf_driver;
+        hdf_driver.read(fname,
+                        buf,
+                        mesh,
+                        Field::BlockDataType::EntityType,
+                        NComp,
+                        face_dir);
+        AOS2Field(buf, irange, field);
+        delete[] buf;
+    } else {
+        std::fprintf(stderr,
+                     "FieldReadHDF: Not supported for Mesh::Dim = %zu\n",
+                     Mesh::Dim);
+    }
+#else
+    std::fprintf(
+        stderr, "FieldReadHDF: HDF not supported (%s)\n", fname.c_str());
+#endif /* CUBISM_USE_HDF */
+}
 
 DISABLE_WARNING_POP
 

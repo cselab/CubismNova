@@ -49,12 +49,47 @@ TEST(IO, FieldWriteHDF)
         m.getSubMesh(PointType{-10.0, 1.0, -10.0}, PointType{10.0, 1.0, 10.0});
     const auto linez =
         m.getSubMesh(PointType{0.0, 0.0, -10.0}, PointType{0.0, 0.0, 10.0});
-    IO::FieldWriteHDF<typename Field::DataType>("block", "block", cf, *block);
-    IO::FieldWriteHDF<typename Field::DataType>("slice", "slice", cf, *slice);
-    IO::FieldWriteHDF<typename Field::DataType>("xxl", "xxl", cf, *xxl);
-    IO::FieldWriteHDF<typename Field::DataType>("lefty", "lefty", cf, *lefty);
-    IO::FieldWriteHDF<typename Field::DataType>(
-        "righty", "righty", cf, *righty);
-    IO::FieldWriteHDF<typename Field::DataType>("linez", "linez", cf, *linez);
+    IO::FieldWriteHDF<typename Field::DataType>("block", "apples", cf, *block);
+    IO::FieldWriteHDF<typename Field::DataType>("slice", "bananas", cf, *slice);
+    IO::FieldWriteHDF<typename Field::DataType>("xxl", "peaches", cf, *xxl);
+    IO::FieldWriteHDF<typename Field::DataType>("lefty", "oranges", cf, *lefty);
+    IO::FieldWriteHDF<typename Field::DataType>("righty", "kiwis", cf, *righty);
+    IO::FieldWriteHDF<typename Field::DataType>("linez", "beers", cf, *linez);
+}
+
+TEST(IO, FieldWriteReadBackHDF)
+{
+    using Field = Block::CellField<int>;
+    // using Field = Block::NodeField<int>;
+    // using Field = Block::FaceField<int>;
+    using IRange = typename Field::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    using Mesh = Mesh::StructuredUniform<double, IRange::Dim>;
+    using MeshIntegrity = typename Mesh::MeshIntegrity;
+    using PointType = typename Mesh::PointType;
+
+    const PointType start(-1);
+    const PointType end(1);
+    const MIndex cells{6, 7, 8};
+    Mesh m(start, end, cells, MeshIntegrity::FullMesh);
+    Field src(m.getIndexRange(Cubism::EntityType::Cell));
+    // Field cf(m.getIndexRange(Cubism::EntityType::Node));
+    // Field cf(m.getIndexRange(Cubism::EntityType::Face));
+    int k = 0;
+    for (auto &c : src) {
+        c = k++;
+    }
+
+    // write the field
+    IO::FieldWriteHDF<typename Field::DataType>("field", "tacos", src, m);
+
+    // read back tacos
+    Field dst(m.getIndexRange(Cubism::EntityType::Cell));
+    IO::FieldReadHDF<typename Field::DataType>("field", dst, m);
+
+    k = 0;
+    for (const auto &c : dst) {
+        EXPECT_EQ(c, k++);
+    }
 }
 } // namespace

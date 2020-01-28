@@ -29,6 +29,13 @@ struct HDFDriver {
                const double,
                const size_t,
                const bool) const;
+
+    void read(const std::string &,
+              FileDataType *,
+              const Mesh &,
+              const Cubism::EntityType,
+              const size_t,
+              const size_t) const;
 };
 
 NAMESPACE_END(IO)

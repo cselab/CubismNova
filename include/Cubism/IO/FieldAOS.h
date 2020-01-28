@@ -17,6 +17,9 @@ template <Cubism::FieldClass Class>
 struct AOSDriver {
     template <typename Field, typename Range, typename Buffer>
     void write(const Field &, const Range &, Buffer *) const;
+
+    template <typename Field, typename Range, typename Buffer>
+    void read(const Buffer *, const Range &, Field &) const;
 };
 
 template <>
@@ -38,6 +41,26 @@ struct AOSDriver<Cubism::FieldClass::Scalar> {
         for (const auto &p : indices) {
             const size_t i = r.getFlatIndexFromGlobal(base + p);
             buf[i] = f[offset + p];
+        }
+    }
+
+    template <typename Field, typename Range, typename Buffer>
+    void read(const Buffer *buf, const Range &r, Field &f) const
+    {
+        using MIndex = typename Range::MultiIndex;
+
+        // get index space intersection.  The Range r must be relative to the
+        // memory region allocated in buf.
+        const Range indices = r.getIntersection(f.getIndexRange());
+
+        // local block offset
+        const MIndex base = indices.getBegin();
+        const MIndex offset = base - f.getIndexRange().getBegin();
+
+        // iterate over local (sub) index space and copy into field
+        for (const auto &p : indices) {
+            const size_t i = r.getFlatIndexFromGlobal(base + p);
+            f[offset + p] = buf[i];
         }
     }
 };
@@ -64,6 +87,30 @@ struct AOSDriver<Cubism::FieldClass::Tensor> {
             const size_t j = f[0].getIndexRange().getFlatIndex(offset + p);
             for (size_t c = 0; c < Nc; ++c) {
                 buf[c + Nc * i] = f[c][j];
+            }
+        }
+    }
+
+    template <typename Field, typename Range, typename Buffer>
+    void read(const Buffer *buf, const Range &r, Field &f) const
+    {
+        using MIndex = typename Range::MultiIndex;
+
+        // get index space intersection.  The Range r must be relative to the
+        // memory region allocated in buf.
+        const Range indices = r.getIntersection(f[0].getIndexRange());
+
+        // local block offset
+        const MIndex base = indices.getBegin();
+        const MIndex offset = base - f[0].getIndexRange().getBegin();
+
+        // iterate over local (sub) index space and copy into field
+        constexpr size_t Nc = Field::NComponents;
+        for (const auto &p : indices) {
+            const size_t i = r.getFlatIndexFromGlobal(base + p);
+            const size_t j = f[0].getIndexRange().getFlatIndex(offset + p);
+            for (size_t c = 0; c < Nc; ++c) {
+                f[c][j] = buf[c + Nc * i];
             }
         }
     }
@@ -108,7 +155,33 @@ void Field2AOS(const Field &f,
     driver.write(f, r, buf);
 }
 
-// TODO: [fabianw@mavt.ethz.ch; 2020-01-24] Read
+/**
+ * @ingroup IO
+ * @brief Read AoS buffer into field data
+ * @tparam Field Field type
+ * @tparam Buffer Data type of AoS buffer
+ * @param buf Input buffer
+ * @param r Index space for the read (describes the memory region of buf)
+ * @param f Output field
+ *
+ * @rst
+ * Copy the data from an array of structures (AoS) buffer into a structure of
+ * arrays field.  This is a low-level function which can be used in high-level
+ * I/O interfaces.  The interface is defined for ``Cubism::FieldClass::Scalar``
+ * and ``Cubism::FieldClass::Tensor`` fields.  The index range r may describe a
+ * sub-region of the index range spanned by the field ``f``.  The size of the
+ * input buffer ``buf`` is determined by the index range ``r`` and
+ * ``Field::NComponents``.
+ * @endrst
+ */
+template <typename Field, typename Buffer>
+void AOS2Field(const Buffer *buf,
+               const typename Field::IndexRangeType &r,
+               Field &f)
+{
+    AOSDriver<Field::Class> driver;
+    driver.read(buf, r, f);
+}
 
 NAMESPACE_END(IO)
 NAMESPACE_END(Cubism)
