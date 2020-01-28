@@ -24,27 +24,27 @@ jobs:
             - run:
                 name: Debug build (full)
                 command: >
-                    ./cmake_init.sh debug ./ &&
+                    ./cmake_init.sh debug ./install &&
                     cd debug &&
-                    make -j && make test
+                    make -j && make test && make install
 
             - run:
                 name: Release build (full)
                 command: >
-                    ./cmake_init.sh release ./ &&
+                    ./cmake_init.sh release ./install &&
                     cd release &&
-                    make -j && make test
+                    make -j && make test && make install
 
             - run:
                 name: Debug build (full; 32bit index)
                 command: >
-                    ./cmake_init.sh debug ./ -DCUBISM_32BIT_INDEX &&
+                    ./cmake_init.sh debug ./install -DCUBISM_32BIT_INDEX=ON &&
                     cd debug &&
-                    make -j && make test
+                    make -j && make test && make install
 
             - run:
                 name: Debug build (no libCubismIO.a)
                 command: >
-                    ./cmake_init.sh debug ./ -DCUBISM_IO=OFF &&
+                    ./cmake_init.sh debug ./install -DCUBISM_IO=OFF &&
                     cd debug &&
-                    make -j && make test
+                    make -j && make test && make install
