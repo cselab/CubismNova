@@ -64,17 +64,17 @@ public:
     std::map<std::string, int> fileErrors() const;
 
     /**
-     * @brief Get a string value from INI file.
+     * @brief Get a raw string value from INI file.
      * @param section Section name
      * @param name Key name
-     * @return String key value
+     * @return String value related to section and name
      *
      * Throws a runtime error if not found.
      */
     std::string get(const std::string &section, const std::string &name) const;
 
     /**
-     * @brief Get a string value from INI file.
+     * @brief Get a parsed string value from INI file.
      * @param section Section name
      * @param name Key name
      * @return Parsed string key value
@@ -85,7 +85,7 @@ public:
                           const std::string &name) const;
 
     /**
-     * @brief Get an array of string values from INI file.
+     * @brief Get a parsed array of string values from INI file.
      * @param section Section name
      * @param name Key name
      * @return Parsed array of strings
@@ -96,7 +96,7 @@ public:
                                             const std::string &name) const;
 
     /**
-     * @brief Get an integer (``long``) value from INI file.
+     * @brief Get a parsed integer (``long``) value from INI file.
      * @param section Section name
      * @param name Key name
      * @return Parsed integer key value
@@ -109,7 +109,7 @@ public:
     long getInteger(const std::string &section, const std::string &name) const;
 
     /**
-     * @brief Get an array of integer values (``long``) from INI file.
+     * @brief Get a parsed array of integer values (``long``) from INI file.
      * @param section Section name
      * @param name Key name
      * @return Parsed array of integers
@@ -123,7 +123,7 @@ public:
                                       const std::string &name) const;
 
     /**
-     * @brief Get a real (``double``) value from INI file.
+     * @brief Get a parsed real (``double``) value from INI file.
      * @param section Section name
      * @param name Key name
      * @return Parsed floating point key value
@@ -136,7 +136,7 @@ public:
     double getReal(const std::string &section, const std::string &name) const;
 
     /**
-     * @brief Get an array of real (``double``) values from INI file.
+     * @brief Get a parsed array of real (``double``) values from INI file.
      * @param section Section name
      * @param name Key name
      * @return Parsed array of floating point values
@@ -150,7 +150,7 @@ public:
                                      const std::string &name) const;
 
     /**
-     * @brief Get a boolean (``bool``) value from INI file.
+     * @brief Get a parsed boolean (``bool``) value from INI file.
      * @param section Section name
      * @param name Key name
      * @return Parsed boolean value
@@ -164,7 +164,7 @@ public:
     bool getBoolean(const std::string &section, const std::string &name) const;
 
     /**
-     * @brief Get an array of boolean (``bool``) values from INI file.
+     * @brief Get a parsed array of boolean (``bool``) values from INI file.
      * @param section Section name
      * @param name Key name
      * @return Parsed array of boolean values

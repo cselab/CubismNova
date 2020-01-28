@@ -13,12 +13,12 @@
 
    header/Alloc/index.rst
    header/Block/index.rst
-   header/Common.rst
    header/Core/index.rst
    header/Grid/index.rst
    header/IO/index.rst
    header/Mesh/index.rst
    header/Util/index.rst
+   header/Common.rst
 
 .. toctree::
    :caption: Groups

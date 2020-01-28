@@ -16,7 +16,7 @@ PROJECT_NAME         = "CubismNova"
 PROJECT_BRIEF        = "HPC block-based stencil framework"
 XML_OUTPUT           = xml
 OUTPUT_DIRECTORY     = ./doxygen
-INPUT                = ../include ../src
+INPUT                = ../include
 FILE_PATTERNS        = *.h *.cpp *.cu
 EXTENSION_MAPPING    = cu=c++
 GENERATE_LATEX       = NO

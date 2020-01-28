@@ -303,7 +303,8 @@ public:
      * @return This field with contents copied from c
      *
      * @rst
-     * .. note:: Only field *data* is copied by this operator, not state.
+     * .. note:: Only field :emphasis:`data` is copied by this operator, not
+     *    state.
      * @endrst
      */
     Field &operator=(const Field &c)
@@ -328,7 +329,7 @@ public:
      * @return This field with contents moved from c
      *
      * @rst
-     * .. note:: This operator moves data *and* state.
+     * .. note:: This operator moves :emphasis:`data and state`.
      * @endrst
      */
     Field &operator=(Field &&c)
