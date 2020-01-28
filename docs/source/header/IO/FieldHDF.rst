@@ -9,3 +9,6 @@ FieldHDF.h
 
 .. doxygenfunction:: FieldWriteHDF
    :project: CubismNova
+
+.. doxygenfunction:: FieldReadHDF
+   :project: CubismNova

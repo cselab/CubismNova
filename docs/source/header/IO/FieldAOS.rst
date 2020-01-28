@@ -9,3 +9,6 @@ FieldAOS.h
 
 .. doxygenfunction:: Field2AOS
    :project: CubismNova
+
+.. doxygenfunction:: AOS2Field
+   :project: CubismNova
