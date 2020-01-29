@@ -38,6 +38,8 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
                const size_t NComp,
                const double time) const
     {
+        // XXX: [fabianw@mavt.ethz.ch; 2020-01-29] The ParaView XDMF reader
+        // seems to be buggy for Mesh::Dim == 2 and Cubism::EntityType::Node.
         std::string topology("");
         std::string geometry("");
         if (2 == Mesh::Dim) {
@@ -51,7 +53,11 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
         if (fclass == Cubism::FieldClass::Scalar) {
             data_attr = "Scalar";
         } else if (fclass == Cubism::FieldClass::Tensor) {
-            data_attr = "Tensor";
+            if (NComp == Mesh::Dim) {
+                data_attr = "Vector";
+            } else {
+                data_attr = "Tensor";
+            }
         }
         std::string data_center("");
         typename Mesh::MultiIndex data_dims;
