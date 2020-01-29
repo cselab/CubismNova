@@ -163,18 +163,24 @@ inline hid_t getH5T<char>()
 }
 
 // explicit instantiations for CUBISM_DIMENSION
-#define UNIFORM_HDFDRIVER(HDFType)                                             \
+#define UNIFORM_HDFDRIVER(HDFType, Dim)                                        \
     template struct HDFDriver<HDFType,                                         \
-                              Mesh::StructuredBase<float, CUBISM_DIMENSION>,   \
+                              Mesh::StructuredBase<float, Dim>,                \
                               Cubism::MeshClass::Uniform>;                     \
     template struct HDFDriver<HDFType,                                         \
-                              Mesh::StructuredBase<double, CUBISM_DIMENSION>,  \
+                              Mesh::StructuredBase<double, Dim>,               \
                               Cubism::MeshClass::Uniform>;
-UNIFORM_HDFDRIVER(float)
-UNIFORM_HDFDRIVER(double)
-UNIFORM_HDFDRIVER(size_t)
-UNIFORM_HDFDRIVER(int)
-UNIFORM_HDFDRIVER(char)
+UNIFORM_HDFDRIVER(float, 2)
+UNIFORM_HDFDRIVER(double, 2)
+UNIFORM_HDFDRIVER(size_t, 2)
+UNIFORM_HDFDRIVER(int, 2)
+UNIFORM_HDFDRIVER(char, 2)
+
+UNIFORM_HDFDRIVER(float, 3)
+UNIFORM_HDFDRIVER(double, 3)
+UNIFORM_HDFDRIVER(size_t, 3)
+UNIFORM_HDFDRIVER(int, 3)
+UNIFORM_HDFDRIVER(char, 3)
 #undef UNIFORM_HDFDRIVER
 
 #endif /* CUBISM_USE_HDF */
