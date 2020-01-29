@@ -228,12 +228,10 @@ private:
         if (start > end) {
             throw std::runtime_error("StructuredUniform: Can not create "
                                      "sub-cell range for start > end");
-        } else if (end_r < start) {
-            throw std::runtime_error("StructuredUniform: Start point is not "
-                                     "contained in mesh range");
-        } else if (end < start_r) {
-            throw std::runtime_error("StructuredUniform: End point is not "
-                                     "contained in mesh range");
+        } else if (!(start_r.lexLE(end) && start.lexLE(end_r))) {
+            throw std::runtime_error(
+                "StructuredUniform: Range spanned by start and end points is "
+                "not intersecting mesh range");
         }
 
         for (size_t i = 0; i < DIM; ++i) {
