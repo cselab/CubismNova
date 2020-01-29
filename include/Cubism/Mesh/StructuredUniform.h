@@ -228,7 +228,7 @@ private:
         if (start > end) {
             throw std::runtime_error("StructuredUniform: Can not create "
                                      "sub-cell range for start > end");
-        } else if (!(start_r.lexLE(end) && start.lexLE(end_r))) {
+        } else if (!(start_r <= end && start <= end_r)) {
             throw std::runtime_error(
                 "StructuredUniform: Range spanned by start and end points is "
                 "not intersecting mesh range");
