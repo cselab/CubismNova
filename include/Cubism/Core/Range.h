@@ -7,6 +7,7 @@
 #define RANGE_H_JDWNYXZA
 
 #include "Cubism/Core/Vector.h"
+#include <limits>
 #include <string>
 
 NAMESPACE_BEGIN(Cubism)
@@ -27,7 +28,7 @@ public:
     static constexpr size_t Dim = DIM;
 
     /** @brief Default constructor (NULL range) */
-    Range() : begin_(0), end_(0), extent_(end_ - begin_) {}
+    Range() : begin_(0), end_(0) { set_extent_(); }
 
     /**
      * @brief Construct range
@@ -37,10 +38,10 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    explicit Range(const DataType e)
-        : begin_(0), end_(e), extent_(end_ - begin_)
+    explicit Range(const DataType e) : begin_(0), end_(e)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
+        set_extent_();
         check_("RangeConstruction");
     }
     /**
@@ -51,10 +52,10 @@ public:
      * Constructs an extent specified the ``DIM``-dimensional ``e``.
      * @endrst
      */
-    explicit Range(const PointType &e)
-        : begin_(0), end_(e), extent_(end_ - begin_)
+    explicit Range(const PointType &e) : begin_(0), end_(e)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
+        set_extent_();
         check_("RangeConstruction");
     }
     /**
@@ -66,10 +67,10 @@ public:
      * Constructs equal extent in all ``DIM`` dimensions.
      * @endrst
      */
-    Range(const DataType b, const DataType e)
-        : begin_(b), end_(e), extent_(end_ - begin_)
+    Range(const DataType b, const DataType e) : begin_(b), end_(e)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
+        set_extent_();
         check_("RangeConstruction");
     }
     /**
@@ -82,11 +83,11 @@ public:
      * ``e`` and ``b``.
      * @endrst
      */
-    Range(const PointType &b, const PointType &e)
-        : begin_(b), end_(e), extent_(end_ - begin_)
+    Range(const PointType &b, const PointType &e) : begin_(b), end_(e)
     {
         static_assert(DIM > 0, "Spatial dimension DIM must be greater than 0");
         check_("RangeConstruction");
+        set_extent_();
     }
 
     Range(const Range &c) = default;
@@ -102,7 +103,7 @@ public:
     void setBegin(const PointType &b)
     {
         begin_ = b;
-        extent_ = end_ - begin_;
+        set_extent_();
         check_("RangeSetBegin");
     }
 
@@ -113,7 +114,7 @@ public:
     void setEnd(const PointType &e)
     {
         end_ = e;
-        extent_ = end_ - begin_;
+        set_extent_();
         check_("RangeSetEnd");
     }
 
@@ -132,6 +133,16 @@ public:
     /**
      * @brief Get range extent
      * @return Range extent
+     *
+     * @rst
+     * .. note::
+     *
+     *    If ``getNullSpace().size() > 0`` then the extent for the corresponding
+     *    null space dimension is equal to the identity.  This allows for
+     *    arithmetic operations if the range spans a lower dimensional space.
+     *    Use the ``getNullSpace()`` method to obtain the null space components.
+     *
+     * @endrst
      */
     PointType getExtent() const { return extent_; }
 
@@ -142,11 +153,32 @@ public:
     DataType getVolume() const { return extent_.prod(); }
 
     /**
-     * @brief Check if other range is contained in this range
-     * @param o Other range
-     * @return True if ``o`` is contained in this range (inclusive)
+     * @brief Get the null space
+     * @return Vector of indices corresponding to the dimensions that span a
+     * null space
+     *
+     * The range has a reduced basis if ``null.size()>0``, where ``null`` is the
+     * return value.
      */
-    bool isContained(const Range &o) const
+    std::vector<size_t> getNullSpace() const
+    {
+        std::vector<size_t> null_idx;
+        PointType null = end_ - begin_;
+        for (size_t i = 0; i < DIM; ++i) {
+            if (Cubism::myAbs(null[i]) <=
+                std::numeric_limits<DataType>::epsilon()) {
+                null_idx.push_back(i);
+            }
+        }
+        return null_idx;
+    }
+
+        /**
+         * @brief Check if other range is contained in this range
+         * @param o Other range
+         * @return True if ``o`` is contained in this range (inclusive)
+         */
+        bool isContained(const Range &o) const
     {
         return begin_ <= o.begin_ && o.end_ <= end_;
     }
@@ -210,8 +242,17 @@ protected:
     void check_(const std::string &where) const
     {
         if (begin_ > end_) {
-            throw std::runtime_error(where +
-                                     ": begin_ must be smaller than end_");
+            throw std::runtime_error(
+                where + ": begin_ must be smaller or equal to end_");
+        }
+    }
+
+    void set_extent_()
+    {
+        extent_ = end_ - begin_;
+        const auto null = getNullSpace();
+        for (const auto i : null) {
+            extent_[i] = 1;
         }
     }
 };

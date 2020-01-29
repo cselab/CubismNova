@@ -232,7 +232,13 @@ public:
      * @brief Size of index space
      * @return Total number of indices in the index range
      */
-    size_t size() const { return static_cast<size_t>(extent_.prod()); }
+    size_t size() const
+    {
+        if (this->getNullSpace().size() == DIM) {
+            return 0;
+        }
+        return static_cast<size_t>(extent_.prod());
+    }
 
     /**
      * @brief Size of index space

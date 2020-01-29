@@ -46,9 +46,9 @@ TEST(Range, Construction)
             try {
                 Range r7(p1, p0);
             } catch (const std::runtime_error &e) {
-                EXPECT_STREQ(
-                    "RangeConstruction: begin_ must be smaller than end_",
-                    e.what());
+                EXPECT_STREQ("RangeConstruction: begin_ must be smaller or "
+                             "equal to end_",
+                             e.what());
                 throw;
             }
         },
@@ -67,8 +67,9 @@ TEST(Range, SetGet)
                 Range r0(p0);
                 r0.setBegin(p1);
             } catch (const std::runtime_error &e) {
-                EXPECT_STREQ("RangeSetBegin: begin_ must be smaller than end_",
-                             e.what());
+                EXPECT_STREQ(
+                    "RangeSetBegin: begin_ must be smaller or equal to end_",
+                    e.what());
                 throw;
             }
         },
@@ -79,8 +80,9 @@ TEST(Range, SetGet)
                 Range r0(p1, p2);
                 r0.setEnd(p0);
             } catch (const std::runtime_error &e) {
-                EXPECT_STREQ("RangeSetEnd: begin_ must be smaller than end_",
-                             e.what());
+                EXPECT_STREQ(
+                    "RangeSetEnd: begin_ must be smaller or equal to end_",
+                    e.what());
                 throw;
             }
         },
