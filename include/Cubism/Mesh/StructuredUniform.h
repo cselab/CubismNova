@@ -239,16 +239,21 @@ private:
             start[i] = (start[i] < start_r[i]) ? start_r[i] : start[i];
             end[i] = (end[i] > end_r[i]) ? end_r[i] : end[i];
 
-            // boundaries: this ensures the correct resulting cell index if
-            // start (and consequently end) happen to lie in the same cell
-            // adjacent to the boundary
-            start[i] = (Cubism::myAbs(start[i] - end_r[i]) < mesh_spacing_[i])
-                           ? start[i] - 1.0 * mesh_spacing_[i]
-                           : start[i];
-
-            end[i] = (Cubism::myAbs(end[i] - start_r[i]) < mesh_spacing_[i])
-                         ? end[i] + 1.0 * mesh_spacing_[i]
-                         : end[i];
+            // boundaries: this ensures the correct cell index if start (and
+            // consequently end) happen to lie in the same cell adjacent to the
+            // boundary or on the boundary up to machine precision.
+            bool boundary = false;
+            const RealType badiff = Cubism::myAbs(start[i] - end_r[i]);
+            if (badiff < 2.0 * std::numeric_limits<RealType>::epsilon()) {
+                // avoid floating point issues
+                start[i] -= 0.5 * mesh_spacing_[i];
+                end[i] += 0.5 * mesh_spacing_[i];
+                boundary = true;
+            } else if (0 < badiff && badiff < mesh_spacing_[i]) {
+                // somewhere in the cell adjacent to the boundary
+                end[i] += 1.0 * mesh_spacing_[i];
+                boundary = true;
+            }
 
             // round up (internal region only): round up to closest cell index
             // (this ensures that the requested physical region is contained in
@@ -257,19 +262,18 @@ private:
             const RealType ep1 = start_r[i] + (idx + 1) * mesh_spacing_[i];
             const RealType adiff = Cubism::myAbs(ep1 - end[i]);
             const RealType inner = Cubism::myAbs(end_r[i] - end[i]);
-            end[i] = (inner > mesh_spacing_[i] && 0 < adiff &&
-                      adiff < mesh_spacing_[i])
-                         ? end[i] + 1.0 * mesh_spacing_[i]
-                         : end[i];
+            if (!boundary && inner > mesh_spacing_[i] && 0 < adiff &&
+                adiff < mesh_spacing_[i]) {
+                end[i] += 1.0 * mesh_spacing_[i];
+            }
 
             // ensure at least one cell thick: the extracted region must be at
             // least one cell thick.  This criterion is ensured by always
             // rounding up.
             const RealType diff_rel = Cubism::myAbs(end[i] - start[i]);
-            end[i] = (diff_rel < mesh_spacing_[i])
-                         ? end[i] + 1.0 * mesh_spacing_[i]
-                         : end[i];
-
+            if (!boundary && (diff_rel < mesh_spacing_[i])) {
+                end[i] += 1.0 * mesh_spacing_[i];
+            }
         }
         MultiIndex ds((start - range_.getBegin()) / mesh_spacing_);
         MultiIndex de((end - range_.getBegin()) / mesh_spacing_);
