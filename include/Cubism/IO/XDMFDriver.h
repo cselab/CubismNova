@@ -21,7 +21,6 @@ struct XDMFDriver {
     void write(const std::string &,
                const std::string &,
                const Mesh &,
-               const Cubism::FieldClass,
                const Cubism::EntityType,
                const size_t,
                const double) const;
@@ -33,7 +32,6 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
     void write(const std::string &fname,
                const std::string &aname,
                const Mesh &mesh,
-               const Cubism::FieldClass fclass,
                const Cubism::EntityType entity,
                const size_t NComp,
                const double time) const
@@ -50,10 +48,10 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
             geometry = "Origin_DxDyDz";
         }
         std::string data_attr("");
-        if (fclass == Cubism::FieldClass::Scalar) {
+        if (1 == NComp) {
             data_attr = "Scalar";
-        } else if (fclass == Cubism::FieldClass::Tensor) {
-            if (NComp == Mesh::Dim) {
+        } else {
+            if (Mesh::Dim == NComp) {
                 data_attr = "Vector";
             } else {
                 data_attr = "Tensor";
@@ -167,7 +165,6 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
 //     template <typename Mesh>
 //     void write(const std::string &fname,
 //                const Mesh &mesh,
-//                const Cubism::FieldClass fclass,
 //                const Cubism::EntityType entity,
 //                const double time) const
 //     {

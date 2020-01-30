@@ -27,7 +27,6 @@ struct HDFDriver {
                const FileDataType *buf,
                const Mesh &mesh,
                const Cubism::EntityType entity,
-               const Cubism::FieldClass fclass,
                const size_t NComp,
                const double time,
                const size_t face_dir,
@@ -58,7 +57,7 @@ struct HDFDriver {
             // TODO: [fabianw@mavt.ethz.ch; 2020-01-25] face storage location is
             // currently not supported by ParaView
             XDMFDriver<FileDataType, Class> xdmf;
-            xdmf.write(fname, aname, mesh, fclass, entity, NComp, time);
+            xdmf.write(fname, aname, mesh, entity, NComp, time);
         }
         fapl_id = H5Pcreate(H5P_DATASET_XFER);
         hid_t fspace_id = H5Screate_simple(HDFDim, dimsZYXC, NULL);

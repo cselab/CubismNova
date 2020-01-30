@@ -24,7 +24,6 @@ struct HDFDriver {
                const FileDataType *,
                const Mesh &,
                const Cubism::EntityType,
-               const Cubism::FieldClass,
                const size_t,
                const double,
                const size_t,
