@@ -218,4 +218,37 @@ TEST(IO, CartesianWriteHDF)
             "ng3DVec_liz", "beers", grid, *liz, time);
     }
 }
+
+TEST(IO, CartesianWriteReadBackHDF)
+{
+    // 3D mesh
+    using Mesh = Mesh::StructuredUniform<double, 3>;
+    using MIndex = typename Mesh::MultiIndex;
+
+    // grid blocks and cells per block
+    const MIndex nblocks(3);
+    const MIndex block_cells(8);
+
+    // Vector (rank-1) Cartesian cell field
+    using Grid = Grid::Cartesian<int, Mesh, Cubism::EntityType::Cell, 0>;
+    using DataType = typename Grid::DataType;
+    Grid src(nblocks, block_cells);
+    Initializer<Grid::EntityType> ginit;
+    ginit.init(src);
+
+    // write the field
+    IO::CartesianWriteHDF<DataType>("framen", "ramen", src, 0);
+
+    // read back soup
+    Grid dst(nblocks, block_cells);
+    IO::CartesianReadHDF<DataType>("framen", dst);
+
+    int k = 0;
+    for (const auto cf : dst) {
+        for (const auto c : *cf) {
+            EXPECT_EQ(c, k);
+        }
+        ++k;
+    }
+}
 } // namespace

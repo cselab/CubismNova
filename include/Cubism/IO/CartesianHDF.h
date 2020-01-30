@@ -53,6 +53,11 @@ void CartesianWriteHDF(const std::string &fname,
                        const bool create_xdmf = true)
 {
 #ifdef CUBISM_USE_HDF
+    static_assert(Grid::BaseType::Class == Cubism::FieldClass::Scalar ||
+                      Grid::BaseType::Class == Cubism::FieldClass::Tensor ||
+                      Grid::BaseType::Class ==
+                          Cubism::FieldClass::FaceContainer,
+                  "FieldReadHDF: Unsupported Cubism::FieldClass");
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     constexpr typename Cubism::EntityType entity = Grid::EntityType;
@@ -82,8 +87,6 @@ void CartesianWriteHDF(const std::string &fname,
         stderr, "CartesianWriteHDF: HDF not supported (%s)\n", fname.c_str());
 #endif /* CUBISM_USE_HDF */
 }
-
-DISABLE_WARNING_POP
 
 /**
  * @ingroup IO
@@ -116,6 +119,91 @@ void CartesianWriteHDF(const std::string &fname,
                                                 static_cast<size_t>(face_dir),
                                                 create_xdmf);
 }
+
+/**
+ * @ingroup IO
+ * @brief Read Cartesian grid data from HDF file
+ * @tparam FileDataType HDF file data type
+ * @tparam Grid Grid type
+ * @tparam Mesh Mesh type
+ * @tparam Dir Special type that defines a cast to ``size_t``
+ * @param fname Input full filename without file extension
+ * @param grid Grid populated with file data
+ * @param mesh Grid (sub)mesh
+ * @param face_dir Face direction (relevant for ``Cubism::EntityType::Face``)
+ *
+ * @rst
+ * Read the data of an HDF5 container file into ``grid``.  The data that is
+ * read from the file is specified by the index space described in ``mesh``.
+ * @endrst
+ */
+template <typename FileDataType,
+          typename Grid,
+          typename Mesh,
+          typename Dir = size_t>
+void CartesianReadHDF(const std::string &fname,
+                      Grid &grid,
+                      const Mesh &mesh,
+                      const Dir face_dir = 0)
+{
+#ifdef CUBISM_USE_HDF
+    static_assert(Grid::BaseType::Class == Cubism::FieldClass::Scalar ||
+                      Grid::BaseType::Class == Cubism::FieldClass::Tensor ||
+                      Grid::BaseType::Class ==
+                          Cubism::FieldClass::FaceContainer,
+                  "FieldReadHDF: Unsupported Cubism::FieldClass");
+    {
+        std::ifstream file(fname + ".h5");
+        if (!file.good()) {
+            throw std::runtime_error("CartesianReadHDF: File '" + fname +
+                                     "' does not exist");
+        }
+    }
+
+    using IRange = typename Mesh::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    constexpr typename Cubism::EntityType entity = Grid::EntityType;
+    constexpr size_t NComp = Grid::NComponents;
+    const size_t dface = static_cast<size_t>(face_dir);
+    const IRange irange = mesh.getIndexRange(entity, dface);
+    const MIndex iextent = irange.getExtent();
+    FileDataType *buf = new FileDataType[iextent.prod() * NComp];
+    HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
+    hdf_driver.read(fname, buf, mesh, entity, NComp, dface);
+#pragma omp parallel for
+    for (size_t i = 0; i < grid.size(); ++i) {
+        auto &bf = grid[i]; // block field
+        AOS2Field(buf, irange, bf, dface);
+    }
+    delete[] buf;
+#else
+    std::fprintf(
+        stderr, "CartesianReadHDF: HDF not supported (%s)\n", fname.c_str());
+#endif /* CUBISM_USE_HDF */
+}
+
+/**
+ * @ingroup IO
+ * @brief Read Cartesian grid data from HDF file
+ * @tparam FileDataType HDF file data type
+ * @tparam Grid Grid type
+ * @tparam Dir Special type that defines a cast to ``size_t``
+ * @param fname Input full filename without file extension
+ * @param grid Grid populated with file data
+ * @param face_dir Face direction (relevant for ``Cubism::EntityType::Face``)
+ *
+ * Convenience wrapper to read a full grid from an HDF container file.
+ */
+template <typename FileDataType, typename Grid, typename Dir = size_t>
+void CartesianReadHDF(const std::string &fname,
+                      Grid &grid,
+                      const Dir face_dir = 0)
+{
+    Cubism::IO::CartesianReadHDF<FileDataType>(
+        fname, grid, grid.getMesh(), static_cast<size_t>(face_dir));
+}
+
+DISABLE_WARNING_POP
 
 NAMESPACE_END(IO)
 NAMESPACE_END(Cubism)
