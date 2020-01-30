@@ -32,7 +32,7 @@ struct Initializer<Cubism::EntityType::Face> {
     {
         typename Field::DataType k = 0;
         for (auto d : f) {
-            for (auto c : *d) {
+            for (auto &c : *d) {
                 c = k++;
             }
         }
