@@ -51,6 +51,25 @@ TEST(IO, FieldAOS)
         }
         delete[] buf;
     }
+    {
+        // scalar (face container)
+        using FC =
+            Block::FieldTypeFactory<float, 0, Cubism::EntityType::Face>::Type;
+        FC ff(cell_domain);
+        for (auto d : ff) {
+            std::fill(d->begin(), d->end(), 1.234);
+        }
+
+        for (size_t i = 0; i < FC::IndexRangeType::Dim; ++i) {
+            const auto &f = ff[i]; // face field in direction i
+            DataType *buf = new DataType[f.size()];
+            IO::Field2AOS(f, f.getIndexRange(), buf, i);
+            for (size_t j = 0; j < f.size(); ++j) {
+                EXPECT_EQ(buf[j], f[j]);
+            }
+            delete[] buf;
+        }
+    }
     { // scalar subspace
         CellField cf(cell_domain);
         std::fill(cf.begin(), cf.end(), 0);

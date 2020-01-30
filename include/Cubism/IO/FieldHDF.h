@@ -27,6 +27,7 @@ DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
  * @tparam FileDataType HDF file data type
  * @tparam Field Field type
  * @tparam Mesh Mesh type
+ * @tparam Dir Special type that defines a cast to ``size_t``
  * @param fname Output full filename without file extension
  * @param aname Name of quantity in ``field``
  * @param field Input field
@@ -44,23 +45,27 @@ DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
  * .. todo:: example for sub-space
  * @endrst
  */
-template <typename FileDataType, typename Field, typename Mesh>
+template <typename FileDataType,
+          typename Field,
+          typename Mesh,
+          typename Dir = size_t>
 void FieldWriteHDF(const std::string &fname,
                    const std::string &aname,
                    const Field &field,
                    const Mesh &mesh,
-                   const double time = 0,
-                   const size_t face_dir = 0,
+                   const double time,
+                   const Dir face_dir = 0,
                    const bool create_xdmf = true)
 {
 #ifdef CUBISM_USE_HDF
     static_assert(Field::Class == Cubism::FieldClass::Scalar ||
-                      Field::Class == Cubism::FieldClass::Tensor,
-                  "FieldWriteHDF: Unsupported Cubism::FieldClass");
+                      Field::Class == Cubism::FieldClass::Tensor ||
+                      Field::Class == Cubism::FieldClass::FaceContainer,
+                  "FieldReadHDF: Unsupported Cubism::FieldClass");
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    const IRange irange =
-        mesh.getIndexRange(Field::BlockDataType::EntityType, face_dir);
+    const size_t dface = static_cast<size_t>(face_dir);
+    const IRange irange = mesh.getIndexRange(Field::EntityType, dface);
     const MIndex iextent = irange.getExtent();
     constexpr size_t NComp = Field::NComponents;
     if (create_xdmf) {
@@ -69,16 +74,16 @@ void FieldWriteHDF(const std::string &fname,
                     fname.c_str());
     }
     FileDataType *buf = new FileDataType[iextent.prod() * NComp];
-    Field2AOS(field, irange, buf);
+    Field2AOS(field, irange, buf, dface);
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
     hdf_driver.write(fname,
                      aname,
                      buf,
                      mesh,
-                     Field::BlockDataType::EntityType,
+                     Field::EntityType,
                      NComp,
                      time,
-                     face_dir,
+                     dface,
                      create_xdmf);
     delete[] buf;
 #else
@@ -93,6 +98,7 @@ void FieldWriteHDF(const std::string &fname,
  * @tparam FileDataType HDF file data type
  * @tparam Field Field type
  * @tparam Mesh Mesh type
+ * @tparam Dir Special type that defines a cast to ``size_t``
  * @param fname Input full filename without file extension
  * @param field Field populated with file data
  * @param mesh Field (sub)mesh
@@ -105,15 +111,19 @@ void FieldWriteHDF(const std::string &fname,
  * ``Cubism::FieldClass::Tensor``.
  * @endrst
  */
-template <typename FileDataType, typename Field, typename Mesh>
+template <typename FileDataType,
+          typename Field,
+          typename Mesh,
+          typename Dir = size_t>
 void FieldReadHDF(const std::string &fname,
                   Field &field,
                   const Mesh &mesh,
-                  const size_t face_dir = 0)
+                  const Dir face_dir = 0)
 {
 #ifdef CUBISM_USE_HDF
     static_assert(Field::Class == Cubism::FieldClass::Scalar ||
-                      Field::Class == Cubism::FieldClass::Tensor,
+                      Field::Class == Cubism::FieldClass::Tensor ||
+                      Field::Class == Cubism::FieldClass::FaceContainer,
                   "FieldReadHDF: Unsupported Cubism::FieldClass");
     {
         std::ifstream file(fname + ".h5");
@@ -128,15 +138,14 @@ void FieldReadHDF(const std::string &fname,
     // the mesh variant for this reason.
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    const IRange irange =
-        mesh.getIndexRange(Field::BlockDataType::EntityType, face_dir);
+    const size_t dface = static_cast<size_t>(face_dir);
+    const IRange irange = mesh.getIndexRange(Field::EntityType, dface);
     const MIndex iextent = irange.getExtent();
     constexpr size_t NComp = Field::NComponents;
     FileDataType *buf = new FileDataType[iextent.prod() * NComp];
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.read(
-        fname, buf, mesh, Field::BlockDataType::EntityType, NComp, face_dir);
-    AOS2Field(buf, irange, field);
+    hdf_driver.read(fname, buf, mesh, Field::EntityType, NComp, dface);
+    AOS2Field(buf, irange, field, dface);
     delete[] buf;
 #else
     std::fprintf(
