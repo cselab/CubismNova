@@ -83,42 +83,35 @@ void CartesianWriteHDF(const std::string &fname,
                   "CartesianWriteHDF: Unsupported Cubism::FieldClass");
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    if (Mesh::Dim > 1 && Mesh::Dim <= 3) {
-        constexpr typename Cubism::EntityType entity =
-            Grid::BaseType::BlockDataType::EntityType;
-        const IRange irange = mesh.getIndexRange(entity);
-        const MIndex iextent = irange.getExtent();
-        constexpr size_t NComp = Grid::BaseType::NComponents;
-        if (create_xdmf) {
-            std::printf(
-                "CartesianWriteHDF: Allocating %.1f MB file buffer (%s)\n",
-                iextent.prod() * NComp * sizeof(FileDataType) / 1024. / 1024.,
-                fname.c_str());
-        }
-        FileDataType *buf = new FileDataType[iextent.prod() * NComp];
-#pragma omp parallel for
-        for (size_t i = 0; i < grid.size(); ++i) {
-            const auto &bf = grid[i]; // block field
-            Field2AOS(bf, irange, buf);
-        }
-        HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class>
-            hdf_driver;
-        hdf_driver.write(fname,
-                         aname,
-                         buf,
-                         mesh,
-                         entity,
-                         Grid::BaseType::Class,
-                         NComp,
-                         time,
-                         0,
-                         create_xdmf);
-        delete[] buf;
-    } else {
-        std::fprintf(stderr,
-                     "CartesianWriteHDF: Not supported for Mesh::Dim = %zu\n",
-                     Mesh::Dim);
+    constexpr typename Cubism::EntityType entity =
+        Grid::BaseType::BlockDataType::EntityType;
+    const IRange irange = mesh.getIndexRange(entity);
+    const MIndex iextent = irange.getExtent();
+    constexpr size_t NComp = Grid::BaseType::NComponents;
+    if (create_xdmf) {
+        std::printf("CartesianWriteHDF: Allocating %.1f MB file buffer (%s)\n",
+                    iextent.prod() * NComp * sizeof(FileDataType) / 1024. /
+                        1024.,
+                    fname.c_str());
     }
+    FileDataType *buf = new FileDataType[iextent.prod() * NComp];
+#pragma omp parallel for
+    for (size_t i = 0; i < grid.size(); ++i) {
+        const auto &bf = grid[i]; // block field
+        Field2AOS(bf, irange, buf);
+    }
+    HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
+    hdf_driver.write(fname,
+                     aname,
+                     buf,
+                     mesh,
+                     entity,
+                     Grid::BaseType::Class,
+                     NComp,
+                     time,
+                     0,
+                     create_xdmf);
+    delete[] buf;
 #else
     std::fprintf(
         stderr, "CartesianWriteHDF: HDF not supported (%s)\n", fname.c_str());

@@ -59,36 +59,29 @@ void FieldWriteHDF(const std::string &fname,
                   "FieldWriteHDF: Unsupported Cubism::FieldClass");
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    if (Mesh::Dim > 1 && Mesh::Dim <= 3) {
-        const IRange irange =
-            mesh.getIndexRange(Field::BlockDataType::EntityType, face_dir);
-        const MIndex iextent = irange.getExtent();
-        constexpr size_t NComp = Field::NComponents;
-        if (create_xdmf) {
-            std::printf("FieldWriteHDF: Allocating %.1f kB file buffer (%s)\n",
-                        iextent.prod() * NComp * sizeof(FileDataType) / 1024.,
-                        fname.c_str());
-        }
-        FileDataType *buf = new FileDataType[iextent.prod() * NComp];
-        Field2AOS(field, irange, buf);
-        HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class>
-            hdf_driver;
-        hdf_driver.write(fname,
-                         aname,
-                         buf,
-                         mesh,
-                         Field::BlockDataType::EntityType,
-                         Field::Class,
-                         NComp,
-                         time,
-                         face_dir,
-                         create_xdmf);
-        delete[] buf;
-    } else {
-        std::fprintf(stderr,
-                     "FieldWriteHDF: Not supported for Mesh::Dim = %zu\n",
-                     Mesh::Dim);
+    const IRange irange =
+        mesh.getIndexRange(Field::BlockDataType::EntityType, face_dir);
+    const MIndex iextent = irange.getExtent();
+    constexpr size_t NComp = Field::NComponents;
+    if (create_xdmf) {
+        std::printf("FieldWriteHDF: Allocating %.1f kB file buffer (%s)\n",
+                    iextent.prod() * NComp * sizeof(FileDataType) / 1024.,
+                    fname.c_str());
     }
+    FileDataType *buf = new FileDataType[iextent.prod() * NComp];
+    Field2AOS(field, irange, buf);
+    HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
+    hdf_driver.write(fname,
+                     aname,
+                     buf,
+                     mesh,
+                     Field::BlockDataType::EntityType,
+                     Field::Class,
+                     NComp,
+                     time,
+                     face_dir,
+                     create_xdmf);
+    delete[] buf;
 #else
     std::fprintf(
         stderr, "FieldWriteHDF: HDF not supported (%s)\n", fname.c_str());
@@ -136,27 +129,16 @@ void FieldReadHDF(const std::string &fname,
     // the mesh variant for this reason.
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    if (Mesh::Dim > 1 && Mesh::Dim <= 3) {
-        const IRange irange =
-            mesh.getIndexRange(Field::BlockDataType::EntityType, face_dir);
-        const MIndex iextent = irange.getExtent();
-        constexpr size_t NComp = Field::NComponents;
-        FileDataType *buf = new FileDataType[iextent.prod() * NComp];
-        HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class>
-            hdf_driver;
-        hdf_driver.read(fname,
-                        buf,
-                        mesh,
-                        Field::BlockDataType::EntityType,
-                        NComp,
-                        face_dir);
-        AOS2Field(buf, irange, field);
-        delete[] buf;
-    } else {
-        std::fprintf(stderr,
-                     "FieldReadHDF: Not supported for Mesh::Dim = %zu\n",
-                     Mesh::Dim);
-    }
+    const IRange irange =
+        mesh.getIndexRange(Field::BlockDataType::EntityType, face_dir);
+    const MIndex iextent = irange.getExtent();
+    constexpr size_t NComp = Field::NComponents;
+    FileDataType *buf = new FileDataType[iextent.prod() * NComp];
+    HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
+    hdf_driver.read(
+        fname, buf, mesh, Field::BlockDataType::EntityType, NComp, face_dir);
+    AOS2Field(buf, irange, field);
+    delete[] buf;
 #else
     std::fprintf(
         stderr, "FieldReadHDF: HDF not supported (%s)\n", fname.c_str());

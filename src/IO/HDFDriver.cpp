@@ -53,7 +53,8 @@ struct HDFDriver {
         hid_t file_id = H5Fcreate(
             (fname + ".h5").c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
         (H5Pclose(fapl_id) < 0) ? H5Eprint1(stderr) : 0;
-        if (create_xdmf && entity != Cubism::EntityType::Face) {
+        if (create_xdmf && Mesh::Dim > 1 && Mesh::Dim <= 3 &&
+            entity != Cubism::EntityType::Face) {
             // TODO: [fabianw@mavt.ethz.ch; 2020-01-25] face storage location is
             // currently not supported by ParaView
             XDMFDriver<FileDataType, Class> xdmf;
