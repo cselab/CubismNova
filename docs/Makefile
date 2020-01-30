@@ -24,7 +24,7 @@ html: doxygen
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
-browse: html
+browse: clean html
 	xdg-open ./build/html/index.html
 
 clean:

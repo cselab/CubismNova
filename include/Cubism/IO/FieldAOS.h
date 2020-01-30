@@ -159,11 +159,10 @@ struct AOSDriver<Cubism::FieldClass::FaceContainer> {
  * @rst
  * Copy the data from a structure of arrays (SoA) field into an array of
  * structures (AoS) buffer for I/O operation.  This is a low-level function
- * which can be used in high-level I/O interfaces.  The interface is defined for
- * ``Cubism::FieldClass::Scalar`` and ``Cubism::FieldClass::Tensor`` fields.
- * The index range r may describe a sub-region of the index range spanned by the
- * field ``f``.  The size of the output buffer ``buf`` is determined by the
- * index range ``r`` and ``Field::NComponents``.
+ * which can be used in high-level I/O interfaces.  The index range r may
+ * describe a sub-region of the index range spanned by the field ``f``.  The
+ * size of the output buffer ``buf`` is determined by the index range ``r`` and
+ * ``Field::NComponents``.
  * @endrst
  */
 template <typename Field, typename Buffer>
@@ -189,11 +188,9 @@ void Field2AOS(const Field &f,
  * @rst
  * Copy the data from an array of structures (AoS) buffer into a structure of
  * arrays field.  This is a low-level function which can be used in high-level
- * I/O interfaces.  The interface is defined for ``Cubism::FieldClass::Scalar``
- * and ``Cubism::FieldClass::Tensor`` fields.  The index range r may describe a
- * sub-region of the index range spanned by the field ``f``.  The size of the
- * input buffer ``buf`` is determined by the index range ``r`` and
- * ``Field::NComponents``.
+ * I/O interfaces.  The index range r may describe a sub-region of the index
+ * range spanned by the field ``f``.  The size of the input buffer ``buf`` is
+ * determined by the index range ``r`` and ``Field::NComponents``.
  * @endrst
  */
 template <typename Field, typename Buffer>

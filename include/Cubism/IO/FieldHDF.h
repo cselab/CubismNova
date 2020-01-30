@@ -39,8 +39,6 @@ DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
  * @rst
  * Write the data carried by ``field`` to an HDF5 container file.  The data that
  * is written to the file is specified by the index space described in ``mesh``.
- * The ``Field`` type may be ``Cubism::FieldClass::Scalar`` or
- * ``Cubism::FieldClass::Tensor``.
  *
  * .. todo:: example for sub-space
  * @endrst
@@ -107,8 +105,6 @@ void FieldWriteHDF(const std::string &fname,
  * @rst
  * Read the data of an HDF5 container file into ``field``.  The data that is
  * read from the file is specified by the index space described in ``mesh``.
- * The ``Field`` type may be ``Cubism::FieldClass::Scalar`` or
- * ``Cubism::FieldClass::Tensor``.
  * @endrst
  */
 template <typename FileDataType,

@@ -11,4 +11,5 @@ IO
 
 .. include:: FieldAOS.rst
 .. include:: FieldHDF.rst
+.. include:: CartesianHDF.rst
 .. .. include:: FieldFPZIP.rst
