@@ -26,6 +26,7 @@ DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
  * @tparam FileDataType HDF file data type
  * @tparam Grid Grid type
  * @tparam Mesh Mesh type
+ * @tparam Dir Special type that defines a cast to ``size_t``
  * @param fname Output full filename without file extension
  * @param aname Name of quantity in ``grid``
  * @param grid Input grid
@@ -39,13 +40,16 @@ DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
  * is written to the file is specified by the index space described in ``mesh``.
  * @endrst
  */
-template <typename FileDataType, typename Grid, typename Mesh>
+template <typename FileDataType,
+          typename Grid,
+          typename Mesh,
+          typename Dir = size_t>
 void CartesianWriteHDF(const std::string &fname,
                        const std::string &aname,
                        const Grid &grid,
                        const Mesh &mesh,
-                       const double time = 0,
-                       const size_t face_dir = 0,
+                       const double time,
+                       const Dir face_dir = 0,
                        const bool create_xdmf = true)
 {
 #ifdef CUBISM_USE_HDF
@@ -54,7 +58,8 @@ void CartesianWriteHDF(const std::string &fname,
     constexpr typename Cubism::EntityType entity = Grid::EntityType;
     constexpr size_t NComp = Grid::NComponents;
 
-    const IRange irange = mesh.getIndexRange(entity, face_dir);
+    const size_t dface = static_cast<size_t>(face_dir);
+    const IRange irange = mesh.getIndexRange(entity, dface);
     const MIndex iextent = irange.getExtent();
     if (create_xdmf) {
         std::printf("CartesianWriteHDF: Allocating %.1f MB file buffer (%s)\n",
@@ -66,18 +71,11 @@ void CartesianWriteHDF(const std::string &fname,
 #pragma omp parallel for
     for (size_t i = 0; i < grid.size(); ++i) {
         const auto &bf = grid[i]; // block field
-        Field2AOS(bf, irange, buf, face_dir);
+        Field2AOS(bf, irange, buf, dface);
     }
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.write(fname,
-                     aname,
-                     buf,
-                     mesh,
-                     entity,
-                     NComp,
-                     time,
-                     face_dir,
-                     create_xdmf);
+    hdf_driver.write(
+        fname, aname, buf, mesh, entity, NComp, time, dface, create_xdmf);
     delete[] buf;
 #else
     std::fprintf(
@@ -92,6 +90,7 @@ DISABLE_WARNING_POP
  * @brief Write Cartesian grid data to HDF file
  * @tparam FileDataType HDF file data type
  * @tparam Grid Grid type
+ * @tparam Dir Special type that defines a cast to ``size_t``
  * @param fname Output full filename without file extension
  * @param aname Name of quantity in ``grid``
  * @param grid Input grid
@@ -101,16 +100,21 @@ DISABLE_WARNING_POP
  *
  * Convenience wrapper to dump a full grid to an HDF container file.
  */
-template <typename FileDataType, typename Grid>
+template <typename FileDataType, typename Grid, typename Dir = size_t>
 void CartesianWriteHDF(const std::string &fname,
                        const std::string &aname,
                        const Grid &grid,
-                       const double time = 0,
-                       const size_t face_dir = 0,
+                       const double time,
+                       const Dir face_dir = 0,
                        const bool create_xdmf = true)
 {
-    Cubism::IO::CartesianWriteHDF<FileDataType>(
-        fname, aname, grid, grid.getMesh(), time, face_dir, create_xdmf);
+    Cubism::IO::CartesianWriteHDF<FileDataType>(fname,
+                                                aname,
+                                                grid,
+                                                grid.getMesh(),
+                                                time,
+                                                static_cast<size_t>(face_dir),
+                                                create_xdmf);
 }
 
 NAMESPACE_END(IO)
