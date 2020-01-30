@@ -196,7 +196,7 @@ public:
     /**
      * @brief Default destructor
      */
-    virtual ~Vector() = default;
+    ~Vector() = default;
 
     /**
      * @brief Default copy assignment operator

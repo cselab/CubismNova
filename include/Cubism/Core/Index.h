@@ -415,7 +415,7 @@ public:
 
     MultiIndexIterator() = delete;
     MultiIndexIterator(const MultiIndexIterator &c) = default;
-    virtual ~MultiIndexIterator() = default;
+    ~MultiIndexIterator() = default;
 
     MultiIndexIterator &operator=(const MultiIndexIterator &c)
     {
