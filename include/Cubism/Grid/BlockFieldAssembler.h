@@ -156,8 +156,9 @@ struct BlockFieldAssembler {
             if (Entity == Cubism::EntityType::Face) {
                 for (size_t d = 0; d < MeshType::Dim; ++d) {
                     for (size_t c = 0; c < BaseType::NComponents; ++c) {
-                        char *dst = base + d * MeshType::Dim * component_bytes +
-                                    c * component_bytes + i * block_bytes;
+                        char *dst =
+                            base + d * BaseType::NComponents * component_bytes +
+                            c * component_bytes + i * block_bytes;
                         A.push_back(face_ranges[d]);
                         B.push_back(reinterpret_cast<DataType *>(dst));
                         C.push_back(block_bytes);
