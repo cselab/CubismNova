@@ -16,16 +16,16 @@ NAMESPACE_BEGIN(IO)
 template <Cubism::FieldClass Class>
 struct AOSDriver {
     template <typename Field, typename Range, typename Buffer>
-    void write(const Field &, const Range &, Buffer *) const;
+    void write(const Field &, const Range &, Buffer *, const size_t) const;
 
     template <typename Field, typename Range, typename Buffer>
-    void read(const Buffer *, const Range &, Field &) const;
+    void read(const Buffer *, const Range &, Field &, const size_t) const;
 };
 
 template <>
 struct AOSDriver<Cubism::FieldClass::Scalar> {
     template <typename Field, typename Range, typename Buffer>
-    void write(const Field &f, const Range &r, Buffer *buf) const
+    void write(const Field &f, const Range &r, Buffer *buf, const size_t) const
     {
         using MIndex = typename Range::MultiIndex;
 
@@ -45,7 +45,7 @@ struct AOSDriver<Cubism::FieldClass::Scalar> {
     }
 
     template <typename Field, typename Range, typename Buffer>
-    void read(const Buffer *buf, const Range &r, Field &f) const
+    void read(const Buffer *buf, const Range &r, Field &f, const size_t) const
     {
         using MIndex = typename Range::MultiIndex;
 
@@ -68,7 +68,7 @@ struct AOSDriver<Cubism::FieldClass::Scalar> {
 template <>
 struct AOSDriver<Cubism::FieldClass::Tensor> {
     template <typename Field, typename Range, typename Buffer>
-    void write(const Field &f, const Range &r, Buffer *buf) const
+    void write(const Field &f, const Range &r, Buffer *buf, const size_t) const
     {
         using MIndex = typename Range::MultiIndex;
 
@@ -92,7 +92,7 @@ struct AOSDriver<Cubism::FieldClass::Tensor> {
     }
 
     template <typename Field, typename Range, typename Buffer>
-    void read(const Buffer *buf, const Range &r, Field &f) const
+    void read(const Buffer *buf, const Range &r, Field &f, const size_t) const
     {
         using MIndex = typename Range::MultiIndex;
 
@@ -116,6 +116,25 @@ struct AOSDriver<Cubism::FieldClass::Tensor> {
     }
 };
 
+template <>
+struct AOSDriver<Cubism::FieldClass::FaceContainer> {
+    template <typename Field, typename Range, typename Buffer>
+    void
+    write(const Field &f, const Range &r, Buffer *buf, const size_t dir) const
+    {
+        AOSDriver<Field::FaceComponentType::Class> driver;
+        driver.write(f[dir], r, buf, dir);
+    }
+
+    template <typename Field, typename Range, typename Buffer>
+    void
+    read(const Buffer *buf, const Range &r, Field &f, const size_t dir) const
+    {
+        AOSDriver<Field::FaceComponentType::Class> driver;
+        driver.read(f[dir], r, buf, dir);
+    }
+};
+
 /**
  * @defgroup IO Input/Output
  * @rst
@@ -135,6 +154,7 @@ struct AOSDriver<Cubism::FieldClass::Tensor> {
  * @param f Input field
  * @param r Index space for the copy (describes the memory region of buf)
  * @param buf Output buffer
+ * @param dface Face direction (relevant for ``Cubism::EntityType::Face``)
  *
  * @rst
  * Copy the data from a structure of arrays (SoA) field into an array of
@@ -149,10 +169,11 @@ struct AOSDriver<Cubism::FieldClass::Tensor> {
 template <typename Field, typename Buffer>
 void Field2AOS(const Field &f,
                const typename Field::IndexRangeType &r,
-               Buffer *buf)
+               Buffer *buf,
+               const size_t dface = 0)
 {
     AOSDriver<Field::Class> driver;
-    driver.write(f, r, buf);
+    driver.write(f, r, buf, dface);
 }
 
 /**
@@ -163,6 +184,7 @@ void Field2AOS(const Field &f,
  * @param buf Input buffer
  * @param r Index space for the read (describes the memory region of buf)
  * @param f Output field
+ * @param dface Face direction (relevant for ``Cubism::EntityType::Face``)
  *
  * @rst
  * Copy the data from an array of structures (AoS) buffer into a structure of
@@ -177,10 +199,11 @@ void Field2AOS(const Field &f,
 template <typename Field, typename Buffer>
 void AOS2Field(const Buffer *buf,
                const typename Field::IndexRangeType &r,
-               Field &f)
+               Field &f,
+               const size_t dface = 0)
 {
     AOSDriver<Field::Class> driver;
-    driver.read(buf, r, f);
+    driver.read(buf, r, f, dface);
 }
 
 NAMESPACE_END(IO)
