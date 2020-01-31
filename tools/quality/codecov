@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# File       : codecov
+# Created    : Fri Jan 31 2020 07:54:18 PM (+0100)
+# Author     : Fabian Wermelinger
+# Description: Fetch latest codecov script and generate coverage report
+# Copyright 2020 ETH Zurich. All Rights Reserved.
+
+bash <(curl -s https://codecov.io/bash)

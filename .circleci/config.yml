@@ -22,11 +22,11 @@ jobs:
                 command: git submodule update --init
 
             - run:
-                name: Debug build (full)
+                name: Debug build (full, code coverage)
                 command: >
-                    ./cmake_init.sh debug ./install &&
+                    ./cmake_init.sh debug ./install -DCUBISM_COVERAGE=ON &&
                     cd debug &&
-                    make -j && make test && make install
+                    make -j && make gcov && make install
 
             - run:
                 name: Release build (full)
