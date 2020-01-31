@@ -14,6 +14,9 @@ CubismNova
 .. image:: https://readthedocs.org/projects/cubismnova/badge/?version=latest
    :target: https://cubismnova.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
+.. image:: https://codecov.io/gh/cselab/CubismNova/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/cselab/CubismNova
+   :alt: Code Coverage
 
 Introduction
 ============
