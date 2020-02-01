@@ -8,6 +8,7 @@
 #include "Cubism/Alloc/AlignedBlockAllocator.h"
 #include "Cubism/Core/Index.h"
 #include "gtest/gtest.h"
+#include <cstring>
 #include <utility>
 
 namespace
@@ -27,6 +28,7 @@ void runTest()
 
     using CData = CellData<T, TAlloc, DIM>;
     using NData = NodeData<T, TAlloc, DIM>;
+    using Base = Block::DataBase;
 
     MIndex cells(16);
     MIndex nodes(16 + 1);
@@ -35,6 +37,14 @@ void runTest()
 
     CData cdata(cell_domain);
     NData ndata(node_domain);
+
+    Base *cptr = &cdata;
+    EXPECT_EQ(cptr->getBlockPtr(), cdata.getBlockPtr());
+    EXPECT_EQ(cptr->getBlockBytes(), cdata.getBlockBytes());
+    EXPECT_EQ(cptr->getDataElementBytes(), cdata.getDataElementBytes());
+    EXPECT_EQ(cptr->getBlockSize(), cdata.getBlockSize());
+    std::memset(cptr->getBlockPtr(), 0, cptr->getBlockBytes());
+    EXPECT_EQ(cdata[0], 0);
 
     EXPECT_TRUE(cdata.getIndexRange() == cell_domain);
     EXPECT_EQ(cdata.getDataElementBytes(), sizeof(T));
