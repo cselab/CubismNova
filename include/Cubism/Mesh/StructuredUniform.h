@@ -266,8 +266,13 @@ private:
             // ensure at least one cell thick: the extracted region must be at
             // least one cell thick.  This criterion is ensured by always
             // rounding up.
-            const RealType diff_rel = Cubism::myAbs(end[i] - start[i]);
-            if (!boundary && (diff_rel < mesh_spacing_[i])) {
+            const RealType diff_rel0 = Cubism::myAbs(end[i] - start[i]);
+            const RealType diff_rel1 =
+                Cubism::myAbs(diff_rel0 - mesh_spacing_[i]);
+            if (!boundary &&
+                (diff_rel1 < 2.0 * std::numeric_limits<RealType>::epsilon())) {
+                end[i] += 2.0 * std::numeric_limits<RealType>::epsilon();
+            } else if (!boundary && (diff_rel0 < mesh_spacing_[i])) {
                 end[i] += 1.0 * mesh_spacing_[i];
             }
         }
