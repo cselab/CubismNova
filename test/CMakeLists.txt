@@ -5,7 +5,6 @@ add_subdirectory(googletest)
 include_directories(gtest-mpi-listener/include)
 
 if (CUBISM_COVERAGE)
-
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g -fprofile-arcs -ftest-coverage")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fprofile-arcs -ftest-coverage")
     add_custom_target(gcov
