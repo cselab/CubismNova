@@ -4,35 +4,23 @@ executors:
     buster:
         docker:
             - image: debian:buster
+        jobs:
+            steps:
+                - run:
+                    name: Install Debian dependencies
+                    command: >
+                        apt-get update && apt-get -y install
+                        mpich
+                        cmake
+                        git
+                        curl
+                        libhdf5-mpich-dev
+                - checkout
+                - run:
+                    name: Initalize submodules
+                    command: git submodule update --init
 
 jobs:
-    debian_deps:
-        parameters:
-            image:
-                type: executor
-        executor: << parameters.image >>
-        steps:
-            - run:
-                name: Install Debian dependencies
-                command: >
-                    apt-get update && apt-get -y install
-                    mpich
-                    cmake
-                    git
-                    curl
-                    libhdf5-mpich-dev
-
-    code_checkout:
-        parameters:
-            image:
-                type: executor
-        executor: << parameters.image >>
-        steps:
-            - checkout
-            - run:
-                name: Initalize submodules
-                command: git submodule update --init
-
     debug_and_coverage:
         parameters:
             image:
@@ -101,29 +89,11 @@ jobs:
 workflows:
     debian:
         jobs:
-            - debian_deps:
-                image: buster
-            - code_checkout:
-                image: buster
-                requires:
-                    - debian_deps
             - debug_and_coverage:
                 image: buster
-                requires:
-                    - debian_deps
-                    - code_checkout
             - release:
                 image: buster
-                requires:
-                    - debian_deps
-                    - code_checkout
             - debug_32bit_index:
                 image: buster
-                requires:
-                    - debian_deps
-                    - code_checkout
             - debug_no_IO:
                 image: buster
-                requires:
-                    - debian_deps
-                    - code_checkout
