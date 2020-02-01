@@ -1,7 +1,21 @@
 version: 2
 
+workflows:
+    version: 2
+    master:
+        jobs:
+            - "Setup"
+            - "Test_1":
+                requires: "Setup"
+            - "Test_2":
+                requires: "Setup"
+            - "Test_3":
+                requires: "Setup"
+            - "Test_4":
+                requires: "Setup"
+
 jobs:
-    build:
+    "Setup":
         docker:
             - image: debian:buster
 
@@ -22,6 +36,8 @@ jobs:
                 name: Initalize submodules
                 command: git submodule update --init
 
+    "Test_1":
+        steps:
             - run:
                 name: Debug build (full, code coverage)
                 command: >
@@ -29,6 +45,8 @@ jobs:
                     cd debug &&
                     make -j && make gcov && make install
 
+    "Test_2":
+        steps:
             - run:
                 name: Release build (full)
                 command: >
@@ -36,6 +54,8 @@ jobs:
                     cd release &&
                     make -j && make test && make install
 
+    "Test_3":
+        steps:
             - run:
                 name: Debug build (full; 32bit index)
                 command: >
@@ -43,6 +63,8 @@ jobs:
                     cd debug &&
                     make -j && make test && make install
 
+    "Test_4":
+        steps:
             - run:
                 name: Debug build (no libCubismIO.a)
                 command: >
