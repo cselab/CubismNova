@@ -105,6 +105,8 @@ workflows:
                 image: buster
             - code_checkout:
                 image: buster
+                requires:
+                    - debian_deps
             - debug_and_coverage:
                 image: buster
                 requires:
