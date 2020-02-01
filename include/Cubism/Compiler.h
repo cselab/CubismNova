@@ -35,4 +35,7 @@
 #define DISABLE_WARNING_UNREFERENCED_FUNCTION
 #endif
 
+// skip C++ related OpenMPI code
+#define OMPI_SKIP_MPICXX
+
 #endif /* COMPILER_H_ZNMPGTMC */

@@ -7,7 +7,6 @@
 #define CARTESIANHDF_H_GQ8CNN6W
 
 #include "Cubism/Common.h"
-#include "Cubism/Compiler.h"
 #include "Cubism/IO/FieldAOS.h"
 #include "Cubism/IO/HDFDriver.h"
 #include <cstdio>

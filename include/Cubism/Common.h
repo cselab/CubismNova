@@ -6,6 +6,8 @@
 #ifndef COMMON_H_C0GYQV59
 #define COMMON_H_C0GYQV59
 
+#include "Cubism/Compiler.h"
+
 #if !defined(NAMESPACE_BEGIN)
 #define NAMESPACE_BEGIN(name)                                                  \
     namespace name                                                             \

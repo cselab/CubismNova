@@ -7,7 +7,6 @@
 #define FIELDHDF_H_SZ10D4OW
 
 #include "Cubism/Common.h"
-#include "Cubism/Compiler.h"
 #include "Cubism/IO/FieldAOS.h"
 #include "Cubism/IO/HDFDriver.h"
 #include <cstdio>
