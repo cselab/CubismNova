@@ -1,24 +1,17 @@
 version: 2.1
 
 executors:
-    buster:
+    buster_mpich:
         docker:
-            - image: debian:buster
-        jobs:
-            steps:
-                - run:
-                    name: Install Debian dependencies
-                    command: >
-                        apt-get update && apt-get -y install
-                        mpich
-                        cmake
-                        git
-                        curl
-                        libhdf5-mpich-dev
-                - checkout
-                - run:
-                    name: Initalize submodules
-                    command: git submodule update --init
+            - image:  cselab/debian_buster_mpich:latest
+
+commands:
+    checkout_code:
+        steps:
+            - checkout
+            - run:
+                name: Initalize submodules
+                command: git submodule update --init
 
 jobs:
     debug_and_coverage:
@@ -27,6 +20,7 @@ jobs:
                 type: executor
         executor: << parameters.image >>
         steps:
+            - checkout_code
             - run:
                 name: Debug build (full, code coverage)
                 command: >
@@ -40,6 +34,7 @@ jobs:
                 type: executor
         executor: << parameters.image >>
         steps:
+            - checkout_code
             - run:
                 name: Debug build (full, code coverage)
                 command: >
@@ -53,6 +48,7 @@ jobs:
                 type: executor
         executor: << parameters.image >>
         steps:
+            - checkout_code
             - run:
                 name: Release build (full)
                 command: >
@@ -66,6 +62,7 @@ jobs:
                 type: executor
         executor: << parameters.image >>
         steps:
+            - checkout_code
             - run:
                 name: Debug build (full; 32bit index)
                 command: >
@@ -79,6 +76,7 @@ jobs:
                 type: executor
         executor: << parameters.image >>
         steps:
+            - checkout_code
             - run:
                 name: Debug build (no libCubismIO.a)
                 command: >
@@ -90,10 +88,10 @@ workflows:
     debian:
         jobs:
             - debug_and_coverage:
-                image: buster
+                image: buster_mpich
             - release:
-                image: buster
+                image: buster_mpich
             - debug_32bit_index:
-                image: buster
+                image: buster_mpich
             - debug_no_IO:
-                image: buster
+                image: buster_mpich
