@@ -7,6 +7,6 @@
 Vector.h
 --------
 
-.. doxygenclass:: Vector
+.. doxygenclass:: Cubism::Core::Vector
    :project: CubismNova
    :members:

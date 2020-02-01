@@ -9,6 +9,6 @@
 INIParser.h
 -----------
 
-.. doxygenclass:: INIParser
+.. doxygenclass:: Cubism::Util::INIParser
    :project: CubismNova
    :members:

@@ -11,6 +11,19 @@
 #include <cstddef>
 
 NAMESPACE_BEGIN(Cubism)
+/**
+ * @addtogroup IO
+ * @{ */
+/** @brief Namespace for input/output operations
+ *
+ * @rst
+ * Input/Output routines are functions that can be used with a block
+ * :ref:`field` object or block field compounds described in :ref:`grid`.  The
+ * components of this namespace form the contents of ``libCubismIO.a``.
+ * Consequently an application must link to ``-lCubismIO`` to make use of I/O
+ * group.
+ * @endrst
+ */
 NAMESPACE_BEGIN(IO)
 
 template <Cubism::FieldClass Class>
@@ -136,17 +149,6 @@ struct AOSDriver<Cubism::FieldClass::FaceContainer> {
 };
 
 /**
- * @defgroup IO Input/Output
- * @rst
- * Input/Output routines are functions that can be used with a block
- * :ref:`field` object or block field compounds described in :ref:`grid`.  The
- * components of this group form the contents of ``libCubismIO.a``.
- * Consequently an application must link to ``-lCubismIO`` to make use of I/O
- * group.
- * @endrst
- */
-
-/**
  * @ingroup IO
  * @brief Write field data into AoS buffer
  * @tparam Field Field type
@@ -159,7 +161,7 @@ struct AOSDriver<Cubism::FieldClass::FaceContainer> {
  * @rst
  * Copy the data from a structure of arrays (SoA) field into an array of
  * structures (AoS) buffer for I/O operation.  This is a low-level function
- * which can be used in high-level I/O interfaces.  The index range r may
+ * which can be used in high-level I/O interfaces.  The index range ``r`` may
  * describe a sub-region of the index range spanned by the field ``f``.  The
  * size of the output buffer ``buf`` is determined by the index range ``r`` and
  * ``Field::NComponents``.
@@ -188,7 +190,7 @@ void Field2AOS(const Field &f,
  * @rst
  * Copy the data from an array of structures (AoS) buffer into a structure of
  * arrays field.  This is a low-level function which can be used in high-level
- * I/O interfaces.  The index range r may describe a sub-region of the index
+ * I/O interfaces.  The index range ``r`` may describe a sub-region of the index
  * range spanned by the field ``f``.  The size of the input buffer ``buf`` is
  * determined by the index range ``r`` and ``Field::NComponents``.
  * @endrst
@@ -204,6 +206,7 @@ void AOS2Field(const Buffer *buf,
 }
 
 NAMESPACE_END(IO)
+/**  @} */
 NAMESPACE_END(Cubism)
 
 #endif /* FIELDAOS_H_DOY3MTA8 */

@@ -11,10 +11,10 @@ Data.h
 
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
-.. doxygenclass:: DataBase
+.. doxygenclass:: Cubism::Block::DataBase
    :project: CubismNova
    :members:
 
-.. doxygenclass:: Data
+.. doxygenclass:: Cubism::Block::Data
    :project: CubismNova
    :members:

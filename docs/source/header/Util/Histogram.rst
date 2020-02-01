@@ -9,6 +9,6 @@
 Histogram.h
 -----------
 
-.. doxygenclass:: Histogram
+.. doxygenclass:: Cubism::Util::Histogram
    :project: CubismNova
    :members:

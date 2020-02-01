@@ -4,6 +4,4 @@
 .. Description: Doxygen groups documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
-.. include:: IO.rst
 .. include:: MPI.rst
-.. include:: Util.rst

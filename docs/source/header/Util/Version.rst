@@ -9,11 +9,11 @@
 Version.h
 ---------
 
-.. doxygenvariable:: CubismVersion
+.. doxygenvariable:: Cubism::Util::CubismVersion
    :project: CubismNova
 
-.. doxygenvariable:: CubismVersionHEAD
+.. doxygenvariable:: Cubism::Util::CubismVersionHEAD
    :project: CubismNova
 
-.. doxygenvariable:: CubismBranch
+.. doxygenvariable:: Cubism::Util::CubismBranch
    :project: CubismNova

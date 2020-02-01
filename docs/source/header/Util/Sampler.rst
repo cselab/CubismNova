@@ -9,6 +9,6 @@
 Sampler.h
 ---------
 
-.. doxygenclass:: Sampler
+.. doxygenclass:: Cubism::Util::Sampler
    :project: CubismNova
    :members:

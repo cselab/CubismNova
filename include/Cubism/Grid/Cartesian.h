@@ -13,6 +13,10 @@
 #include <cassert>
 
 NAMESPACE_BEGIN(Cubism)
+/**
+ * @addtogroup Grid
+ * @{ */
+/** @brief Namespace for grid data types composed of block data types */
 NAMESPACE_BEGIN(Grid)
 
 /**
@@ -496,6 +500,7 @@ constexpr typename Cubism::EntityType
     Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>::EntityType;
 
 NAMESPACE_END(Grid)
+/**  @} */
 NAMESPACE_END(Cubism)
 
 #endif /* CARTESIAN_H_QBSFTWK7 */

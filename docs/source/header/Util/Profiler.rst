@@ -9,6 +9,6 @@
 Profiler.h
 ----------
 
-.. doxygenclass:: Profiler
+.. doxygenclass:: Cubism::Util::Profiler
    :project: CubismNova
    :members:

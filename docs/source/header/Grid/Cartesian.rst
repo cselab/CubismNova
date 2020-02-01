@@ -9,6 +9,6 @@
 Cartesian.h
 -----------
 
-.. doxygenclass:: Cartesian
+.. doxygenclass:: Cubism::Grid::Cartesian
    :project: CubismNova
    :members:

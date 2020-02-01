@@ -21,6 +21,12 @@
    header/Common.rst
 
 .. toctree::
+   :caption: Namespaces
+   :name: namespaces
+
+   namespaces/index.rst
+
+.. toctree::
    :caption: Groups
    :name: groups
 

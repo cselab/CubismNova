@@ -14,6 +14,10 @@
 #include <type_traits>
 
 NAMESPACE_BEGIN(Cubism)
+/**
+ * @addtogroup Block
+ * @{ */
+/** @brief Namespace for block data types */
 NAMESPACE_BEGIN(Block)
 
 /**
@@ -496,6 +500,7 @@ template <typename T,
 constexpr Cubism::EntityType Data<T, Entity, DIM, BlockAlloc>::EntityType;
 
 NAMESPACE_END(Block)
+/**  @} */
 NAMESPACE_END(Cubism)
 
 #endif /* DATA_H_W5KVJG9U */

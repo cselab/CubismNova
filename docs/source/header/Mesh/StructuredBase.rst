@@ -7,6 +7,6 @@
 StructuredBase.h
 ----------------
 
-.. doxygenclass:: StructuredBase
+.. doxygenclass:: Cubism::Mesh::StructuredBase
    :project: CubismNova
    :members:

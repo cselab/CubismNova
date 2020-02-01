@@ -5,16 +5,16 @@
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
 CartesianHDF.h
-----------
+--------------
 
-.. doxygenfunction:: CartesianWriteHDF(const std::string&, const std::string&, const Grid&, const Mesh&, const double, const Dir, const bool)
+.. doxygenfunction:: Cubism::IO::CartesianWriteHDF(const std::string&, const std::string&, const Grid&, const Mesh&, const double, const Dir, const bool)
    :project: CubismNova
 
-.. doxygenfunction:: CartesianWriteHDF(const std::string&, const std::string&, const Grid&, const double, const Dir, const bool)
+.. doxygenfunction:: Cubism::IO::CartesianWriteHDF(const std::string&, const std::string&, const Grid&, const double, const Dir, const bool)
    :project: CubismNova
 
-.. doxygenfunction:: CartesianReadHDF(const std::string&, Grid&, const Mesh&, const Dir)
+.. doxygenfunction:: Cubism::IO::CartesianReadHDF(const std::string&, Grid&, const Mesh&, const Dir)
    :project: CubismNova
 
-.. doxygenfunction:: CartesianReadHDF(const std::string&, Grid&, const Dir)
+.. doxygenfunction:: Cubism::IO::CartesianReadHDF(const std::string&, Grid&, const Dir)
    :project: CubismNova

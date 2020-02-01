@@ -9,6 +9,6 @@
 Timer.h
 -------
 
-.. doxygenclass:: Timer
+.. doxygenclass:: Cubism::Util::Timer
    :project: CubismNova
    :members:

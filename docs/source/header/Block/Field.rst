@@ -16,38 +16,38 @@ arrays.  Face fields are handled separately for each dimension in ``DIM``.  The
 ``FaceContainer`` type is a convenience type for a compound of ``DIM`` face
 fields with the corresponding index range for each direction.
 
-.. doxygenstruct:: FieldState
+.. doxygenstruct:: Cubism::Block::FieldState
    :project: CubismNova
    :members:
 
-.. doxygenclass:: Field
+.. doxygenclass:: Cubism::Block::Field
    :project: CubismNova
    :members:
 
-.. doxygenclass:: TensorField
+.. doxygenclass:: Cubism::Block::TensorField
    :project: CubismNova
    :members:
 
-.. doxygenclass:: FaceContainer
+.. doxygenclass:: Cubism::Block::FaceContainer
    :project: CubismNova
    :members:
 
-.. doxygenclass:: FieldContainer
+.. doxygenclass:: Cubism::Block::FieldContainer
    :project: CubismNova
    :members:
 
-.. doxygenclass:: FieldView
+.. doxygenclass:: Cubism::Block::FieldView
    :project: CubismNova
    :members:
 
-.. doxygentypedef:: CellField
+.. doxygentypedef:: Cubism::Block::CellField
    :project: CubismNova
 
-.. doxygentypedef:: NodeField
+.. doxygentypedef:: Cubism::Block::NodeField
    :project: CubismNova
 
-.. doxygentypedef:: FaceField
+.. doxygentypedef:: Cubism::Block::FaceField
    :project: CubismNova
 
-.. doxygentypedef:: VectorField
+.. doxygentypedef:: Cubism::Block::VectorField
    :project: CubismNova

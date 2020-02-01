@@ -7,6 +7,6 @@
 AlignedBlockAllocator.h
 -----------------------
 
-.. doxygenclass:: AlignedBlockAllocator
+.. doxygenclass:: Cubism::AlignedBlockAllocator
    :project: CubismNova
    :members:

@@ -12,16 +12,19 @@
 #include <string>
 
 NAMESPACE_BEGIN(Cubism)
-NAMESPACE_BEGIN(Util)
 /**
- * @defgroup Util Utilities
+ * @addtogroup Util
+ * @{ */
+/** @brief Namespace for input/output operations
+ *
  * @rst
- * The members of this group are optional utilities that are not required to
+ * The members of this namespace are optional utilities that are not required to
  * implement a working application.  Its components form the content of
  * ``libCubismUtil.a``.  An application using these utilities must link to
  * ``-lCubismUtil``.
  * @endrst
  */
+NAMESPACE_BEGIN(Util)
 
 /**
  * @ingroup Util MPI
@@ -74,6 +77,7 @@ private:
 };
 
 NAMESPACE_END(Util)
+/**  @} */
 NAMESPACE_END(Cubism)
 
 #endif /* HISTOGRAM_H_6SPETKCI */

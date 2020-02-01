@@ -26,6 +26,11 @@
 
 static_assert(CUBISM_DIMENSION > 0, "CUBISM_DIMENSION must be > 0");
 
+/**
+ * @addtogroup Cubism
+ * @{ */
+
+/** @brief Main Cubism namespace for all library interfaces */
 NAMESPACE_BEGIN(Cubism)
 #if 1 == CUBISM_DIMENSION
 /**
@@ -106,5 +111,7 @@ enum class MeshClass { Uniform = 0, Stretched };
  * @endrst */
 enum class MeshIntegrity { FullMesh = 0, SubMesh };
 NAMESPACE_END(Cubism)
+
+/**  @} */
 
 #endif /* COMMON_H_C0GYQV59 */

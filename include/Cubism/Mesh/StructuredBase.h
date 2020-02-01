@@ -14,6 +14,10 @@
 #include <vector>
 
 NAMESPACE_BEGIN(Cubism)
+/**
+ * @addtogroup Mesh
+ * @{ */
+/** @brief Namespace for mesh data types */
 NAMESPACE_BEGIN(Mesh)
 
 /**
@@ -1057,6 +1061,7 @@ template <typename TReal, size_t DIM>
 constexpr size_t StructuredBase<TReal, DIM>::Dim;
 
 NAMESPACE_END(Mesh)
+/**  @} */
 NAMESPACE_END(Cubism)
 
 #endif /* STRUCTUREDBASE_H_QETR3VEW */

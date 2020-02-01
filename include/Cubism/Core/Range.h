@@ -11,6 +11,10 @@
 #include <string>
 
 NAMESPACE_BEGIN(Cubism)
+/**
+ * @addtogroup Core
+ * @{ */
+/** @brief Namespace for Cubism core components */
 NAMESPACE_BEGIN(Core)
 
 /**
@@ -261,6 +265,7 @@ template <typename T, size_t DIM>
 constexpr size_t Range<T, DIM>::Dim;
 
 NAMESPACE_END(Core)
+/**  @} */
 NAMESPACE_END(Cubism)
 
 #endif /* RANGE_H_JDWNYXZA */

@@ -9,6 +9,6 @@
 CartesianMPI.h
 --------------
 
-.. doxygenclass:: CartesianMPI
+.. doxygenclass:: Cubism::Grid::CartesianMPI
    :project: CubismNova
    :members:

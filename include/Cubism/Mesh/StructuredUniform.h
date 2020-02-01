@@ -14,10 +14,6 @@
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Mesh)
-/**
- * @defgroup Mesh Mesh Classes
- * The members of this group belong to mesh classes.
- */
 
 /**
  * @ingroup Mesh

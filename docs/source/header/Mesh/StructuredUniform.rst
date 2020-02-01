@@ -7,6 +7,6 @@
 StructuredUniform.h
 -------------------
 
-.. doxygenclass:: StructuredUniform
+.. doxygenclass:: Cubism::Mesh::StructuredUniform
    :project: CubismNova
    :members:

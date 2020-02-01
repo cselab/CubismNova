@@ -7,6 +7,6 @@
 Range.h
 -------
 
-.. doxygenclass:: Range
+.. doxygenclass:: Cubism::Core::Range
    :project: CubismNova
    :members:

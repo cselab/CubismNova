@@ -33,7 +33,9 @@ AUTOLINK_SUPPORT     = NO
 ENABLE_PREPROCESSING = YES
 MACRO_EXPANSION      = YES
 EXPAND_ONLY_PREDEF   = YES
-PREDEFINED           = DISABLE_WARNING_PUSH= \
+PREDEFINED           = "NAMESPACE_BEGIN(name)=namespace name {" \
+                       "NAMESPACE_END(name)=}" \
+                       DISABLE_WARNING_PUSH= \
                        DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER= \
                        DISABLE_WARNING_POP
 
