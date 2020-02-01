@@ -1,27 +1,15 @@
 version: 2
 
-workflows:
-    version: 2
-    master:
-        jobs:
-            - "Setup"
-            - "Test_1":
-                requires: "Setup"
-            - "Test_2":
-                requires: "Setup"
-            - "Test_3":
-                requires: "Setup"
-            - "Test_4":
-                requires: "Setup"
-
-jobs:
-    "Setup":
+aliases:
+    - &buster_image
         docker:
             - image: debian:buster
 
+jobs:
+    debian_deps:
         steps:
             - run:
-                name: Install dependencies
+                name: Install Debian dependencies
                 command: >
                     apt-get update && apt-get -y install
                     mpich
@@ -30,13 +18,14 @@ jobs:
                     curl
                     libhdf5-mpich-dev
 
+    code_checkout:
+        steps:
             - checkout
-
             - run:
                 name: Initalize submodules
                 command: git submodule update --init
 
-    "Test_1":
+    debug_and_coverage:
         steps:
             - run:
                 name: Debug build (full, code coverage)
@@ -45,7 +34,7 @@ jobs:
                     cd debug &&
                     make -j && make gcov && make install
 
-    "Test_2":
+    release:
         steps:
             - run:
                 name: Release build (full)
@@ -54,7 +43,7 @@ jobs:
                     cd release &&
                     make -j && make test && make install
 
-    "Test_3":
+    debug_32bit_index:
         steps:
             - run:
                 name: Debug build (full; 32bit index)
@@ -63,7 +52,7 @@ jobs:
                     cd debug &&
                     make -j && make test && make install
 
-    "Test_4":
+    debug_no_IO:
         steps:
             - run:
                 name: Debug build (no libCubismIO.a)
@@ -71,3 +60,27 @@ jobs:
                     ./cmake_init.sh debug ./install -DCUBISM_IO=OFF &&
                     cd debug &&
                     make -j && make test && make install
+
+workflows:
+    version: 2
+    debian_buster:
+        <<: *buster_image
+        jobs:
+            - debian_deps
+            - code_checkout
+            - debug_and_coverage:
+                requires:
+                    - debian_deps
+                    - code_checkout
+            - release:
+                requires:
+                    - debian_deps
+                    - code_checkout
+            - debug_32bit_index:
+                requires:
+                    - debian_deps
+                    - code_checkout
+            - debug_no_IO:
+                requires:
+                    - debian_deps
+                    - code_checkout
