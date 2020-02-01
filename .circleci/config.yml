@@ -1,12 +1,16 @@
-version: 2
+version: 2.1
 
-aliases:
-    - &buster_image
+executors:
+    buster:
         docker:
             - image: debian:buster
 
 jobs:
     debian_deps:
+        parameters:
+            image:
+                type: executor
+        executor: << parameters.image >>
         steps:
             - run:
                 name: Install Debian dependencies
@@ -19,6 +23,10 @@ jobs:
                     libhdf5-mpich-dev
 
     code_checkout:
+        parameters:
+            image:
+                type: executor
+        executor: << parameters.image >>
         steps:
             - checkout
             - run:
@@ -26,6 +34,10 @@ jobs:
                 command: git submodule update --init
 
     debug_and_coverage:
+        parameters:
+            image:
+                type: executor
+        executor: << parameters.image >>
         steps:
             - run:
                 name: Debug build (full, code coverage)
@@ -34,7 +46,24 @@ jobs:
                     cd debug &&
                     make -j && make gcov && make install
 
+    debug:
+        parameters:
+            image:
+                type: executor
+        executor: << parameters.image >>
+        steps:
+            - run:
+                name: Debug build (full, code coverage)
+                command: >
+                    ./cmake_init.sh debug ./install &&
+                    cd debug &&
+                    make -j && make test && make install
+
     release:
+        parameters:
+            image:
+                type: executor
+        executor: << parameters.image >>
         steps:
             - run:
                 name: Release build (full)
@@ -44,6 +73,10 @@ jobs:
                     make -j && make test && make install
 
     debug_32bit_index:
+        parameters:
+            image:
+                type: executor
+        executor: << parameters.image >>
         steps:
             - run:
                 name: Debug build (full; 32bit index)
@@ -53,6 +86,10 @@ jobs:
                     make -j && make test && make install
 
     debug_no_IO:
+        parameters:
+            image:
+                type: executor
+        executor: << parameters.image >>
         steps:
             - run:
                 name: Debug build (no libCubismIO.a)
@@ -62,25 +99,29 @@ jobs:
                     make -j && make test && make install
 
 workflows:
-    version: 2
-    debian_buster:
-        <<: *buster_image
+    debian:
         jobs:
-            - debian_deps
-            - code_checkout
+            - debian_deps:
+                image: buster
+            - code_checkout:
+                image: buster
             - debug_and_coverage:
+                image: buster
                 requires:
                     - debian_deps
                     - code_checkout
             - release:
+                image: buster
                 requires:
                     - debian_deps
                     - code_checkout
             - debug_32bit_index:
+                image: buster
                 requires:
                     - debian_deps
                     - code_checkout
             - debug_no_IO:
+                image: buster
                 requires:
                     - debian_deps
                     - code_checkout
