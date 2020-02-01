@@ -5,6 +5,10 @@ executors:
         docker:
             - image:  cselab/debian_buster_mpich:latest
 
+    buster_openmpi:
+        docker:
+            - image:  cselab/debian_buster_openmpi:latest
+
 commands:
     checkout_code:
         steps:
@@ -95,3 +99,11 @@ workflows:
                 image: buster_mpich
             - debug_no_IO:
                 image: buster_mpich
+            - debug:
+                image: buster_openmpi
+            - release:
+                image: buster_openmpi
+            - debug_32bit_index:
+                image: buster_openmpi
+            - debug_no_IO:
+                image: buster_openmpi
