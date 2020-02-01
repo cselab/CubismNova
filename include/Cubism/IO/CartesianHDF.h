@@ -56,7 +56,7 @@ void CartesianWriteHDF(const std::string &fname,
                       Grid::BaseType::Class == Cubism::FieldClass::Tensor ||
                       Grid::BaseType::Class ==
                           Cubism::FieldClass::FaceContainer,
-                  "FieldReadHDF: Unsupported Cubism::FieldClass");
+                  "CartesianWriteHDF: Unsupported Cubism::FieldClass");
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     constexpr typename Cubism::EntityType entity = Grid::EntityType;
@@ -150,7 +150,7 @@ void CartesianReadHDF(const std::string &fname,
                       Grid::BaseType::Class == Cubism::FieldClass::Tensor ||
                       Grid::BaseType::Class ==
                           Cubism::FieldClass::FaceContainer,
-                  "FieldReadHDF: Unsupported Cubism::FieldClass");
+                  "CartesianReadHDF: Unsupported Cubism::FieldClass");
     {
         std::ifstream file(fname + ".h5");
         if (!file.good()) {
