@@ -415,4 +415,102 @@ TEST(StructuredUniform, BasicInterface)
         EXPECT_EQ(surf_sum.norm(), 0);
     }
 }
+
+TEST(StructuredUniform, SubMesh)
+{
+    using IRange = Core::IndexRange<3>;
+    using MIndex = typename IRange::MultiIndex;
+    using Mesh = Mesh::StructuredUniform<float, IRange::Dim>;
+    using MeshIntegrity = typename Mesh::MeshIntegrity;
+    using PointType = typename Mesh::PointType;
+
+    const PointType end(1);
+    const MIndex cells(8);
+    const PointType h = end / PointType(cells);
+    Mesh m0(end, cells, MeshIntegrity::FullMesh);
+
+    // boxes
+    { // arbitrary (round up)
+        const PointType sstart(0.2);
+        const PointType send(0.6);
+        const auto m1 = m0.getSubMesh(sstart, send);
+        const MIndex i0(sstart / h);
+        const MIndex i1(send / h);
+        EXPECT_EQ(m1->getRange().getBegin(), PointType(i0) * h);
+        EXPECT_EQ(m1->getRange().getEnd(), PointType(i1 + 1) * h);
+    }
+    { // matching cell boundaries (no rounding)
+        const PointType sstart(0.25);
+        const PointType send(0.5);
+        const auto m1 = m0.getSubMesh(sstart, send);
+        const MIndex i0(sstart / h);
+        const MIndex i1(send / h);
+        EXPECT_EQ(m1->getRange().getBegin(), PointType(i0) * h);
+        EXPECT_EQ(m1->getRange().getEnd(), PointType(i1) * h);
+    }
+    // lower-dimensional extraction
+    { // arbitrary interior sub-slice
+        PointType sstart(0.2);
+        PointType send(0.6);
+        send[0] = sstart[0];
+        const auto m1 = m0.getSubMesh(sstart, send);
+        const MIndex i0(sstart / h);
+        const MIndex i1(send / h);
+        EXPECT_EQ(m1->getRange().getBegin(), PointType(i0) * h);
+        EXPECT_EQ(m1->getRange().getEnd(), PointType(i1 + 1) * h);
+    }
+    { // arbitrary sub-slice on left boundary
+        PointType sstart(0.2);
+        PointType send(0.6);
+        send[0] = sstart[0] = 0;
+        const auto m1 = m0.getSubMesh(sstart, send);
+        const MIndex i0(sstart / h);
+        const MIndex i1(send / h);
+        EXPECT_EQ(m1->getRange().getBegin(), PointType(i0) * h);
+        EXPECT_EQ(m1->getRange().getEnd(), PointType(i1 + 1) * h);
+    }
+    { // arbitrary sub-slice in left boundary cell
+        PointType sstart(0.2);
+        PointType send(0.6);
+        send[0] = sstart[0] = 0.5 * h[0];
+        const auto m1 = m0.getSubMesh(sstart, send);
+        const MIndex i0(sstart / h);
+        const MIndex i1(send / h);
+        EXPECT_EQ(m1->getRange().getBegin(), PointType(i0) * h);
+        EXPECT_EQ(m1->getRange().getEnd(), PointType(i1 + 1) * h);
+    }
+    { // arbitrary sub-slice on right boundary
+        PointType sstart(0.2);
+        PointType send(0.6);
+        send[0] = sstart[0] = 1;
+        const auto m1 = m0.getSubMesh(sstart, send);
+        MIndex i0(sstart / h);
+        MIndex i1(send / h);
+        i0[0] -= 1;
+        i1 += 1;    // internal round up
+        i1[0] -= 1; // not for boundary normal
+        EXPECT_EQ(m1->getRange().getBegin(), PointType(i0) * h);
+        EXPECT_EQ(m1->getRange().getEnd(), PointType(i1) * h);
+    }
+    { // arbitrary point
+        const PointType sstart(0.2);
+        const PointType send(sstart);
+        const auto m1 = m0.getSubMesh(sstart, send);
+        const MIndex i0(sstart / h);
+        const MIndex i1(send / h);
+        EXPECT_EQ(m1->getRange().getBegin(), PointType(i0) * h);
+        EXPECT_EQ(m1->getRange().getEnd(), PointType(i1 + 1) * h);
+        EXPECT_EQ(m1->getIndexRange(Cubism::EntityType::Cell).size(), 1);
+    }
+    { // point on cell boundary
+        const PointType sstart(0.25);
+        const PointType send(sstart);
+        const auto m1 = m0.getSubMesh(sstart, send);
+        const MIndex i0(sstart / h);
+        const MIndex i1(send / h);
+        EXPECT_EQ(m1->getRange().getBegin(), PointType(i0) * h);
+        EXPECT_EQ(m1->getRange().getEnd(), PointType(i1 + 1) * h);
+        EXPECT_EQ(m1->getIndexRange(Cubism::EntityType::Cell).size(), 1);
+    }
+}
 } // namespace
