@@ -9,6 +9,7 @@ if (CUBISM_COVERAGE)
     set(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS}")
     add_custom_target(gcov
         COMMAND ${CMAKE_MAKE_PROGRAM} test
+        COMMAND find ${CMAKE_BINARY_DIR} -type f -name "*.gcno"
         COMMAND ${PROJECT_SOURCE_DIR}/tools/quality/codecov
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif ()
