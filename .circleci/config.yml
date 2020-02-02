@@ -99,7 +99,7 @@ workflows:
                 image: buster_mpich
             - debug_no_IO:
                 image: buster_mpich
-            - debug:
+            - debug_and_coverage:
                 image: buster_openmpi
             - release:
                 image: buster_openmpi
