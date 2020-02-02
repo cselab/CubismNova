@@ -8,6 +8,7 @@
 
 #include "Cubism/Math.h"
 #include "Cubism/Mesh/StructuredBase.h"
+#include <algorithm>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -129,6 +130,60 @@ public:
 
     /**
      * @brief Get sub-mesh instance
+     * @param range Index range of new mesh
+     * @param entity Entity type corresponding to ``range``
+     * @param d Direction indicator (for Face entities only)
+     * @return New sub-mesh instance
+     *
+     * @rst
+     * An empty mesh is returned if there is no common intersection.  If
+     * ``range`` is larger it will be clipped to the boundaries of this mesh.
+     *
+     * .. note:: This method is not part of the ``BaseMesh`` interface.
+     * @endrst
+     */
+    virtual std::unique_ptr<StructuredUniform>
+    getSubMesh(const IndexRangeType &range,
+               const EntityType entity,
+               const size_t d = 0) const
+    {
+        IndexRangeType common =
+            this->getIndexRange(entity, d).getIntersection(range);
+        const auto null = common.getNullSpace();
+        MultiIndex cend = common.getEnd();
+        if (null.size() != DIM) {
+            if (entity == Cubism::EntityType::Node) {
+                cend -= 1;
+                for (const auto &i : null) {
+                    cend[i] += 1; // maintain degenerate space
+                }
+            } else if (entity == Cubism::EntityType::Face) {
+                if (std::find(null.begin(), null.end(), d) == null.end()) {
+                    cend -= MultiIndex::getUnitVector(d);
+                }
+            }
+        }
+        common.setEnd(cend); // cell range now
+        const PointType sub_start = getCoords_(
+            common.getBegin() - crange_.getBegin(), EntityType::Node, 0);
+        if (cend != crange_.getEnd()) {
+            cend += 1; // top right node index
+            for (const auto &i : null) {
+                cend[i] -= 1; // maintain degenerate space
+            }
+        }
+        const PointType sub_end =
+            getCoords_(cend - crange_.getBegin(), EntityType::Node, 0);
+        const RangeType sub_range(sub_start, sub_end);
+        return std::unique_ptr<StructuredUniform>(
+            new StructuredUniform(this->getGlobalOrigin(),
+                                  sub_range,
+                                  common,
+                                  MeshIntegrity::SubMesh));
+    }
+
+    /**
+     * @brief Get sub-mesh instance
      * @param start Lower left point of physical domain for sub-mesh
      * @param end Upper right point of physical domain for sub-mesh
      * @return New sub-mesh instance
@@ -152,7 +207,7 @@ public:
         const PointType sub_start = getCoords_(
             sub_crange.getBegin() - crange_.getBegin(), EntityType::Node, 0);
         const PointType sub_end = getCoords_(
-            (sub_crange.getEnd() - crange_.getBegin()), EntityType::Node, 0);
+            sub_crange.getEnd() - crange_.getBegin(), EntityType::Node, 0);
         const RangeType sub_range(sub_start, sub_end);
         return std::unique_ptr<StructuredUniform>(
             new StructuredUniform(this->getGlobalOrigin(),
