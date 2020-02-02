@@ -384,7 +384,7 @@ public:
      * @brief Get index range
      * @return Index range spanned by the data
      */
-    IndexRangeType getIndexRange() const { return range_; }
+    IndexRangeType getIndexRange(const size_t = 0) const { return range_; }
 
     /**
      * @brief Test for memory ownership

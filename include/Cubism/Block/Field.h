@@ -1350,6 +1350,15 @@ public:
     ~TensorField() = default;
 
     /**
+     * @brief Get index range
+     * @return Index range spanned by the data
+     */
+    IndexRangeType getIndexRange(const size_t = 0) const
+    {
+        return components_[0]->getIndexRange();
+    }
+
+    /**
      * @brief Get field state
      * @return Reference to state
      *
@@ -1608,6 +1617,29 @@ public:
     FaceContainer &operator=(const FaceContainer &rhs) = default;
     FaceContainer &operator=(FaceContainer &&c) = default;
     ~FaceContainer() = default;
+
+    /**
+     * @brief Get index range
+     * @param i Direction index
+     * @return Index range spanned by the data
+     */
+    IndexRangeType getIndexRange(const size_t i) const
+    {
+        assert(i < IndexRangeType::Dim);
+        return components_[i]->getIndexRange();
+    }
+
+    /**
+     * @brief Get index range
+     * @tparam Dir Special type that defines a cast to ``size_t``
+     * @param t Direction of face
+     * @return Index range spanned by the data
+     */
+    template <typename Dir>
+    IndexRangeType getIndexRange(const Dir t) const
+    {
+        return this->getIndexRange(static_cast<size_t>(t));
+    }
 
     /**
      * @brief Get field state
