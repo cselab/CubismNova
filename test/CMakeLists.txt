@@ -5,11 +5,14 @@ add_subdirectory(googletest)
 include_directories(gtest-mpi-listener/include)
 
 if (CUBISM_COVERAGE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g -fprofile-arcs -ftest-coverage")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fprofile-arcs -ftest-coverage")
+    set(GCOV_FLAGS "-O0 -g --coverage -fprofile-arcs -ftest-coverage")
+    set(GCOV_FLAGS "${GCOV_FLAGS} -fkeep-static-functions -fkeep-inline-functions")
+    set(GCOV_FLAGS "${GCOV_FLAGS} -fno-inline -fno-inline-small-functions -fno-default-inline")
+    set(GCOV_FLAGS "${GCOV_FLAGS} -fno-elide-constructors")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCOV_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCOV_FLAGS}")
     add_custom_target(gcov
         COMMAND ${CMAKE_MAKE_PROGRAM} test
-        COMMAND find ${CMAKE_BINARY_DIR} -type f -name "*.gcno"
         COMMAND ${PROJECT_SOURCE_DIR}/tools/quality/codecov
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif ()
