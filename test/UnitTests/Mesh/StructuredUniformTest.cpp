@@ -9,6 +9,11 @@
 #include "gtest/gtest.h"
 #include <iostream>
 
+template class Cubism::Mesh::StructuredUniform<double, 3>;
+template class Cubism::Mesh::StructuredUniform<double, 4>;
+template class Cubism::Mesh::StructuredUniform<float, 2>;
+template class Cubism::Mesh::StructuredUniform<float, 3>;
+
 namespace
 {
 using namespace Cubism;
