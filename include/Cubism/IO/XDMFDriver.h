@@ -23,6 +23,7 @@ struct XDMFDriver {
                const Mesh &,
                const Cubism::EntityType,
                const size_t,
+               const typename Mesh::PointType origin,
                const double) const;
 };
 
@@ -34,6 +35,7 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
                const Mesh &mesh,
                const Cubism::EntityType entity,
                const size_t NComp,
+               const typename Mesh::PointType origin,
                const double time) const
     {
         // XXX: [fabianw@mavt.ethz.ch; 2020-01-29] The ParaView XDMF reader
@@ -91,7 +93,6 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
         spac.precision(16);
         const auto nodes =
             mesh.getIndexRange(Cubism::EntityType::Node).getExtent();
-        const auto origin = mesh.getOrigin();
         const auto spacing = mesh.getCellSize(0);
         mdims << nodes[Mesh::Dim - 1];
         ddims << data_dims[Mesh::Dim - 1];
@@ -166,6 +167,7 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
 //     void write(const std::string &fname,
 //                const Mesh &mesh,
 //                const Cubism::EntityType entity,
+//                const typename Mesh::PointType origin,
 //                const double time) const
 //     {
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-25]

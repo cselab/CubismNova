@@ -39,6 +39,12 @@ DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
  * Write the data carried by ``field`` to an HDF5 container file.  The data that
  * is written to the file is specified by the index space described in ``mesh``.
  *
+ * .. note::
+ *
+ *    The variables ``field`` and ``mesh`` are only related through an index
+ *    space which is The index space spanned by ``mesh`` is clipped to the
+ *    extent of ``field`` if the spanned spaced is larger.
+ *
  * .. todo:: example for sub-space
  * @endrst
  */
@@ -62,25 +68,28 @@ void FieldWriteHDF(const std::string &fname,
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     const size_t dface = static_cast<size_t>(face_dir);
-    const IRange irange = mesh.getIndexRange(Field::EntityType, dface);
-    const MIndex iextent = irange.getExtent();
+    const auto clip =
+        mesh.getSubMesh(field.getIndexRange(dface), Field::EntityType, dface);
+    const IRange file_range = clip->getIndexRange(Field::EntityType, dface);
+    const MIndex file_extent = file_range.getExtent();
     constexpr size_t NComp = Field::NComponents;
     if (create_xdmf) {
         std::printf("FieldWriteHDF: Allocating %.1f kB file buffer (%s)\n",
-                    iextent.prod() * NComp * sizeof(FileDataType) / 1024.,
+                    file_extent.prod() * NComp * sizeof(FileDataType) / 1024.,
                     fname.c_str());
     }
-    FileDataType *buf = new FileDataType[iextent.prod() * NComp];
-    Field2AOS(field, irange, buf, dface);
+    FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
+    Field2AOS(field, file_range, buf, dface);
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
     hdf_driver.write(fname,
                      aname,
                      buf,
-                     mesh,
+                     *clip,
                      Field::EntityType,
+                     file_range,
                      NComp,
+                     clip->getOrigin(),
                      time,
-                     dface,
                      create_xdmf);
     delete[] buf;
 #else
@@ -134,13 +143,15 @@ void FieldReadHDF(const std::string &fname,
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     const size_t dface = static_cast<size_t>(face_dir);
-    const IRange irange = mesh.getIndexRange(Field::EntityType, dface);
-    const MIndex iextent = irange.getExtent();
+    const auto clip =
+        mesh.getSubMesh(field.getIndexRange(dface), Field::EntityType, dface);
+    const IRange file_range = clip->getIndexRange(Field::EntityType, dface);
+    const MIndex file_extent = file_range.getExtent();
     constexpr size_t NComp = Field::NComponents;
-    FileDataType *buf = new FileDataType[iextent.prod() * NComp];
+    FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.read(fname, buf, mesh, Field::EntityType, NComp, dface);
-    AOS2Field(buf, irange, field, dface);
+    hdf_driver.read(fname, buf, file_range, NComp);
+    AOS2Field(buf, file_range, field, dface);
     delete[] buf;
 #else
     std::fprintf(

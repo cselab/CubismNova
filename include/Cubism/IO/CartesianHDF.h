@@ -61,25 +61,34 @@ void CartesianWriteHDF(const std::string &fname,
     using MIndex = typename IRange::MultiIndex;
     constexpr typename Cubism::EntityType entity = Grid::EntityType;
     constexpr size_t NComp = Grid::NComponents;
-
     const size_t dface = static_cast<size_t>(face_dir);
-    const IRange irange = mesh.getIndexRange(entity, dface);
-    const MIndex iextent = irange.getExtent();
+    const auto clip = mesh.getSubMesh(
+        grid.getMesh().getIndexRange(entity, dface), entity, dface);
+    const IRange file_range = clip->getIndexRange(entity, dface);
+    const MIndex file_extent = file_range.getExtent();
     if (create_xdmf) {
         std::printf("CartesianWriteHDF: Allocating %.1f MB file buffer (%s)\n",
-                    iextent.prod() * NComp * sizeof(FileDataType) / 1024. /
+                    file_extent.prod() * NComp * sizeof(FileDataType) / 1024. /
                         1024.,
                     fname.c_str());
     }
-    FileDataType *buf = new FileDataType[iextent.prod() * NComp];
+    FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
 #pragma omp parallel for
     for (size_t i = 0; i < grid.size(); ++i) {
         const auto &bf = grid[i]; // block field
-        Field2AOS(bf, irange, buf, dface);
+        Field2AOS(bf, file_range, buf, dface);
     }
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.write(
-        fname, aname, buf, mesh, entity, NComp, time, dface, create_xdmf);
+    hdf_driver.write(fname,
+                     aname,
+                     buf,
+                     *clip,
+                     entity,
+                     file_range,
+                     NComp,
+                     clip->getOrigin(),
+                     time,
+                     create_xdmf);
     delete[] buf;
 #else
     std::fprintf(
@@ -158,21 +167,22 @@ void CartesianReadHDF(const std::string &fname,
                                      "' does not exist");
         }
     }
-
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     constexpr typename Cubism::EntityType entity = Grid::EntityType;
     constexpr size_t NComp = Grid::NComponents;
     const size_t dface = static_cast<size_t>(face_dir);
-    const IRange irange = mesh.getIndexRange(entity, dface);
-    const MIndex iextent = irange.getExtent();
-    FileDataType *buf = new FileDataType[iextent.prod() * NComp];
+    const auto clip = mesh.getSubMesh(
+        grid.getMesh().getIndexRange(entity, dface), entity, dface);
+    const IRange file_range = clip->getIndexRange(entity, dface);
+    const MIndex file_extent = file_range.getExtent();
+    FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.read(fname, buf, mesh, entity, NComp, dface);
+    hdf_driver.read(fname, buf, file_range, NComp);
 #pragma omp parallel for
     for (size_t i = 0; i < grid.size(); ++i) {
         auto &bf = grid[i]; // block field
-        AOS2Field(buf, irange, bf, dface);
+        AOS2Field(buf, file_range, bf, dface);
     }
     delete[] buf;
 #else

@@ -16,6 +16,7 @@ NAMESPACE_BEGIN(IO)
  * @brief HDF read/write interface
  * @tparam FileDataType File data taype
  * @tparam Mesh Mesh type
+ * @tparam Class Mesh class
  * */
 template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 struct HDFDriver {
@@ -24,16 +25,41 @@ struct HDFDriver {
                const FileDataType *,
                const Mesh &,
                const Cubism::EntityType,
+               const typename Mesh::IndexRangeType,
                const size_t,
+               const typename Mesh::PointType,
                const double,
-               const size_t,
                const bool) const;
 
     void read(const std::string &,
               FileDataType *,
-              const Mesh &,
-              const Cubism::EntityType,
-              const size_t,
+              const typename Mesh::IndexRangeType,
+              const size_t) const;
+};
+
+/**
+ * @brief HDF MPI read/write interface
+ * @tparam FileDataType File data taype
+ * @tparam Mesh Mesh type
+ * @tparam Class Mesh class
+ * */
+template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
+struct HDFDriverMPI {
+    typename Mesh::MultiIndex rank_index;
+    void write(const std::string &,
+               const std::string &,
+               const FileDataType *,
+               const Mesh &,
+               const Cubism::EntityType,
+               const typename Mesh::IndexRangeType,
+               const size_t,
+               const typename Mesh::PointType,
+               const double,
+               const bool) const;
+
+    void read(const std::string &,
+              FileDataType *,
+              const typename Mesh::IndexRangeType,
               const size_t) const;
 };
 
