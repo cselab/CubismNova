@@ -37,7 +37,7 @@ public:
         // ensure byte block is an integer multiple of CUBISM_ALIGNMENT
         bytes = ((bytes + CUBISM_ALIGNMENT - 1) / CUBISM_ALIGNMENT) *
                 CUBISM_ALIGNMENT;
-        posix_memalign(&block, CUBISM_ALIGNMENT, bytes);
+        (void)posix_memalign(&block, CUBISM_ALIGNMENT, bytes);
         assert(block != nullptr && "posix_memalign returned NULL address");
         return static_cast<DataType *>(block);
     }
