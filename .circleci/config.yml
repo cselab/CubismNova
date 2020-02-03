@@ -9,6 +9,14 @@ executors:
         docker:
             - image:  cselab/debian_buster_openmpi:latest
 
+    fedora_mpich:
+        docker:
+            - image:  cselab/fedora_mpich:latest
+
+    fedora_openmpi:
+        docker:
+            - image:  cselab/fedora_openmpi:latest
+
 commands:
     checkout_code:
         steps:
@@ -107,3 +115,22 @@ workflows:
                 image: buster_openmpi
             - debug_no_IO:
                 image: buster_openmpi
+
+    fedora:
+        jobs:
+            - debug_and_coverage:
+                image: fedora_mpich
+            - release:
+                image: fedora_mpich
+            - debug_32bit_index:
+                image: fedora_mpich
+            - debug_no_IO:
+                image: fedora_mpich
+            - debug_and_coverage:
+                image: fedora_openmpi
+            - release:
+                image: fedora_openmpi
+            - debug_32bit_index:
+                image: fedora_openmpi
+            - debug_no_IO:
+                image: fedora_openmpi
