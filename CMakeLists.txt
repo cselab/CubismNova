@@ -23,6 +23,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 
+# MPI (must be before we enforce our compiler flags)
+set(MPI_CXX_SKIP_MPICXX TRUE)
+find_package(MPI REQUIRED)
+
 # compiler flags
 set(COMMON_FLAGS "-Wall -Wpedantic -Wextra -Werror -Wno-unknown-pragmas")
 set(CMAKE_C_FLAGS "${COMMON_FLAGS} ${CMAKE_C_FLAGS}")
@@ -30,9 +34,6 @@ set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} ${CMAKE_CXX_FLAGS}")
 if (CUBISM_32BIT_INDEX)
     add_compile_definitions(CUBISM_32BIT_INDEX)
 endif ()
-
-# MPI
-find_package(MPI REQUIRED)
 
 # IO
 if (CUBISM_IO)
