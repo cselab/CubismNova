@@ -81,14 +81,13 @@ void FieldWriteHDF(const std::string &fname,
     FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
     Field2AOS(field, file_range, buf, dface);
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
+    hdf_driver.file_range = file_range;
     hdf_driver.write(fname,
                      aname,
                      buf,
                      *clip,
                      Field::EntityType,
-                     file_range,
                      NComp,
-                     clip->getOrigin(),
                      time,
                      create_xdmf);
     delete[] buf;
@@ -150,7 +149,8 @@ void FieldReadHDF(const std::string &fname,
     constexpr size_t NComp = Field::NComponents;
     FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.read(fname, buf, file_range, NComp);
+    hdf_driver.file_range = file_range;
+    hdf_driver.read(fname, buf, NComp);
     AOS2Field(buf, file_range, field, dface);
     delete[] buf;
 #else

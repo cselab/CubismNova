@@ -28,21 +28,19 @@ void HDFDriver<FileDataType, Mesh, Class>::write(
     const FileDataType *buf,
     const Mesh &mesh,
     const Cubism::EntityType entity,
-    const typename Mesh::IndexRangeType frange,
     const size_t NComp,
-    const typename Mesh::PointType origin,
     const double time,
     const bool create_xdmf) const
 {
     using MIndex = typename Mesh::MultiIndex;
-    const MIndex iextent = frange.getExtent(); // file range
+    const MIndex fextent = file_range.getExtent(); // file range
     constexpr size_t HDFDim = Mesh::Dim + 1;
     hsize_t offsetZYXC[HDFDim] = {};
     hsize_t countZYXC[HDFDim];
     hsize_t dimsZYXC[HDFDim];
     for (size_t i = 0; i < Mesh::Dim; ++i) {
-        countZYXC[i] = iextent[Mesh::Dim - 1 - i];
-        dimsZYXC[i] = iextent[Mesh::Dim - 1 - i];
+        countZYXC[i] = fextent[Mesh::Dim - 1 - i];
+        dimsZYXC[i] = fextent[Mesh::Dim - 1 - i];
     }
     countZYXC[HDFDim - 1] = NComp;
     dimsZYXC[HDFDim - 1] = NComp;
@@ -54,10 +52,8 @@ void HDFDriver<FileDataType, Mesh, Class>::write(
     (H5Pclose(fapl_id) < 0) ? H5Eprint1(stderr) : 0;
     if (create_xdmf && Mesh::Dim > 1 && Mesh::Dim <= 3 &&
         entity != Cubism::EntityType::Face) {
-        // TODO: [fabianw@mavt.ethz.ch; 2020-01-25] face storage location is
-        // currently not supported by ParaView
         XDMFDriver<FileDataType, Class> xdmf;
-        xdmf.write(fname, aname, mesh, entity, NComp, origin, time);
+        xdmf.write(fname, aname, mesh, entity, NComp, time);
     }
     fapl_id = H5Pcreate(H5P_DATASET_XFER);
     hid_t fspace_id = H5Screate_simple(HDFDim, dimsZYXC, NULL);
@@ -92,16 +88,15 @@ template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 void HDFDriver<FileDataType, Mesh, Class>::read(
     const std::string &fname,
     FileDataType *buf,
-    const typename Mesh::IndexRangeType frange,
     const size_t NComp) const
 {
     using MIndex = typename Mesh::MultiIndex;
-    const MIndex iextent = frange.getExtent(); // file range
+    const MIndex fextent = file_range.getExtent(); // file range
     constexpr size_t HDFDim = Mesh::Dim + 1;
     hsize_t offsetZYXC[HDFDim] = {};
     hsize_t countZYXC[HDFDim];
     for (size_t i = 0; i < Mesh::Dim; ++i) {
-        countZYXC[i] = iextent[Mesh::Dim - 1 - i];
+        countZYXC[i] = fextent[Mesh::Dim - 1 - i];
     }
     countZYXC[HDFDim - 1] = NComp;
 

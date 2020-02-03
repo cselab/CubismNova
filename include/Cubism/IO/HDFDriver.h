@@ -20,20 +20,19 @@ NAMESPACE_BEGIN(IO)
  * */
 template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 struct HDFDriver {
+    typename Mesh::IndexRangeType file_range;
+
     void write(const std::string &,
                const std::string &,
                const FileDataType *,
                const Mesh &,
                const Cubism::EntityType,
-               const typename Mesh::IndexRangeType,
                const size_t,
-               const typename Mesh::PointType,
                const double,
                const bool) const;
 
     void read(const std::string &,
               FileDataType *,
-              const typename Mesh::IndexRangeType,
               const size_t) const;
 };
 

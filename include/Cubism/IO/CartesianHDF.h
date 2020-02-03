@@ -79,14 +79,13 @@ void CartesianWriteHDF(const std::string &fname,
         Field2AOS(bf, file_range, buf, dface);
     }
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
+    hdf_driver.file_range = file_range;
     hdf_driver.write(fname,
                      aname,
                      buf,
                      *clip,
                      entity,
-                     file_range,
                      NComp,
-                     clip->getOrigin(),
                      time,
                      create_xdmf);
     delete[] buf;
@@ -178,7 +177,8 @@ void CartesianReadHDF(const std::string &fname,
     const MIndex file_extent = file_range.getExtent();
     FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.read(fname, buf, file_range, NComp);
+    hdf_driver.file_range = file_range;
+    hdf_driver.read(fname, buf, NComp);
 #pragma omp parallel for
     for (size_t i = 0; i < grid.size(); ++i) {
         auto &bf = grid[i]; // block field
