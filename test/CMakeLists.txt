@@ -12,6 +12,7 @@ if (CUBISM_COVERAGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCOV_FLAGS}")
     add_custom_target(gcov
         COMMAND ${CMAKE_MAKE_PROGRAM} test
+        COMMAND ${PROJECT_SOURCE_DIR}/tools/quality/coverage
         COMMAND ${PROJECT_SOURCE_DIR}/tools/quality/codecov
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif ()
