@@ -7,6 +7,7 @@
 #define HDFDRIVER_H_I1VZGUDV
 
 #include "Cubism/Common.h"
+#include <mpi.h>
 #include <string>
 
 NAMESPACE_BEGIN(Cubism)
@@ -44,21 +45,21 @@ struct HDFDriver {
  * */
 template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 struct HDFDriverMPI {
-    typename Mesh::MultiIndex rank_index;
+    MPI_Comm comm;
+    typename Mesh::IndexRangeType file_range;
+    typename Mesh::IndexRangeType rank_range;
+
     void write(const std::string &,
                const std::string &,
                const FileDataType *,
                const Mesh &,
                const Cubism::EntityType,
-               const typename Mesh::IndexRangeType,
                const size_t,
-               const typename Mesh::PointType,
                const double,
                const bool) const;
 
     void read(const std::string &,
               FileDataType *,
-              const typename Mesh::IndexRangeType,
               const size_t) const;
 };
 
