@@ -151,7 +151,7 @@ TEST(Cartesian, BlockMesh)
         using FieldState = typename Grid::FieldState;
         Grid grid(nblocks, block_cells);
         const Mesh &gm = grid.getMesh();
-        const PointType O = gm.getOrigin();
+        const PointType O = gm.getBegin();
         const MIndex Oi = gm.getIndexRange(EntityType::Cell).getBegin();
         const PointType h = gm.getCellSize(0);
         const RealType Vh = gm.getCellVolume(0);
@@ -169,7 +169,7 @@ TEST(Cartesian, BlockMesh)
             volume += fm.getVolume();
             blocks += fs.idx;
             EXPECT_TRUE(fm.isSubMesh());
-            EXPECT_EQ(fm.getGlobalOrigin(), gm.getGlobalOrigin());
+            EXPECT_EQ(fm.getGlobalBegin(), gm.getGlobalBegin());
             for (const auto &ci : fm[EntityType::Cell]) { // cell checks
                 {
                     const RealType diff = std::fabs(fm.getCellVolume(ci) - Vh);
@@ -201,7 +201,7 @@ TEST(Cartesian, BlockMesh)
             { // block mesh origin
                 const PointType mO = O + PointType(fs.idx) * block_extent;
                 const RealType diff =
-                    std::fabs((fm.getOrigin() - mO).sum() / PointType::Dim);
+                    std::fabs((fm.getBegin() - mO).sum() / PointType::Dim);
                 EXPECT_LE(diff, std::numeric_limits<RealType>::epsilon());
             }
             { // block mesh extent

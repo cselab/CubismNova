@@ -74,19 +74,21 @@ public:
      * @param nprocs Number of MPI processes in each dimension
      * @param nblocks Number of blocks per rank
      * @param block_cells Number of cells in each block
-     * @param start Physical origin for the full (all ranks) Cartesian grid
+     * @param begin Physical origin for the full (all ranks) Cartesian grid
      *              (lower left)
      * @param end Physical end for the full (all ranks) Cartesian grid (top
      *            right)
-     * @param gorigin Physical global origin
+     * @param gbegin Global begin of physical domain
+     * @param gend Global end of physical domain
      */
     CartesianMPI(const MPI_Comm &comm,
                  const MultiIndex &nprocs,
                  const MultiIndex &nblocks,
                  const MultiIndex &block_cells,
-                 const PointType &start = PointType(0),
+                 const PointType &begin = PointType(0),
                  const PointType &end = PointType(1),
-                 const PointType &gorigin = PointType(0))
+                 const PointType &gbegin = PointType(0),
+                 const PointType &gend = PointType(1))
         : BaseType(), comm_(comm), comm_cart_(MPI_COMM_NULL), nprocs_(nprocs)
     {
         nblocks_ = nblocks;
@@ -116,15 +118,15 @@ public:
         rank_index_ = MultiIndex(pe_index);
 
         // block range for this rank
-        const MultiIndex bstart_rank = rank_index_ * nblocks_;
-        block_range_ = IndexRangeType(bstart_rank, bstart_rank + nblocks_);
+        const MultiIndex bbegin_rank = rank_index_ * nblocks_;
+        block_range_ = IndexRangeType(bbegin_rank, bbegin_rank + nblocks_);
 
         // mesh and data topology for this rank
-        const PointType extent_rank = (end - start) / PointType(nprocs_);
-        const PointType start_rank =
-            start + PointType(rank_index_) * extent_rank; // rank domain start
-        const PointType end_rank = start_rank + extent_rank; // rank domain end
-        this->initTopology_(gorigin, start_rank, end_rank, nprocs_);
+        const PointType extent_rank = (end - begin) / PointType(nprocs_);
+        const PointType begin_rank =
+            begin + PointType(rank_index_) * extent_rank; // rank domain begin
+        const PointType end_rank = begin_rank + extent_rank; // rank domain end
+        this->initTopology_(gbegin, gend, begin_rank, end_rank, nprocs_);
     }
 
     /** @brief Default constructor */
