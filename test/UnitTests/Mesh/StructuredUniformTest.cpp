@@ -40,8 +40,8 @@ TEST(StructuredUniform, Construction)
     { // local and global origin at 0
         Mesh m(end, cells, MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent / 2);
-        EXPECT_EQ(m.getOrigin(), MIndex(0));
-        EXPECT_EQ(m.getGlobalOrigin(), MIndex(0));
+        EXPECT_EQ(m.getBegin(), MIndex(0));
+        EXPECT_EQ(m.getGlobalBegin(), MIndex(0));
         EXPECT_EQ(m.getMultiIndex(0, Entity::Cell), MIndex(0));
         for (const auto &c : m.getIterator(Entity::Cell)) {
             EXPECT_EQ(m.getCellSize(c), h / 2);
@@ -51,8 +51,8 @@ TEST(StructuredUniform, Construction)
     { // local and global origin at start
         Mesh m(start, end, cells, MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent);
-        EXPECT_EQ(m.getOrigin(), start);
-        EXPECT_EQ(m.getGlobalOrigin(), start);
+        EXPECT_EQ(m.getBegin(), start);
+        EXPECT_EQ(m.getGlobalBegin(), start);
         EXPECT_EQ(m.getMultiIndex(0, Entity::Cell), MIndex(0));
         for (const auto &c : m.getIterator(Entity::Cell)) {
             EXPECT_EQ(m.getCellSize(c), h);
@@ -60,13 +60,13 @@ TEST(StructuredUniform, Construction)
     }
 
     { // local origin at 0; global origin at start
-        const PointType gorigin = start;
+        const Range glob_domain(start, end);
         const Range phys_domain(MIndex(0), end);
         const IRange cell_domain(cells);
-        Mesh m(gorigin, phys_domain, cell_domain, MeshIntegrity::FullMesh);
+        Mesh m(glob_domain, phys_domain, cell_domain, MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent / 2);
-        EXPECT_EQ(m.getOrigin(), MIndex(0));
-        EXPECT_EQ(m.getGlobalOrigin(), start);
+        EXPECT_EQ(m.getBegin(), MIndex(0));
+        EXPECT_EQ(m.getGlobalBegin(), start);
         EXPECT_EQ(m.getMultiIndex(0, Entity::Cell), MIndex(0));
         for (const auto &c : m.getIterator(Entity::Cell)) {
             EXPECT_EQ(m.getCellSize(c), h / 2);
@@ -74,18 +74,18 @@ TEST(StructuredUniform, Construction)
     }
 
     { // low-level
-        const PointType gorigin = start;
+        const Range glob_domain(start, end);
         const Range phys_domain(MIndex(0), end);
         Mesh m(
-            gorigin,
+            glob_domain,
             phys_domain,
             IRange(cells),                                 // cells
             IRange(cells + 1),                             // nodes
             std::vector<IRange>(Mesh::Dim, IRange(cells)), // faces base domain
             MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent / 2);
-        EXPECT_EQ(m.getOrigin(), MIndex(0));
-        EXPECT_EQ(m.getGlobalOrigin(), start);
+        EXPECT_EQ(m.getBegin(), MIndex(0));
+        EXPECT_EQ(m.getGlobalBegin(), start);
         EXPECT_EQ(m.getMultiIndex(0, Entity::Cell), MIndex(0));
         for (const auto &c : m.getIterator(Entity::Cell)) {
             EXPECT_EQ(m.getCellSize(c), h / 2);
@@ -185,7 +185,10 @@ TEST(StructuredUniform, BasicInterface)
     const MIndex cells{4, 2};
     const PointType domain = end - start;
     const PointType h = (end - start) / PointType(cells);
-    Mesh m(origin, Range(start, end), IRange(cells), MeshIntegrity::FullMesh);
+    Mesh m(Range(origin, end),
+           Range(start, end),
+           IRange(cells),
+           MeshIntegrity::FullMesh);
 
     { // iterator cell
         auto it = m.getIterator(Entity::Cell).begin();
@@ -290,8 +293,8 @@ TEST(StructuredUniform, BasicInterface)
         EXPECT_EQ(m.getExtent()[0], domain[0]);
         EXPECT_EQ(m.getExtent()[1], domain[1]);
         EXPECT_EQ(m.getVolume(), (end - start).prod());
-        EXPECT_EQ(m.getOrigin(), start);
-        EXPECT_EQ(m.getGlobalOrigin(), origin);
+        EXPECT_EQ(m.getBegin(), start);
+        EXPECT_EQ(m.getGlobalBegin(), origin);
         EXPECT_EQ(m.getRange().getBegin(), start);
         EXPECT_EQ(m.getRange().getEnd(), end);
     }

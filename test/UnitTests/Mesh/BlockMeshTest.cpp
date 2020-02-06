@@ -49,10 +49,9 @@ TEST(BlockMesh, Field)
     for (int bz = 0; bz < nblocks[2]; ++bz) {
         for (int by = 0; by < nblocks[1]; ++by) {
             for (int bx = 0; bx < nblocks[0]; ++bx) {
-                const PointType gorigin = m.getGlobalOrigin();
                 const MIndex bi{bx, by, bz};
                 const PointType bstart =
-                    m.getOrigin() + PointType(bi) * block_extent;
+                    m.getBegin() + PointType(bi) * block_extent;
                 const PointType bend = bstart + block_extent;
                 const MIndex cells = block_cells;
                 MIndex nodes = cells;
@@ -65,7 +64,7 @@ TEST(BlockMesh, Field)
                     vfaces[i] = IRange(faces);
                 }
                 MyFieldState fs = {};
-                mfields.push_back(new Mesh(gorigin,
+                mfields.push_back(new Mesh(m.getGlobalRange(),
                                            Range(bstart, bend),
                                            IRange(cells),
                                            IRange(nodes),
@@ -87,10 +86,10 @@ TEST(BlockMesh, Field)
         const MyFieldState &fs = f->getState();
         const MIndex bi = fs.idx;
         const Mesh &fm = *fs.mesh;
-        const PointType morigin = m.getOrigin() + PointType(bi) * block_extent;
-        const PointType gorigin = m.getGlobalOrigin();
-        EXPECT_EQ(fm.getOrigin(), morigin);
-        EXPECT_EQ(fm.getGlobalOrigin(), gorigin);
+        const PointType morigin = m.getBegin() + PointType(bi) * block_extent;
+        const PointType gorigin = m.getGlobalBegin();
+        EXPECT_EQ(fm.getBegin(), morigin);
+        EXPECT_EQ(fm.getGlobalBegin(), gorigin);
         sum_cells += fm.size(Entity::Cell);
         sum_nodes += fm.size(Entity::Node);
         sum_faces_x += fm.size(Entity::Face, Dir::X);

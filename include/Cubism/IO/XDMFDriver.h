@@ -23,7 +23,6 @@ struct XDMFDriver {
                const Mesh &,
                const Cubism::EntityType,
                const size_t,
-               const typename Mesh::PointType origin,
                const double) const;
 };
 
@@ -32,10 +31,9 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
     template <typename Mesh>
     void write(const std::string &fname,
                const std::string &aname,
-               const Mesh &mesh,
+               const Mesh &gmesh, // global mesh
                const Cubism::EntityType entity,
                const size_t NComp,
-               const typename Mesh::PointType origin,
                const double time) const
     {
         // XXX: [fabianw@mavt.ethz.ch; 2020-01-29] The ParaView XDMF reader
@@ -64,11 +62,11 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
         if (entity == Cubism::EntityType::Cell) {
             data_center = "Cell";
             data_dims =
-                mesh.getIndexRange(Cubism::EntityType::Cell).getExtent();
+                gmesh.getIndexRange(Cubism::EntityType::Cell).getExtent();
         } else if (entity == Cubism::EntityType::Node) {
             data_center = "Node";
             data_dims =
-                mesh.getIndexRange(Cubism::EntityType::Node).getExtent();
+                gmesh.getIndexRange(Cubism::EntityType::Node).getExtent();
         }
         std::string data_type("Float");
         if (std::is_integral<DataType>::value) {
@@ -92,8 +90,9 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
         orig.precision(16);
         spac.precision(16);
         const auto nodes =
-            mesh.getIndexRange(Cubism::EntityType::Node).getExtent();
-        const auto spacing = mesh.getCellSize(0);
+            gmesh.getIndexRange(Cubism::EntityType::Node).getExtent();
+        const auto origin = gmesh.getBegin();
+        const auto spacing = gmesh.getCellSize(0);
         mdims << nodes[Mesh::Dim - 1];
         ddims << data_dims[Mesh::Dim - 1];
         orig << origin[Mesh::Dim - 1];
@@ -165,9 +164,8 @@ struct XDMFDriver<DataType, Cubism::MeshClass::Uniform> {
 // struct XDMFDriver<DataType, Cubism::MeshClass::Stretched> {
 //     template <typename Mesh>
 //     void write(const std::string &fname,
-//                const Mesh &mesh,
+//                const Mesh &gmesh, // global mesh
 //                const Cubism::EntityType entity,
-//                const typename Mesh::PointType origin,
 //                const double time) const
 //     {
 // TODO: [fabianw@mavt.ethz.ch; 2020-01-25]

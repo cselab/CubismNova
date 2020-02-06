@@ -154,17 +154,18 @@ private:
 public:
     /**
      * @brief Standard mesh constructor
-     * @param start Lower left point of physical domain
+     * @param begin Lower left point of physical domain
      * @param end Upper right point of physical domain
      * @param cells Number of cells in mesh
      * @param type Mesh integrity type (full mesh or sub-mesh)
      */
-    StructuredBase(const PointType &start,
+    StructuredBase(const PointType &begin,
                    const PointType &end,
                    const MultiIndex &cells,
                    const MeshIntegrity type)
-        : type_(type), range_(start, end), global_origin_(range_.getBegin()),
-          crange_(cells), nrange_(crange_.getBegin(), crange_.getEnd() + 1)
+        : type_(type), range_(begin, end),
+          global_range_(range_.getBegin(), range_.getEnd()), crange_(cells),
+          nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
     }
@@ -175,31 +176,32 @@ public:
      * @param cells Number of cells in mesh
      * @param type Mesh integrity type (full mesh or sub-mesh)
      *
-     * Physical origin starts at 0
+     * Physical begin at 0
      */
     StructuredBase(const PointType &end,
                    const MultiIndex &cells,
                    const MeshIntegrity type)
-        : type_(type), range_(end), global_origin_(range_.getBegin()),
-          crange_(cells), nrange_(crange_.getBegin(), crange_.getEnd() + 1)
+        : type_(type), range_(end),
+          global_range_(range_.getBegin(), range_.getEnd()), crange_(cells),
+          nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
     }
 
     /**
      * @brief Standard mesh constructor
-     * @param gorigin Global domain origin
+     * @param grange Global domain range spanned by this mesh
      * @param range Domain range spanned by this mesh
      * @param crange Cell range spanned by this mesh
      * @param type Mesh integrity type (full mesh or sub-mesh)
      *
      * Used for MPI subdomains
      */
-    StructuredBase(const PointType &gorigin,
+    StructuredBase(const RangeType &grange,
                    const RangeType &range,
                    const IndexRangeType &crange,
                    const MeshIntegrity type)
-        : type_(type), range_(range), global_origin_(gorigin), crange_(crange),
+        : type_(type), range_(range), global_range_(grange), crange_(crange),
           nrange_(crange_.getBegin(), crange_.getEnd() + 1)
     {
         initFaceRange_(crange_);
@@ -207,7 +209,7 @@ public:
 
     /**
      * @brief Low-level mesh constructor
-     * @param gorigin Global domain origin
+     * @param grange Global domain range spanned by this mesh
      * @param range Domain range spanned by this mesh
      * @param crange Cell range spanned by this mesh
      * @param nrange Node range spanned by this mesh
@@ -216,13 +218,13 @@ public:
      *
      * Used for grid topology classes and sub-meshes
      */
-    StructuredBase(const PointType &gorigin,
+    StructuredBase(const RangeType &grange,
                    const RangeType &range,
                    const IndexRangeType &crange,
                    const IndexRangeType &nrange,
                    const std::vector<IndexRangeType> &frange,
                    const MeshIntegrity type)
-        : type_(type), range_(range), global_origin_(gorigin), crange_(crange),
+        : type_(type), range_(range), global_range_(grange), crange_(crange),
           nrange_(nrange), frange_(frange)
     {
     }
@@ -232,7 +234,7 @@ public:
     virtual ~StructuredBase() = default;
 
     StructuredBase(const StructuredBase &c)
-        : type_(c.type_), range_(c.range_), global_origin_(c.global_origin_),
+        : type_(c.type_), range_(c.range_), global_range_(c.global_range_),
           crange_(c.crange_), nrange_(c.nrange_), frange_(c.frange_)
     {
     }
@@ -432,20 +434,35 @@ public:
      */
     RealType getVolume() const { return range_.getVolume(); }
     /**
-     * @brief Get mesh origin
-     * @return Local origin of the mesh
+     * @brief Get mesh begin
+     * @return Local begin of mesh
      */
-    PointType getOrigin() const { return range_.getBegin(); }
+    PointType getBegin() const { return range_.getBegin(); }
     /**
-     * @brief Get mesh origin
-     * @return Global origin of the mesh
+     * @brief Get mesh end
+     * @return Local end of mesh
      */
-    PointType getGlobalOrigin() const { return global_origin_; }
+    PointType getEnd() const { return range_.getEnd(); }
+    /**
+     * @brief Get mesh begin
+     * @return Global begin of mesh
+     */
+    PointType getGlobalBegin() const { return global_range_.getBegin(); }
+    /**
+     * @brief Get mesh end
+     * @return Global end of mesh
+     */
+    PointType getGlobalEnd() const { return global_range_.getEnd(); }
     /**
      * @brief Get mesh range
      * @return Mesh range
      */
     RangeType getRange() const { return range_; }
+    /**
+     * @brief Get mesh range
+     * @return Global mesh range
+     */
+    RangeType getGlobalRange() const { return global_range_; }
 
     /**
      * @brief Test if this is a sub-mesh
@@ -564,7 +581,7 @@ public:
                               const size_t d = 0) const
     {
         assert(d < frange_.size());
-        return global_origin_ + getCoords(i, t, d);
+        return global_range_.getBegin() + getCoords(i, t, d);
     }
 
     /**
@@ -579,7 +596,7 @@ public:
     PointType
     getGlobalCoords(const size_t i, const EntityType t, const Dir d) const
     {
-        return global_origin_ + getCoords(i, t, d);
+        return global_range_.getBegin() + getCoords(i, t, d);
     }
 
     /**
@@ -594,7 +611,7 @@ public:
                               const size_t d = 0) const
     {
         assert(d < frange_.size());
-        return global_origin_ + getCoords(p, t, d);
+        return global_range_.getBegin() + getCoords(p, t, d);
     }
 
     /**
@@ -609,7 +626,7 @@ public:
     PointType
     getGlobalCoords(const MultiIndex &p, const EntityType t, const Dir d) const
     {
-        return global_origin_ + getCoords(p, t, d);
+        return global_range_.getBegin() + getCoords(p, t, d);
     }
 
     /**
@@ -619,7 +636,7 @@ public:
      */
     PointType getGlobalCoords(const iterator &it) const
     {
-        return global_origin_ + getCoords(it);
+        return global_range_.getBegin() + getCoords(it);
     }
 
     /**
@@ -992,7 +1009,8 @@ public:
 protected:
     const MeshIntegrity type_;      // mesh integrity type (full or sub-mesh)
     const RangeType range_;         // range of mesh domain in physical space
-    const PointType global_origin_; // origin in global mesh
+    const RangeType
+        global_range_; // global range of mesh domain in physical space
     const IndexRangeType crange_;   // index range spanned by cells
     const IndexRangeType nrange_;   // index range spanned by nodes
     std::vector<IndexRangeType> frange_; // index ranges spanned by faces

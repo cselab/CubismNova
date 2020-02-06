@@ -26,11 +26,11 @@
 
    namespaces/index.rst
 
-.. toctree::
-   :caption: Groups
-   :name: groups
+.. .. toctree::
+..    :caption: Groups
+..    :name: groups
 
-   groups/index.rst
+..    groups/index.rst
 
 .. toctree::
    :caption: Tools

@@ -11,6 +11,7 @@
 #include "Cubism/Common.h"
 #include "Cubism/Grid/BlockFieldAssembler.h"
 #include <cassert>
+#include <stdexcept>
 
 NAMESPACE_BEGIN(Cubism)
 /**
@@ -110,7 +111,7 @@ public:
      */
     Cartesian()
         : nblocks_(0), block_cells_(0), block_range_(0), mesh_(nullptr),
-          data_(nullptr)
+          global_mesh_(nullptr), data_(nullptr)
     {
     }
 
@@ -118,19 +119,22 @@ public:
      * @brief Main constructor for a Cartesian block field topology
      * @param nblocks Number of blocks
      * @param block_cells Number of cells in each block
-     * @param start Physical origin for this Cartesian grid (lower left)
+     * @param begin Physical origin for this Cartesian grid (lower left)
      * @param end Physical end for this Cartesian grid (top right)
-     * @param gorigin Physical global origin
+     * @param gbegin Global begin of physical domain
+     * @param gend Global end of physical domain
      */
     Cartesian(const MultiIndex &nblocks,
               const MultiIndex &block_cells,
-              const PointType &start = PointType(0),
+              const PointType &begin = PointType(0),
               const PointType &end = PointType(1),
-              const PointType &gorigin = PointType(0))
+              const PointType &gbegin = PointType(0),
+              const PointType &gend = PointType(1))
         : nblocks_(nblocks), block_cells_(block_cells), block_range_(nblocks),
-          mesh_(nullptr), data_(nullptr)
+          mesh_(nullptr), global_mesh_(nullptr), data_(nullptr)
     {
-        initTopology_(gorigin, start, end);
+        initTopology_(gbegin, gend, begin, end);
+        global_mesh_ = mesh_;
     }
 
     /** @brief Deleted copy constructor */
@@ -150,7 +154,10 @@ public:
      */
     Cartesian &operator=(const Cartesian &c)
     {
-        assert(size() == c.size());
+        if (size() != c.size()) {
+            throw std::runtime_error(
+                "Cartesian: Can not assign two grids of unequal size.");
+        }
         for (size_t i = 0; i < c.size(); ++i) {
             assembler_.fields[i].copyData(c.assembler_.fields[i]);
         }
@@ -238,20 +245,42 @@ public:
     }
 
     /**
-     * @return Block index range
+     * @brief Get the number of cells per block
+     * @return Number of cells in a block along all dimensions
+     */
+    MultiIndex getBlockCells() const { return block_cells_; }
+
+    /**
+     * @brief Get the block range spanned by this grid
+     * @return Local block index range
      */
     IndexRangeType getBlockRange() const { return block_range_; }
 
     /**
-     * @brief Mesh for the grid
-     * @return ``const`` reference to mesh
+     * @brief Local mesh for the grid
+     * @return ``const`` reference to local mesh
      *
-     * Returns the mesh associated to the Cartesian grid
+     * Returns the local mesh associated to the Cartesian grid
      */
     const MeshType &getMesh() const
     {
         assert(mesh_ != nullptr);
         return *mesh_;
+    }
+
+    /**
+     * @brief Global mesh for the grid
+     * @return ``const`` reference to global mesh
+     *
+     * @rst
+     * Returns the global mesh associated to the Cartesian grid.  For a non-MPI
+     * instance the return value is identical to ``getMesh()``.
+     * @endrst
+     */
+    const MeshType &getGlobalMesh() const
+    {
+        assert(global_mesh_ != nullptr);
+        return *global_mesh_;
     }
 
     /**
@@ -348,26 +377,32 @@ protected:
     MultiIndex nblocks_;
     MultiIndex block_cells_;
     IndexRangeType block_range_;
+    MeshType *mesh_;
+    MeshType *global_mesh_;
 
     /**
      * @brief Initialize Cartesian topology
-     * @param gorigin Global origin of mesh
-     * @param start Lower left point of mesh (rectangular box)
+     * @param gbegin Global begin of physical domain
+     * @param gend Global end of physical domain
+     * @param begin Lower left point of mesh (rectangular box)
      * @param end Upper right point of mesh (rectangular box)
      * @param nranks Number of ranks in topology
      */
-    void initTopology_(const PointType &gorigin,
-                       const PointType &start,
+    void initTopology_(const PointType &gbegin,
+                       const PointType &gend,
+                       const PointType &begin,
                        const PointType &end,
                        const MultiIndex &nranks = MultiIndex(1))
     {
         // allocate the memory
         alloc_();
-        // allocate the global mesh (gorigin and start may be different)
-        mesh_ = new MeshType(gorigin,
-                             RangeType(start, end),
-                             IndexRangeType(nblocks_ * block_cells_),
-                             MeshIntegrity::FullMesh);
+        // allocate the global mesh (gbegin and begin may be different)
+        mesh_ =
+            new MeshType(RangeType(gbegin, gend),
+                         RangeType(begin, end),
+                         IndexRangeType(block_cells_ * block_range_.getBegin(),
+                                        block_cells_ * block_range_.getEnd()),
+                         MeshIntegrity::FullMesh);
         // assemble the block fields
         assembler_.assemble(data_,
                             *mesh_,
@@ -388,7 +423,6 @@ protected:
 private:
     using BlockData = typename Assembler::BlockData;
 
-    MeshType *mesh_;
     DataType *data_;
     Assembler assembler_;
     Alloc<DataType> blk_alloc_;
@@ -455,6 +489,7 @@ private:
     {
         assembler_.dispose();
         dealloc_();
+        global_mesh_ = nullptr;
         if (mesh_) {
             delete mesh_;
         }

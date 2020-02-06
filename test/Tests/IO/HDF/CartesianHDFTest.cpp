@@ -65,7 +65,7 @@ TEST(IO, CartesianWriteHDF)
         ginit.init(grid);
 
         // all of the grid
-        const auto &m = grid.getMesh();
+        const auto &m = grid.getGlobalMesh();
 
         // sub-mesh selections
         //
@@ -189,7 +189,7 @@ TEST(IO, CartesianWriteHDF)
         }
 
         // all of the grid
-        const auto &m = grid.getMesh();
+        const auto &m = grid.getGlobalMesh();
 
         // sub-mesh selections
         const auto blk = m.getSubMesh(PointType(0.3), PointType(0.7));

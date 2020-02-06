@@ -38,9 +38,9 @@ TEST(CartesianMPI, Construction)
     EXPECT_EQ(grid.getNumProcs(), nprocs);
 
     const PointType rank_extent = PointType(1) / PointType(nprocs);
-    EXPECT_EQ(grid.getMesh().getOrigin(),
+    EXPECT_EQ(grid.getMesh().getBegin(),
               rank_extent * PointType(grid.getProcIndex()));
-    EXPECT_EQ(grid.getMesh().getGlobalOrigin(), PointType(0));
+    EXPECT_EQ(grid.getMesh().getGlobalBegin(), PointType(0));
 
     EXPECT_EQ(grid.size(), nblocks.prod());
     EXPECT_EQ(grid.getSize(), nblocks);
@@ -77,7 +77,7 @@ TEST(CartesianMPI, BlockMesh)
     EXPECT_EQ(all_blocks, nprocs * nblocks);
 
     const Mesh &gm = grid.getMesh();
-    const PointType O = gm.getOrigin();
+    const PointType O = gm.getBegin();
     const MIndex Oi = gm.getIndexRange(EntityType::Cell).getBegin();
     const PointType h = gm.getCellSize(0);
     const RealType Vh = gm.getCellVolume(0);
@@ -98,7 +98,7 @@ TEST(CartesianMPI, BlockMesh)
         volume += fm.getVolume();
         blocks += fs.idx;
         EXPECT_TRUE(fm.isSubMesh());
-        EXPECT_EQ(fm.getGlobalOrigin(), gm.getGlobalOrigin());
+        EXPECT_EQ(fm.getGlobalBegin(), gm.getGlobalBegin());
         for (const auto &ci : fm[EntityType::Cell]) { // cell checks
             {
                 const RealType diff = std::fabs(fm.getCellVolume(ci) - Vh);
@@ -132,7 +132,7 @@ TEST(CartesianMPI, BlockMesh)
         { // block mesh origin
             const PointType mO = O + PointType(fs.idx) * block_extent;
             const RealType diff =
-                std::fabs((fm.getOrigin() - mO).sum() / PointType::Dim);
+                std::fabs((fm.getBegin() - mO).sum() / PointType::Dim);
             EXPECT_LE(diff, std::numeric_limits<RealType>::epsilon());
         }
         { // block mesh extent

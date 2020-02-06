@@ -41,11 +41,47 @@ DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
  *
  * .. note::
  *
- *    The variables ``field`` and ``mesh`` are only related through an index
- *    space which is The index space spanned by ``mesh`` is clipped to the
- *    extent of ``field`` if the spanned spaced is larger.
+ *    The variables ``field`` and ``mesh`` are only related by the index space
+ *    they span.  If there is no common intersection, no data will be written to
+ *    the file.  If the mesh spans a larger index space and full or partially
+ *    contains the index space spanned by ``field`` then the index space spanned
+ *    by ``mesh`` is clipped to that spanned by ``field``.
  *
- * .. todo:: example for sub-space
+ * Example:
+ *
+ * .. code-block:: cpp
+ *
+ *    #include "Cubism/Block/Field.h"
+ *    #include "Cubism/Core/Index.h"
+ *    #include "Cubism/Mesh/StructuredUniform.h"
+ *    #include "Cubism/IO/FieldHDF.h"
+ *
+ *    using Mesh = Cubism::Mesh::StructuredUniform<double, 3>;
+ *    using MeshIntegrity = typename Mesh::MeshIntegrity;
+ *    using PointType = typename Mesh::PointType;
+ *    using IRange = typename Mesh::IndexRangeType;
+ *    using MIndex = typename Mesh::MultiIndex;
+ *
+ *    using CellField = Cubism::Block::CellField<double, Mesh::Dim>;
+ *
+ *    int main(void)
+ *    {
+ *        // mesh in [0,1]^3 with 16^3 cells
+ *        const PointType end(1);
+ *        const MIndex cells(16);
+ *        Mesh m(end, cells, MeshIntegrity::FullMesh);
+ *
+ *        // cell field spans an index space [6,10)^3
+ *        const IRange cell_range(6, 10);
+ *        CellField cf(cell_range);
+ *
+ *        // write field to file (since the mesh fully contains cell_range, the
+ *        // file contains 64 doubles at the coordinates defined in m using the
+ *        // indices in cell_range
+ *        Cubism::IO::FieldWriteHDF<double>(
+ *            "filename", "attributename", cf, m, 0.0);
+ *        return 0;
+ *    }
  * @endrst
  */
 template <typename FileDataType,
@@ -70,8 +106,8 @@ void FieldWriteHDF(const std::string &fname,
     const size_t dface = static_cast<size_t>(face_dir);
     const auto clip =
         mesh.getSubMesh(field.getIndexRange(dface), Field::EntityType, dface);
-    const IRange file_range = clip->getIndexRange(Field::EntityType, dface);
-    const MIndex file_extent = file_range.getExtent();
+    const IRange file_span = clip->getIndexRange(Field::EntityType, dface);
+    const MIndex file_extent = file_span.getExtent();
     constexpr size_t NComp = Field::NComponents;
     if (create_xdmf) {
         std::printf("FieldWriteHDF: Allocating %.1f kB file buffer (%s)\n",
@@ -79,16 +115,15 @@ void FieldWriteHDF(const std::string &fname,
                     fname.c_str());
     }
     FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
-    Field2AOS(field, file_range, buf, dface);
+    Field2AOS(field, file_span, buf, dface);
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
+    hdf_driver.file_span = file_span;
     hdf_driver.write(fname,
                      aname,
                      buf,
                      *clip,
                      Field::EntityType,
-                     file_range,
                      NComp,
-                     clip->getOrigin(),
                      time,
                      create_xdmf);
     delete[] buf;
@@ -145,13 +180,14 @@ void FieldReadHDF(const std::string &fname,
     const size_t dface = static_cast<size_t>(face_dir);
     const auto clip =
         mesh.getSubMesh(field.getIndexRange(dface), Field::EntityType, dface);
-    const IRange file_range = clip->getIndexRange(Field::EntityType, dface);
-    const MIndex file_extent = file_range.getExtent();
+    const IRange file_span = clip->getIndexRange(Field::EntityType, dface);
+    const MIndex file_extent = file_span.getExtent();
     constexpr size_t NComp = Field::NComponents;
     FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.read(fname, buf, file_range, NComp);
-    AOS2Field(buf, file_range, field, dface);
+    hdf_driver.file_span = file_span;
+    hdf_driver.read(fname, buf, NComp);
+    AOS2Field(buf, file_span, field, dface);
     delete[] buf;
 #else
     std::fprintf(

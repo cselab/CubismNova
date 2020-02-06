@@ -119,7 +119,7 @@ struct BlockFieldAssembler {
             const MultiIndex gbi = block_range.getBegin() + bi; // global index
             const MultiIndex cstart = c0 + bi * block_cells;
             const PointType bstart =
-                mesh.getOrigin() + PointType(bi) * block_extent;
+                mesh.getBegin() + PointType(bi) * block_extent;
             const PointType bend = bstart + block_extent;
             const MultiIndex cells = block_cells;
             MultiIndex nodes = cells;
@@ -133,7 +133,7 @@ struct BlockFieldAssembler {
             }
             const IndexRangeType cell_range(cstart, cstart + cells);
             const IndexRangeType node_range(cstart, cstart + nodes);
-            MeshType *fm = new MeshType(mesh.getGlobalOrigin(),
+            MeshType *fm = new MeshType(mesh.getGlobalRange(),
                                         RangeType(bstart, bend),
                                         cell_range,
                                         node_range,
