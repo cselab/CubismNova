@@ -277,9 +277,7 @@ private:
             throw std::runtime_error("StructuredUniform: Can not create "
                                      "sub-cell range for begin > end");
         } else if (!(begin_r <= end && begin <= end_r)) {
-            throw std::runtime_error(
-                "StructuredUniform: Range spanned by begin and end points is "
-                "not intersecting mesh range");
+            return IndexRangeType();
         }
 
         for (size_t i = 0; i < DIM; ++i) {

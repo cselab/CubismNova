@@ -63,11 +63,11 @@ void CartesianMPIWriteHDF(const std::string &fname,
     constexpr typename Cubism::EntityType entity = Grid::EntityType;
     constexpr size_t NComp = Grid::NComponents;
     const size_t dface = static_cast<size_t>(face_dir);
-    const auto &gmesh = grid.getMesh(); // global mesh
+    const auto &rmesh = grid.getMesh(); // rank local mesh
     const auto clip_global = // clip 'mesh' to the global grid mesh boundary
-        mesh.getSubMesh(gmesh.getGlobalBegin(), gmesh.getGlobalEnd());
+        mesh.getSubMesh(rmesh.getGlobalBegin(), rmesh.getGlobalEnd());
     const auto clip_rank = clip_global->getSubMesh(
-        gmesh.getIndexRange(entity, dface), entity, dface);
+        rmesh.getIndexRange(entity, dface), entity, dface);
     const IRange file_span = clip_global->getIndexRange(entity, dface);
     const IRange data_span = clip_rank->getIndexRange(entity, dface);
     const MIndex rank_extent = data_span.getExtent();
@@ -80,25 +80,16 @@ void CartesianMPIWriteHDF(const std::string &fname,
     }
     FileDataType *buf = new FileDataType[rank_extent.prod() * NComp];
 #pragma omp parallel for
-    for (size_t i = 0; i < grid.size(); ++i) {
+        for (size_t i = 0; i < grid.size(); ++i) {
         const auto &bf = grid[i]; // block field
-        Field2AOS(bf, rank_range, buf, dface);
+        Field2AOS(bf, data_span, buf, dface);
     }
     HDFDriverMPI<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.rank_index = grid.getProcIndex();
-    hdf_driver.write(fname,
-                     aname,
-                     buf,
-                     *clip_rank,
-                     entity,
-                     file_range,
-                     NComp,
-                     clip_global->getBegin(),
-                     time,
-                     create_xdmf && grid.isRoot());
     hdf_driver.comm = grid.getCartComm();
     hdf_driver.file_span = file_span;
     hdf_driver.data_span = data_span;
+    hdf_driver.write(
+        fname, aname, buf, *clip_global, entity, NComp, time, create_xdmf);
     delete[] buf;
 #else
     std::fprintf(stderr,
@@ -184,11 +175,11 @@ void CartesianMPIReadHDF(const std::string &fname,
     constexpr typename Cubism::EntityType entity = Grid::EntityType;
     constexpr size_t NComp = Grid::NComponents;
     const size_t dface = static_cast<size_t>(face_dir);
-    const auto &gmesh = grid.getMesh(); // global mesh
+    const auto &rmesh = grid.getMesh(); // rank local mesh
     const auto clip_global = // clip 'mesh' to the global grid mesh boundary
-        mesh.getSubMesh(gmesh.getGlobalBegin(), gmesh.getGlobalEnd());
+        mesh.getSubMesh(rmesh.getGlobalBegin(), rmesh.getGlobalEnd());
     const auto clip_rank = clip_global->getSubMesh(
-        gmesh.getIndexRange(entity, dface), entity, dface);
+        rmesh.getIndexRange(entity, dface), entity, dface);
     const IRange file_span = clip_global->getIndexRange(entity, dface);
     const IRange data_span = clip_rank->getIndexRange(entity, dface);
     const MIndex rank_extent = data_span.getExtent();
@@ -196,7 +187,8 @@ void CartesianMPIReadHDF(const std::string &fname,
     HDFDriverMPI<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
     hdf_driver.comm = grid.getCartComm();
     hdf_driver.file_span = file_span;
-    hdf_driver.file_span = data_span;
+    hdf_driver.data_span = data_span;
+    hdf_driver.read(fname, buf, NComp);
 #pragma omp parallel for
     for (size_t i = 0; i < grid.size(); ++i) {
         auto &bf = grid[i]; // block field
