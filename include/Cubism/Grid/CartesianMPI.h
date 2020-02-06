@@ -14,6 +14,7 @@
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Grid)
+// FIXME: [fabianw@mavt.ethz.ch; 2020-02-06] remove this group
 /**
  * @defgroup MPI Message Passing Interface
  * @rst

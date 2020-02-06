@@ -20,7 +20,7 @@ DISABLE_WARNING_PUSH
 DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
 
 /**
- * @ingroup IO MPI
+ * @ingroup IO
  * @brief Write Cartesian MPI grid data to HDF file
  * @tparam FileDataType HDF file data type
  * @tparam Grid Grid type
@@ -99,7 +99,7 @@ void CartesianMPIWriteHDF(const std::string &fname,
 }
 
 /**
- * @ingroup IO MPI
+ * @ingroup IO
  * @brief Write Cartesian MPI grid data to HDF file
  * @tparam FileDataType HDF file data type
  * @tparam Grid Grid type
@@ -132,7 +132,7 @@ void CartesianMPIWriteHDF(const std::string &fname,
 }
 
 /**
- * @ingroup IO MPI
+ * @ingroup IO
  * @brief Read Cartesian MPI grid data from HDF file
  * @tparam FileDataType HDF file data type
  * @tparam Grid Grid type
@@ -202,7 +202,7 @@ void CartesianMPIReadHDF(const std::string &fname,
 }
 
 /**
- * @ingroup IO MPI
+ * @ingroup IO
  * @brief Read Cartesian grid data from HDF file
  * @tparam FileDataType HDF file data type
  * @tparam Grid Grid type
