@@ -21,7 +21,7 @@ NAMESPACE_BEGIN(IO)
  * */
 template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 struct HDFDriver {
-    typename Mesh::IndexRangeType file_range;
+    typename Mesh::IndexRangeType file_span;
 
     void write(const std::string &,
                const std::string &,
@@ -46,8 +46,8 @@ struct HDFDriver {
 template <typename FileDataType, typename Mesh, Cubism::MeshClass Class>
 struct HDFDriverMPI {
     MPI_Comm comm;
-    typename Mesh::IndexRangeType file_range;
-    typename Mesh::IndexRangeType rank_range;
+    typename Mesh::IndexRangeType file_span;
+    typename Mesh::IndexRangeType data_span;
 
     void write(const std::string &,
                const std::string &,

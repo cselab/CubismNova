@@ -68,13 +68,13 @@ void CartesianMPIWriteHDF(const std::string &fname,
         mesh.getSubMesh(gmesh.getGlobalBegin(), gmesh.getGlobalEnd());
     const auto clip_rank = clip_global->getSubMesh(
         gmesh.getIndexRange(entity, dface), entity, dface);
-    const IRange file_range = clip_global->getIndexRange(entity, dface);
-    const IRange rank_range = clip_rank->getIndexRange(entity, dface);
-    const MIndex rank_extent = rank_range.getExtent();
+    const IRange file_span = clip_global->getIndexRange(entity, dface);
+    const IRange data_span = clip_rank->getIndexRange(entity, dface);
+    const MIndex rank_extent = data_span.getExtent();
     if (create_xdmf && grid.isRoot()) {
         std::printf(
             "CartesianMPIWriteHDF: Allocating %.1f GB file buffer (%s)\n",
-            file_range.getExtent().prod() * NComp * sizeof(FileDataType) /
+            file_span.getExtent().prod() * NComp * sizeof(FileDataType) /
                 1024. / 1024. / 1024.,
             fname.c_str());
     }
@@ -96,6 +96,9 @@ void CartesianMPIWriteHDF(const std::string &fname,
                      clip_global->getBegin(),
                      time,
                      create_xdmf && grid.isRoot());
+    hdf_driver.comm = grid.getCartComm();
+    hdf_driver.file_span = file_span;
+    hdf_driver.data_span = data_span;
     delete[] buf;
 #else
     std::fprintf(stderr,
@@ -186,17 +189,18 @@ void CartesianMPIReadHDF(const std::string &fname,
         mesh.getSubMesh(gmesh.getGlobalBegin(), gmesh.getGlobalEnd());
     const auto clip_rank = clip_global->getSubMesh(
         gmesh.getIndexRange(entity, dface), entity, dface);
-    const IRange file_range = clip_global->getIndexRange(entity, dface);
-    const IRange rank_range = clip_rank->getIndexRange(entity, dface);
-    const MIndex rank_extent = rank_range.getExtent();
+    const IRange file_span = clip_global->getIndexRange(entity, dface);
+    const IRange data_span = clip_rank->getIndexRange(entity, dface);
+    const MIndex rank_extent = data_span.getExtent();
     FileDataType *buf = new FileDataType[rank_extent.prod() * NComp];
     HDFDriverMPI<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.rank_index = grid.getProcIndex();
-    hdf_driver.read(fname, buf, rank_range, NComp);
+    hdf_driver.comm = grid.getCartComm();
+    hdf_driver.file_span = file_span;
+    hdf_driver.file_span = data_span;
 #pragma omp parallel for
     for (size_t i = 0; i < grid.size(); ++i) {
         auto &bf = grid[i]; // block field
-        AOS2Field(buf, rank_range, bf, dface);
+        AOS2Field(buf, data_span, bf, dface);
     }
     delete[] buf;
 #else

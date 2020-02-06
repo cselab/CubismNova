@@ -64,8 +64,8 @@ void CartesianWriteHDF(const std::string &fname,
     const size_t dface = static_cast<size_t>(face_dir);
     const auto clip = mesh.getSubMesh(
         grid.getMesh().getIndexRange(entity, dface), entity, dface);
-    const IRange file_range = clip->getIndexRange(entity, dface);
-    const MIndex file_extent = file_range.getExtent();
+    const IRange file_span = clip->getIndexRange(entity, dface);
+    const MIndex file_extent = file_span.getExtent();
     if (create_xdmf) {
         std::printf("CartesianWriteHDF: Allocating %.1f MB file buffer (%s)\n",
                     file_extent.prod() * NComp * sizeof(FileDataType) / 1024. /
@@ -76,10 +76,10 @@ void CartesianWriteHDF(const std::string &fname,
 #pragma omp parallel for
     for (size_t i = 0; i < grid.size(); ++i) {
         const auto &bf = grid[i]; // block field
-        Field2AOS(bf, file_range, buf, dface);
+        Field2AOS(bf, file_span, buf, dface);
     }
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.file_range = file_range;
+    hdf_driver.file_span = file_span;
     hdf_driver.write(fname,
                      aname,
                      buf,
@@ -173,16 +173,16 @@ void CartesianReadHDF(const std::string &fname,
     const size_t dface = static_cast<size_t>(face_dir);
     const auto clip = mesh.getSubMesh(
         grid.getMesh().getIndexRange(entity, dface), entity, dface);
-    const IRange file_range = clip->getIndexRange(entity, dface);
-    const MIndex file_extent = file_range.getExtent();
+    const IRange file_span = clip->getIndexRange(entity, dface);
+    const MIndex file_extent = file_span.getExtent();
     FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.file_range = file_range;
+    hdf_driver.file_span = file_span;
     hdf_driver.read(fname, buf, NComp);
 #pragma omp parallel for
     for (size_t i = 0; i < grid.size(); ++i) {
         auto &bf = grid[i]; // block field
-        AOS2Field(buf, file_range, bf, dface);
+        AOS2Field(buf, file_span, bf, dface);
     }
     delete[] buf;
 #else

@@ -34,7 +34,7 @@ void HDFDriver<FileDataType, Mesh, Class>::write(
     const bool create_xdmf) const
 {
     using MIndex = typename Mesh::MultiIndex;
-    const MIndex fextent = file_range.getExtent(); // file range
+    const MIndex fextent = file_span.getExtent(); // file range
     constexpr size_t HDFDim = Mesh::Dim + 1;
     hsize_t offsetZYXC[HDFDim] = {};
     hsize_t countZYXC[HDFDim];
@@ -92,7 +92,7 @@ void HDFDriver<FileDataType, Mesh, Class>::read(
     const size_t NComp) const
 {
     using MIndex = typename Mesh::MultiIndex;
-    const MIndex fextent = file_range.getExtent(); // file range
+    const MIndex fextent = file_span.getExtent(); // file range
     constexpr size_t HDFDim = Mesh::Dim + 1;
     hsize_t offsetZYXC[HDFDim] = {};
     hsize_t countZYXC[HDFDim];

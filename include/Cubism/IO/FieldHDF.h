@@ -70,8 +70,8 @@ void FieldWriteHDF(const std::string &fname,
     const size_t dface = static_cast<size_t>(face_dir);
     const auto clip =
         mesh.getSubMesh(field.getIndexRange(dface), Field::EntityType, dface);
-    const IRange file_range = clip->getIndexRange(Field::EntityType, dface);
-    const MIndex file_extent = file_range.getExtent();
+    const IRange file_span = clip->getIndexRange(Field::EntityType, dface);
+    const MIndex file_extent = file_span.getExtent();
     constexpr size_t NComp = Field::NComponents;
     if (create_xdmf) {
         std::printf("FieldWriteHDF: Allocating %.1f kB file buffer (%s)\n",
@@ -79,9 +79,9 @@ void FieldWriteHDF(const std::string &fname,
                     fname.c_str());
     }
     FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
-    Field2AOS(field, file_range, buf, dface);
+    Field2AOS(field, file_span, buf, dface);
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.file_range = file_range;
+    hdf_driver.file_span = file_span;
     hdf_driver.write(fname,
                      aname,
                      buf,
@@ -144,14 +144,14 @@ void FieldReadHDF(const std::string &fname,
     const size_t dface = static_cast<size_t>(face_dir);
     const auto clip =
         mesh.getSubMesh(field.getIndexRange(dface), Field::EntityType, dface);
-    const IRange file_range = clip->getIndexRange(Field::EntityType, dface);
-    const MIndex file_extent = file_range.getExtent();
+    const IRange file_span = clip->getIndexRange(Field::EntityType, dface);
+    const MIndex file_extent = file_span.getExtent();
     constexpr size_t NComp = Field::NComponents;
     FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
     HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
-    hdf_driver.file_range = file_range;
+    hdf_driver.file_span = file_span;
     hdf_driver.read(fname, buf, NComp);
-    AOS2Field(buf, file_range, field, dface);
+    AOS2Field(buf, file_span, field, dface);
     delete[] buf;
 #else
     std::fprintf(
