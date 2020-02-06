@@ -49,24 +49,27 @@ template <typename T,
 class CartesianMPI
     : public Cubism::Grid::Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>
 {
-    using BaseType =
+    using BaseGrid =
         Cubism::Grid::Cartesian<T, Mesh, Entity, RANK, UserState, Alloc>;
-    using IntVec = typename Core::Vector<int, BaseType::Dim>;
+    using IntVec = typename Core::Vector<int, BaseGrid::Dim>;
 
-    using BaseType::block_cells_;
-    using BaseType::block_range_;
-    using BaseType::nblocks_;
+    using BaseGrid::block_cells_;
+    using BaseGrid::block_range_;
+    using BaseGrid::global_mesh_;
+    using BaseGrid::mesh_;
+    using BaseGrid::nblocks_;
 
 public:
-    using typename BaseType::DataType;
-    using typename BaseType::FieldContainer;
-    using typename BaseType::FieldState;
-    using typename BaseType::IndexRangeType;
-    using typename BaseType::MeshType;
-    using typename BaseType::MultiIndex;
-    using typename BaseType::PointType;
-    using typename BaseType::RangeType;
-    using typename BaseType::RealType;
+    using typename BaseGrid::BaseType;
+    using typename BaseGrid::DataType;
+    using typename BaseGrid::FieldContainer;
+    using typename BaseGrid::FieldState;
+    using typename BaseGrid::IndexRangeType;
+    using typename BaseGrid::MeshType;
+    using typename BaseGrid::MultiIndex;
+    using typename BaseGrid::PointType;
+    using typename BaseGrid::RangeType;
+    using typename BaseGrid::RealType;
 
     /**
      * @brief Main constructor for a Cartesian MPI block field topology
@@ -89,7 +92,7 @@ public:
                  const PointType &end = PointType(1),
                  const PointType &gbegin = PointType(0),
                  const PointType &gend = PointType(1))
-        : BaseType(), comm_(comm), comm_cart_(MPI_COMM_NULL), nprocs_(nprocs)
+        : BaseGrid(), comm_(comm), comm_cart_(MPI_COMM_NULL), nprocs_(nprocs)
     {
         nblocks_ = nblocks;
         block_cells_ = block_cells;
@@ -127,6 +130,13 @@ public:
             begin + PointType(rank_index_) * extent_rank; // rank domain begin
         const PointType end_rank = begin_rank + extent_rank; // rank domain end
         this->initTopology_(gbegin, gend, begin_rank, end_rank, nprocs_);
+
+        // setup global mesh
+        const MultiIndex global_blocks = this->getGlobalSize();
+        global_mesh_ = new Mesh(mesh_->getGlobalBegin(),
+                                mesh_->getGlobalEnd(),
+                                block_cells_ * global_blocks,
+                                Cubism::MeshIntegrity::FullMesh);
     }
 
     /** @brief Default constructor */
@@ -139,8 +149,14 @@ public:
     CartesianMPI &operator=(const CartesianMPI &c) = default;
     /** @brief Deleted move assignment */
     CartesianMPI &operator=(CartesianMPI &&c) = delete;
-    /** @brief Default destructor */
-    ~CartesianMPI() = default;
+
+    ~CartesianMPI() override
+    {
+        if (global_mesh_) {
+            delete global_mesh_;
+            global_mesh_ = nullptr;
+        }
+    }
 
     /**
      * @brief Global size of the grid in all dimensions

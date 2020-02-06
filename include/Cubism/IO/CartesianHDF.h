@@ -121,7 +121,7 @@ void CartesianWriteHDF(const std::string &fname,
     Cubism::IO::CartesianWriteHDF<FileDataType>(fname,
                                                 aname,
                                                 grid,
-                                                grid.getMesh(),
+                                                grid.getGlobalMesh(),
                                                 time,
                                                 static_cast<size_t>(face_dir),
                                                 create_xdmf);
@@ -209,7 +209,7 @@ void CartesianReadHDF(const std::string &fname,
                       const Dir face_dir = 0)
 {
     Cubism::IO::CartesianReadHDF<FileDataType>(
-        fname, grid, grid.getMesh(), static_cast<size_t>(face_dir));
+        fname, grid, grid.getGlobalMesh(), static_cast<size_t>(face_dir));
 }
 
 DISABLE_WARNING_POP

@@ -19,5 +19,5 @@ if (CUBISM_COVERAGE)
 endif ()
 
 add_subdirectory(UnitTests)
-add_subdirectory(UnitTestsMPI)
 add_subdirectory(Tests)
+add_subdirectory(TestsMPI)
