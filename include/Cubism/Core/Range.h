@@ -167,7 +167,7 @@ public:
     std::vector<size_t> getNullSpace() const
     {
         std::vector<size_t> null_idx;
-        PointType null = end_ - begin_;
+        const PointType null = end_ - begin_;
         for (size_t i = 0; i < DIM; ++i) {
             if (Cubism::myAbs(null[i]) <=
                 std::numeric_limits<DataType>::epsilon()) {
