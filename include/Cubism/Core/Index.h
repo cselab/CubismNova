@@ -183,7 +183,7 @@ public:
      */
     IndexRange(const PointType &b, const PointType &e) : BaseType(b, e) {}
 
-    IndexRange(const IndexRange &c) = default;
+    IndexRange(const IndexRange &c) noexcept = default;
     IndexRange(IndexRange &&c) noexcept = default;
     IndexRange &operator=(const IndexRange &c) = default;
     IndexRange &operator=(IndexRange &&c) = default;

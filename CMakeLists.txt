@@ -30,7 +30,7 @@ find_package(MPI REQUIRED)
 # compiler flags
 set(COMMON_FLAGS "-Wall -Wpedantic -Wextra -Werror -Wno-unknown-pragmas")
 set(CMAKE_C_FLAGS "${COMMON_FLAGS} ${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} ${CMAKE_CXX_FLAGS} -Wnoexcept")
 if (CUBISM_32BIT_INDEX)
     add_compile_definitions(CUBISM_32BIT_INDEX)
 endif ()

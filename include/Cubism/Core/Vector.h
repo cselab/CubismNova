@@ -69,7 +69,7 @@ public:
     /**
      * @brief Default copy constructor
      */
-    Vector(const Vector &c) : array_(c.array_) {}
+    Vector(const Vector &c) noexcept : array_(c.array_) {}
 
     /**
      * @brief Default move constructor (linear complexity)
