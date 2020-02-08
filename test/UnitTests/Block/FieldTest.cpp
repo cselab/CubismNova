@@ -627,54 +627,43 @@ TEST(FieldContainer, Interface)
         FC fc1;
         fc1.pushBack(nullptr);
         EXPECT_EQ(fc1.size(), 1);
-        EXPECT_THROW(
-            {
-                try {
-                    fc1[0];
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
-                                 "(nullptr)",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    fc1[0] = NodeField(node_domain);
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
-                                 "(nullptr)",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    fc1[Dir::X];
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
-                                 "(nullptr)",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    fc1[Dir::X] = NodeField(node_domain);
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
-                                 "(nullptr)",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
+
+        try {
+            fc1[0];
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
+                         "(nullptr)",
+                         e.what());
+        }
+        EXPECT_THROW(fc1[0], std::runtime_error);
+
+        try {
+            fc1[0] = NodeField(node_domain);
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
+                         "(nullptr)",
+                         e.what());
+        }
+        EXPECT_THROW((fc1[0] = NodeField(node_domain)), std::runtime_error);
+
+        try {
+            fc1[Dir::X];
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
+                         "(nullptr)",
+                         e.what());
+        }
+        EXPECT_THROW(fc1[Dir::X], std::runtime_error);
+
+        try {
+            fc1[Dir::X] = NodeField(node_domain);
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("FieldContainer: Component 0 was not assigned "
+                         "(nullptr)",
+                         e.what());
+        }
+        EXPECT_THROW((fc1[Dir::X] = NodeField(node_domain)),
+                     std::runtime_error);
     }
 
     {

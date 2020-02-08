@@ -50,40 +50,29 @@ TEST(INIParser, Interface)
 
     // runtime throws
     {
-        EXPECT_THROW(
-            {
-                try {
-                    p.get("sparta", "300");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ(
-                        "get: key=300 in section=sparta does not exist",
-                        e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    p.get("test", "noval");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("get: key=noval in section=test has no value",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    p.get("test", "empty");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("get: key=empty in section=test has no value",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
+        try {
+            p.get("sparta", "300");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("get: key=300 in section=sparta does not exist",
+                         e.what());
+        }
+        EXPECT_THROW(p.get("sparta", "300"), std::runtime_error);
+
+        try {
+            p.get("test", "noval");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("get: key=noval in section=test has no value",
+                         e.what());
+        }
+        EXPECT_THROW(p.get("test", "noval"), std::runtime_error);
+
+        try {
+            p.get("test", "empty");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("get: key=empty in section=test has no value",
+                         e.what());
+        }
+        EXPECT_THROW(p.get("test", "empty"), std::runtime_error);
 
         // scalar values
         EXPECT_NO_THROW(p.getString("test", "good"));
@@ -91,81 +80,61 @@ TEST(INIParser, Interface)
         EXPECT_NO_THROW(p.getInteger("test", "good"));
         EXPECT_NO_THROW(p.getReal("test", "good"));
         EXPECT_NO_THROW(p.getBoolean("test", "good"));
-        EXPECT_THROW(
-            {
-                try {
-                    p.getInteger("test", "bad");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("getInteger: can not convert 'ouch' to "
-                                 "integer for key=bad in section=test",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    p.getReal("test", "bad");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("getReal: can not convert 'ouch' to "
-                                 "floating point for key=bad in section=test",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    p.getBoolean("test", "bad");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("getBoolean: can not convert 'ouch' to "
-                                 "boolean for key=bad in section=test",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
+        try {
+            p.getInteger("test", "bad");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("getInteger: can not convert 'ouch' to "
+                         "integer for key=bad in section=test",
+                         e.what());
+        }
+        EXPECT_THROW(p.getInteger("test", "bad"), std::runtime_error);
+
+        try {
+            p.getReal("test", "bad");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("getReal: can not convert 'ouch' to "
+                         "floating point for key=bad in section=test",
+                         e.what());
+        }
+        EXPECT_THROW(p.getReal("test", "bad"), std::runtime_error);
+
+        try {
+            p.getBoolean("test", "bad");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("getBoolean: can not convert 'ouch' to "
+                         "boolean for key=bad in section=test",
+                         e.what());
+        }
+        EXPECT_THROW(p.getBoolean("test", "bad"), std::runtime_error);
 
         // arrays
         EXPECT_NO_THROW(p.getStringArray("test", "array"));
-        EXPECT_THROW(
-            {
-                try {
-                    p.getIntegerArray("test", "array");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("getIntegerArray: can not convert 'ouch' to "
-                                 "integer for key=array in section=test",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    p.getRealArray("test", "array");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("getRealArray: can not convert 'ouch' to "
-                                 "floating point for key=array in section=test",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    p.getBooleanArray("test", "array");
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("getBooleanArray: can not convert '2' to "
-                                 "boolean for key=array in section=test",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
+        try {
+            p.getIntegerArray("test", "array");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("getIntegerArray: can not convert 'ouch' to "
+                         "integer for key=array in section=test",
+                         e.what());
+        }
+        EXPECT_THROW(p.getIntegerArray("test", "array"), std::runtime_error);
+
+        try {
+            p.getRealArray("test", "array");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("getRealArray: can not convert 'ouch' to "
+                         "floating point for key=array in section=test",
+                         e.what());
+        }
+        EXPECT_THROW(p.getRealArray("test", "array"), std::runtime_error);
+
+        try {
+            p.getBooleanArray("test", "array");
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("getBooleanArray: can not convert '2' to "
+                         "boolean for key=array in section=test",
+                         e.what());
+        }
+        EXPECT_THROW(p.getBooleanArray("test", "array"), std::runtime_error);
     }
 
     { // strings

@@ -41,18 +41,14 @@ TEST(Range, Construction)
     EXPECT_EQ(r4, r5);
     EXPECT_EQ(r5, r6);
 
-    EXPECT_THROW(
-        {
-            try {
-                Range r7(p1, p0);
-            } catch (const std::runtime_error &e) {
-                EXPECT_STREQ("RangeConstruction: begin_ must be smaller or "
-                             "equal to end_",
-                             e.what());
-                throw;
-            }
-        },
-        std::runtime_error);
+    try {
+        Range r7(p1, p0);
+    } catch (const std::runtime_error &e) {
+        EXPECT_STREQ("RangeConstruction: begin_ must be smaller or "
+                     "equal to end_",
+                     e.what());
+    }
+    EXPECT_THROW(Range r7(p1, p0), std::runtime_error);
 }
 
 // Set and get of Ranges
@@ -61,43 +57,39 @@ TEST(Range, SetGet)
     Point p0(1);
     Point p1(3);
     Point p2(8);
-    EXPECT_THROW(
-        {
-            try {
-                Range r0(p0);
-                r0.setBegin(p1);
-            } catch (const std::runtime_error &e) {
-                EXPECT_STREQ(
-                    "RangeSetBegin: begin_ must be smaller or equal to end_",
-                    e.what());
-                throw;
-            }
-        },
-        std::runtime_error);
-    EXPECT_THROW(
-        {
-            try {
-                Range r0(p1, p2);
-                r0.setEnd(p0);
-            } catch (const std::runtime_error &e) {
-                EXPECT_STREQ(
-                    "RangeSetEnd: begin_ must be smaller or equal to end_",
-                    e.what());
-                throw;
-            }
-        },
-        std::runtime_error);
+    {
+        Range r0(p0);
+        try {
+            r0.setBegin(p1);
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ(
+                "RangeSetBegin: begin_ must be smaller or equal to end_",
+                e.what());
+        }
+        EXPECT_THROW(r0.setBegin(p1), std::runtime_error);
+    }
+    {
+        Range r0(p1, p2);
+        try {
+            r0.setEnd(p0);
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("RangeSetEnd: begin_ must be smaller or equal to end_",
+                         e.what());
+        }
+        EXPECT_THROW(r0.setEnd(p0), std::runtime_error);
+    }
+    {
+        Range r0(p0);
+        Range r1(p1, p2);
+        r0.setEnd(p2);
+        r0.setBegin(p1);
+        EXPECT_EQ(r0, r1);
+        EXPECT_EQ(r0.getBegin(), p1);
+        EXPECT_EQ(r0.getEnd(), p2);
 
-    Range r0(p0);
-    Range r1(p1, p2);
-    r0.setEnd(p2);
-    r0.setBegin(p1);
-    EXPECT_EQ(r0, r1);
-    EXPECT_EQ(r0.getBegin(), p1);
-    EXPECT_EQ(r0.getEnd(), p2);
-
-    EXPECT_EQ(r0.getExtent(), p2 - p1);
-    EXPECT_EQ(r0.getVolume(), (p2 - p1).prod());
+        EXPECT_EQ(r0.getExtent(), p2 - p1);
+        EXPECT_EQ(r0.getVolume(), (p2 - p1).prod());
+    }
 }
 
 // Utilities

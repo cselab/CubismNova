@@ -39,7 +39,10 @@ void runTest()
     NData ndata(node_domain);
 
     Base *cptr = &cdata;
-    EXPECT_EQ(cptr->getBlockPtr(), cdata.getBlockPtr());
+    void *pb = cptr->getBlockPtr();
+    const void *cpb = cptr->getBlockPtr();
+    EXPECT_EQ(pb, cdata.getBlockPtr());
+    EXPECT_EQ(cpb, cdata.getBlockPtr());
     EXPECT_EQ(cptr->getBlockBytes(), cdata.getBlockBytes());
     EXPECT_EQ(cptr->getDataElementBytes(), cdata.getDataElementBytes());
     EXPECT_EQ(cptr->getBlockSize(), cdata.getBlockSize());
@@ -107,30 +110,23 @@ void runTest()
         }
     }
     if (DIM > 3) {
-        EXPECT_THROW(
-            {
-                try {
-                    test(0);
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("Data::operator(): You can not call this "
-                                 "method for DIM > 3",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
-        EXPECT_THROW(
-            {
-                try {
-                    test(0) = 0;
-                } catch (const std::runtime_error &e) {
-                    EXPECT_STREQ("Data::operator(): You can not call this "
-                                 "method for DIM > 3",
-                                 e.what());
-                    throw;
-                }
-            },
-            std::runtime_error);
+        try {
+            test(0);
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("Data::operator(): You can not call this "
+                         "method for DIM > 3",
+                         e.what());
+        }
+        EXPECT_THROW(test(0), std::runtime_error);
+
+        try {
+            test(0) = 0;
+        } catch (const std::runtime_error &e) {
+            EXPECT_STREQ("Data::operator(): You can not call this "
+                         "method for DIM > 3",
+                         e.what());
+        }
+        EXPECT_THROW((test(0) = 0), std::runtime_error);
     }
 
     for (size_t i = 0; i < ref.getBlockSize(); ++i) {
