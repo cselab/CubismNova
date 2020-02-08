@@ -436,6 +436,12 @@ TEST(FieldContainer, Construction)
         ptr_list.push_back(&fc[1]); // owner
         ptr_list.push_back(&fc[2]); // owner
         FC fc1(ptr_list);
+        for (size_t i = 0; i < fc.size(); ++i) {
+            EXPECT_NE(fc[i].getBlockPtr(), nullptr);
+            EXPECT_NE(fc1[i].getBlockPtr(), nullptr);
+            EXPECT_NE(&fc[i].getState(), nullptr);
+            EXPECT_NE(&fc1[i].getState(), nullptr);
+        }
 
         EXPECT_EQ(fc1[0].getBlockPtr(), fc[0].getBlockPtr()); // view the same
         EXPECT_NE(fc1[1].getBlockPtr(), fc[1].getBlockPtr()); // copy
@@ -454,6 +460,10 @@ TEST(FieldContainer, Construction)
         {                   // copy homogeneous
             FC fc_copy(fc); // deep copies
             for (size_t i = 0; i < fc_copy.size(); ++i) {
+                EXPECT_NE(fc[i].getBlockPtr(), nullptr);
+                EXPECT_NE(fc_copy[i].getBlockPtr(), nullptr);
+                EXPECT_NE(&fc[i].getState(), nullptr);
+                EXPECT_NE(&fc_copy[i].getState(), nullptr);
                 EXPECT_TRUE(fc[i].isMemoryOwner());
                 EXPECT_TRUE(fc_copy[i].isMemoryOwner());
                 EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
@@ -470,6 +480,10 @@ TEST(FieldContainer, Construction)
             FC fc1(ptr_list);
             FC fc_copy(fc1); // mixed
             for (size_t i = 0; i < fc_copy.size(); ++i) {
+                EXPECT_NE(fc1[i].getBlockPtr(), nullptr);
+                EXPECT_NE(fc_copy[i].getBlockPtr(), nullptr);
+                EXPECT_NE(&fc1[i].getState(), nullptr);
+                EXPECT_NE(&fc_copy[i].getState(), nullptr);
                 if (i % 2 == 0) {
                     EXPECT_TRUE(fc[i].isMemoryOwner());
                     EXPECT_FALSE(fc_copy[i].isMemoryOwner());
@@ -500,6 +514,10 @@ TEST(FieldContainer, Construction)
             FC fc_copy;   // empty
             fc_copy = fc; // deep copies
             for (size_t i = 0; i < fc_copy.size(); ++i) {
+                EXPECT_NE(fc[i].getBlockPtr(), nullptr);
+                EXPECT_NE(fc_copy[i].getBlockPtr(), nullptr);
+                EXPECT_NE(&fc[i].getState(), nullptr);
+                EXPECT_NE(&fc_copy[i].getState(), nullptr);
                 EXPECT_TRUE(fc[i].isMemoryOwner());
                 EXPECT_TRUE(fc_copy[i].isMemoryOwner());
                 EXPECT_NE(fc_copy[i].getBlockPtr(), fc[i].getBlockPtr());
@@ -517,6 +535,10 @@ TEST(FieldContainer, Construction)
             FC fc_copy;    // empty
             fc_copy = fc1; // mixed
             for (size_t i = 0; i < fc_copy.size(); ++i) {
+                EXPECT_NE(fc1[i].getBlockPtr(), nullptr);
+                EXPECT_NE(fc_copy[i].getBlockPtr(), nullptr);
+                EXPECT_NE(&fc1[i].getState(), nullptr);
+                EXPECT_NE(&fc_copy[i].getState(), nullptr);
                 if (i % 2 == 0) {
                     EXPECT_TRUE(fc[i].isMemoryOwner());
                     EXPECT_FALSE(fc_copy[i].isMemoryOwner());
@@ -546,6 +568,10 @@ TEST(FieldContainer, Construction)
             fc1 = fc; // assign 4 components to a 3 component container (warns
                       // in debug build)
             EXPECT_EQ(fc1.size(), 4);
+            for (size_t i = 0; i < fc1.size(); ++i) {
+                EXPECT_NE(fc1[i].getBlockPtr(), nullptr);
+                EXPECT_NE(&fc1[i].getState(), nullptr);
+            }
             for (size_t i = 0; i < ptr_list.size(); ++i) {
                 EXPECT_NE(fc1[i].getBlockPtr(), ptr_list[i]);
                 EXPECT_NE(&fc1[i].getState(), &fc[i].getState());
@@ -560,6 +586,8 @@ TEST(FieldContainer, Construction)
         EXPECT_EQ(fc.size(), 0);
         EXPECT_EQ(fc_move.size(), data.size());
         for (size_t i = 0; i < fc_move.size(); ++i) {
+            EXPECT_NE(fc_move[i].getBlockPtr(), nullptr);
+            EXPECT_NE(&fc_move[i].getState(), nullptr);
             EXPECT_TRUE(fc_move[i].isMemoryOwner());
             EXPECT_EQ(fc_move[i].getBlockPtr(), data[i]->getBlockPtr());
             EXPECT_EQ(&fc_move[i].getState(), &data[i]->getState());
@@ -574,6 +602,8 @@ TEST(FieldContainer, Construction)
         EXPECT_EQ(fc.size(), 0);
         EXPECT_EQ(fc_move.size(), data.size());
         for (size_t i = 0; i < fc_move.size(); ++i) {
+            EXPECT_NE(fc_move[i].getBlockPtr(), nullptr);
+            EXPECT_NE(&fc_move[i].getState(), nullptr);
             EXPECT_TRUE(fc_move[i].isMemoryOwner());
             EXPECT_EQ(fc_move[i].getBlockPtr(), data[i]->getBlockPtr());
             EXPECT_EQ(&fc_move[i].getState(), &data[i]->getState());
@@ -943,7 +973,9 @@ TEST(TensorField, Construction)
         EXPECT_EQ(tf1.size(), tf.size());
         for (size_t i = 0; i < tf.size(); ++i) {
             EXPECT_NE(tf[i].getBlockPtr(), tf1[i].getBlockPtr());
+            EXPECT_NE(tf1[i].getBlockPtr(), nullptr);
             EXPECT_NE(&tf[i].getState(), &tf1[i].getState());
+            EXPECT_NE(&tf1[i].getState(), nullptr);
         }
     }
 
@@ -956,8 +988,12 @@ TEST(TensorField, Construction)
         for (size_t i = 0; i < tf.size(); ++i) {
             EXPECT_NE(tf[i].getBlockPtr(), tf1[i].getBlockPtr());
             EXPECT_NE(tf1[i].getBlockPtr(), tf2[i].getBlockPtr());
+            EXPECT_NE(tf2[i].getBlockPtr(), nullptr);
+            EXPECT_NE(tf1[i].getBlockPtr(), nullptr);
             EXPECT_NE(tf[i].getBlockPtr(), tf1[i].getBlockPtr());
             EXPECT_NE(&tf[i].getState(), &tf1[i].getState());
+            EXPECT_NE(&tf1[i].getState(), nullptr);
+            EXPECT_NE(&tf2[i].getState(), nullptr);
             EXPECT_EQ(pstate, &tf1[i].getState());
         }
     }
@@ -965,34 +1001,32 @@ TEST(TensorField, Construction)
     { // move construction
         using FieldView = Block::FieldView<TensorField>;
         TensorField tf_copy(tf);
-        FieldView tv(tf);
-        TensorField tf1(std::move(tf));
-        EXPECT_EQ(tf.size(), 0);
+        FieldView tv(tf_copy);
+        TensorField tf1(std::move(tf_copy));
+        EXPECT_EQ(tf_copy.size(), 0);
         EXPECT_EQ(tf1.size(), tv.size());
         const auto *pstate = &tf1.getState();
-        for (size_t i = 0; i < tf.size(); ++i) {
-            EXPECT_NE(tv[i].getBlockPtr(), tf1[i].getBlockPtr());
-            EXPECT_NE(&tv[i].getState(), &tf1[i].getState());
+        for (size_t i = 0; i < tf1.size(); ++i) {
+            EXPECT_EQ(tv[i].getBlockPtr(), tf1[i].getBlockPtr());
+            EXPECT_EQ(&tv[i].getState(), &tf1[i].getState());
             EXPECT_EQ(pstate, &tf1[i].getState());
         }
-        tf = tf_copy;
     }
 
     { // move assignment
         using FieldView = Block::FieldView<TensorField>;
         TensorField tf_copy(tf);
-        FieldView tv(tf);
+        FieldView tv(tf_copy);
         TensorField tf1(cell_domain);
-        tf1 = std::move(tf);
-        EXPECT_EQ(tf.size(), 0);
+        tf1 = std::move(tf_copy);
+        EXPECT_EQ(tf_copy.size(), 0);
         EXPECT_EQ(tf1.size(), tv.size());
         const auto *pstate = &tf1.getState();
-        for (size_t i = 0; i < tf.size(); ++i) {
-            EXPECT_NE(tv[i].getBlockPtr(), tf1[i].getBlockPtr());
-            EXPECT_NE(&tv[i].getState(), &tf1[i].getState());
+        for (size_t i = 0; i < tf1.size(); ++i) {
+            EXPECT_EQ(tv[i].getBlockPtr(), tf1[i].getBlockPtr());
+            EXPECT_EQ(&tv[i].getState(), &tf1[i].getState());
             EXPECT_EQ(pstate, &tf1[i].getState());
         }
-        tf = tf_copy;
     }
 }
 
@@ -1031,7 +1065,9 @@ TEST(FaceContainer, Construction)
         const auto *pstate = &ff1.getState();
         for (size_t i = 0; i < ff.size(); ++i) {
             EXPECT_NE(ff[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_NE(ff1[i].getBlockPtr(), nullptr);
             EXPECT_NE(&ff[i].getState(), &ff1[i].getState());
+            EXPECT_NE(&ff1[i].getState(), nullptr);
             EXPECT_EQ(pstate, &ff1[i].getState());
         }
     }
@@ -1046,8 +1082,12 @@ TEST(FaceContainer, Construction)
         for (size_t i = 0; i < ff.size(); ++i) {
             EXPECT_NE(ff[i].getBlockPtr(), ff1[i].getBlockPtr());
             EXPECT_NE(ff1[i].getBlockPtr(), ff2[i].getBlockPtr());
+            EXPECT_NE(ff1[i].getBlockPtr(), nullptr);
+            EXPECT_NE(ff2[i].getBlockPtr(), nullptr);
             EXPECT_NE(&ff[i].getState(), &ff1[i].getState());
             EXPECT_NE(&ff1[i].getState(), &ff2[i].getState());
+            EXPECT_NE(&ff1[i].getState(), nullptr);
+            EXPECT_NE(&ff2[i].getState(), nullptr);
             EXPECT_EQ(pstate, &ff1[i].getState());
         }
     }
@@ -1055,36 +1095,32 @@ TEST(FaceContainer, Construction)
     { // move construction
         using FieldView = Block::FieldView<FaceField>;
         FaceField ff_copy(ff);
-        FieldView fv(ff);
-        FaceField ff1(std::move(ff));
-        EXPECT_EQ(ff.size(), 0);
+        FieldView fv(ff_copy);
+        FaceField ff1(std::move(ff_copy));
+        EXPECT_EQ(ff_copy.size(), 0);
         EXPECT_EQ(ff1.size(), fv.size());
         const auto *pstate = &ff1.getState();
-        for (size_t i = 0; i < ff.size(); ++i) {
-            EXPECT_NE(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
-            EXPECT_NE(&fv[i].getState(), &ff1[i].getState());
+        for (size_t i = 0; i < ff1.size(); ++i) {
+            EXPECT_EQ(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_EQ(&fv[i].getState(), &ff1[i].getState());
             EXPECT_EQ(pstate, &ff1[i].getState());
         }
-
-        ff = ff_copy;
     }
 
     { // move assignment
         using FieldView = Block::FieldView<FaceField>;
         FaceField ff_copy(ff);
-        FieldView fv(ff);
+        FieldView fv(ff_copy);
         FaceField ff1(cell_domain);
-        ff1 = std::move(ff);
-        EXPECT_EQ(ff.size(), 0);
+        ff1 = std::move(ff_copy);
+        EXPECT_EQ(ff_copy.size(), 0);
         EXPECT_EQ(ff1.size(), fv.size());
         const auto *pstate = &ff1.getState();
-        for (size_t i = 0; i < ff.size(); ++i) {
-            EXPECT_NE(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
-            EXPECT_NE(&fv[i].getState(), &ff1[i].getState());
+        for (size_t i = 0; i < ff1.size(); ++i) {
+            EXPECT_EQ(fv[i].getBlockPtr(), ff1[i].getBlockPtr());
+            EXPECT_EQ(&fv[i].getState(), &ff1[i].getState());
             EXPECT_EQ(pstate, &ff1[i].getState());
         }
-
-        ff = ff_copy;
     }
 }
 
