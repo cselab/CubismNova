@@ -38,8 +38,8 @@ TEST(CartesianMPI, Construction)
     EXPECT_EQ(grid.getNumProcs(), nprocs);
 
     const PointType rank_extent = PointType(1) / PointType(nprocs);
-    EXPECT_EQ(grid.getMesh().getBegin(),
-              rank_extent * PointType(grid.getProcIndex()));
+    const PointType rank_begin = rank_extent * PointType(grid.getProcIndex());
+    EXPECT_EQ(grid.getMesh().getBegin(), rank_begin);
     EXPECT_EQ(grid.getMesh().getGlobalBegin(), PointType(0));
 
     EXPECT_EQ(grid.size(), nblocks.prod());
@@ -47,8 +47,9 @@ TEST(CartesianMPI, Construction)
     for (auto bf : grid) { // block field in grid
         EXPECT_TRUE(bf->isMemoryOwner());
         EXPECT_NE(bf->getBlockPtr(), nullptr);
-        EXPECT_EQ(
-            reinterpret_cast<size_t>(bf->getBlockPtr()) % CUBISM_ALIGNMENT, 0);
+        const size_t alignment =
+            reinterpret_cast<size_t>(bf->getBlockPtr()) % CUBISM_ALIGNMENT;
+        EXPECT_EQ(alignment, 0);
         EXPECT_NE(&(bf->getState()), nullptr);
         EXPECT_NE((bf->getState()).mesh, nullptr);
     }
@@ -141,13 +142,14 @@ TEST(CartesianMPI, BlockMesh)
             EXPECT_LE(diff, std::numeric_limits<RealType>::epsilon());
         }
         { // global index offsets
-            EXPECT_EQ(fm.getIndexRange(EntityType::Cell).getBegin(),
-                      Oi + fs.idx * block_cells);
-            EXPECT_EQ(fm.getIndexRange(EntityType::Node).getBegin(),
-                      Oi + fs.idx * block_cells);
+            const MIndex gc = fm.getIndexRange(EntityType::Cell).getBegin();
+            EXPECT_EQ(gc, Oi + fs.idx * block_cells);
+            const MIndex gn = fm.getIndexRange(EntityType::Node).getBegin();
+            EXPECT_EQ(gn, Oi + fs.idx * block_cells);
             for (size_t d = 0; d < Grid::Dim; ++d) {
-                EXPECT_EQ(fm.getIndexRange(EntityType::Face, d).getBegin(),
-                          Oi + fs.idx * block_cells);
+                const MIndex gf =
+                    fm.getIndexRange(EntityType::Face, d).getBegin();
+                EXPECT_EQ(gf, Oi + fs.idx * block_cells);
             }
         }
         { // local index extents
@@ -162,13 +164,14 @@ TEST(CartesianMPI, BlockMesh)
                 }
                 face_extents.push_back(face_extent);
             }
-            EXPECT_EQ(fm.getIndexRange(EntityType::Cell).getExtent(),
-                      cell_extent);
-            EXPECT_EQ(fm.getIndexRange(EntityType::Node).getExtent(),
-                      node_extent);
+            const MIndex ce = fm.getIndexRange(EntityType::Cell).getExtent();
+            EXPECT_EQ(ce, cell_extent);
+            const MIndex ne = fm.getIndexRange(EntityType::Node).getExtent();
+            EXPECT_EQ(ne, node_extent);
             for (size_t d = 0; d < Grid::Dim; ++d) {
-                EXPECT_EQ(fm.getIndexRange(EntityType::Face, d).getExtent(),
-                          face_extents[d]);
+                const MIndex fe =
+                    fm.getIndexRange(EntityType::Face, d).getExtent();
+                EXPECT_EQ(fe, face_extents[d]);
             }
         }
     }

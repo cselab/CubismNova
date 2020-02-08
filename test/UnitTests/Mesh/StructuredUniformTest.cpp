@@ -283,11 +283,11 @@ TEST(StructuredUniform, BasicInterface)
         EXPECT_EQ(m.getIndexRange(Entity::Node).getBegin(), p0);
         EXPECT_EQ(m.getIndexRange(Entity::Node).getEnd(), cells + 1);
         EXPECT_EQ(m.getIndexRange(Entity::Face, Dir::X).getBegin(), p0);
-        EXPECT_EQ(m.getIndexRange(Entity::Face, Dir::X).getEnd(),
-                  cells + MIndex::getUnitVector(0));
+        const MIndex ex = m.getIndexRange(Entity::Face, Dir::X).getEnd();
+        EXPECT_EQ(ex, cells + MIndex::getUnitVector(0));
         EXPECT_EQ(m.getIndexRange(Entity::Face, Dir::Y).getBegin(), p0);
-        EXPECT_EQ(m.getIndexRange(Entity::Face, Dir::Y).getEnd(),
-                  cells + MIndex::getUnitVector(1));
+        const MIndex ey = m.getIndexRange(Entity::Face, Dir::Y).getEnd();
+        EXPECT_EQ(ey, cells + MIndex::getUnitVector(1));
     }
     { // physical domain
         EXPECT_EQ(m.getExtent()[0], domain[0]);
@@ -359,10 +359,12 @@ TEST(StructuredUniform, BasicInterface)
             EXPECT_EQ(m.getCoords(*it, it.getEntity()), cref);
             cref += origin;
             EXPECT_EQ(m.getGlobalCoords(it), cref);
-            EXPECT_EQ(m.getGlobalCoords(it.getFlatIndex(), it.getEntity()),
-                      cref);
-            EXPECT_EQ(m.getGlobalCoords(it.getMultiIndex(), it.getEntity()),
-                      cref);
+            const PointType gflat =
+                m.getGlobalCoords(it.getFlatIndex(), it.getEntity());
+            EXPECT_EQ(gflat, cref);
+            const MIndex gmulti =
+                m.getGlobalCoords(it.getMultiIndex(), it.getEntity());
+            EXPECT_EQ(gmulti, cref);
             EXPECT_EQ(m.getGlobalCoords(*it, it.getEntity()), cref);
         }
     }
