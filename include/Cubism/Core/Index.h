@@ -193,9 +193,6 @@ public:
     iterator begin() const noexcept { return iterator(*this, 0); }
     iterator end() noexcept { return iterator(*this, this->size()); }
     iterator end() const noexcept { return iterator(*this, this->size()); }
-    // iterator end() noexcept { return iterator(*this, this->size() - 1); }
-    // iterator end() const noexcept { return iterator(*this, this->size() - 1);
-    // }
 
     /**
      * @brief Get intersection subspace
