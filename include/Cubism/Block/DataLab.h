@@ -7,6 +7,9 @@
 #define DATALAB_H_O091Y6A2
 
 #include "Cubism/Block/Data.h"
+#include "Cubism/Common.h"
+#include "Cubism/Core/Stencil.h"
+#include <stdexcept>
 
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
@@ -17,22 +20,68 @@ template <typename T,
           typename BlockAlloc = AlignedBlockAllocator<T>>
 class DataLab : public Data<T, Entity, DIM, BlockAlloc>
 {
+    using BaseType = Data<T, Entity, DIM, BlockAlloc>;
+
+    using BaseType::blk_alloc_;
+    using BaseType::block_;
+    using BaseType::bytes_;
+    using BaseType::range_;
+
 public:
-    DataLab() {}
-    ~DataLab() override {}
+    using typename BaseType::DataType;
+    using typename BaseType::IndexRangeType;
+    using typename BaseType::MultiIndex;
+    using StencilType = Core::Stencil<DIM>;
 
-    // stencil struct
-    void setStencil(/* Stencil */);
-    // allocates the memory
-    // can not call this method if data loaded flag is set
+    DataLab(const IndexRangeType &max_range) : max_range_(max_range_) {}
 
-    void loadData(/* Field */);
-    // fills the memory
+    ~DataLab() override = default;
 
-    void clear();
-    // flag that data can be destroyed
+    void allocate(const StencilType &s)
+    {
+        if (is_locked_) {
+            throw std::runtime_error(
+                "DataLab: can not allocate new lab when locked.");
+        }
+
+        // TODO: [fabianw@mavt.ethz.ch; 2020-02-11] does fastest moving index
+        // need to be pitched for SIMD registers?
+        //
+        // TODO: [fabianw@mavt.ethz.ch; 2020-02-11] Should offsets be const? any
+        // runtime difference?
+
+        stencil_ = s;
+        this->deallocBlock_();
+
+        const MultiIndex full_extent = max_range_.getExtent() -
+                                       stencil_.getBegin() + stencil_.getEnd() -
+                                       1;
+
+        range_ = IndexRangeType(full_extent);
+        this->allocBlock_();
+
+        is_allocated_ = true;
+    }
+
+    void loadData(/* Field, functional for neighbor fields */)
+    {
+        // fills the memory
+        is_locked_ = true;
+    }
+
+    void unlock() { is_locked_ = false; }
 
 private:
+    IndexRangeType max_range_;
+    IndexRangeType active_range_;
+    bool is_allocated_;
+    bool is_locked_;
+
+    StencilType stencil_;
+    DataType *data_origin_; // start of block data
+
+    size_t x_stride_pad;    // padded x-stride
+    size_t slice_stride;
 };
 
 NAMESPACE_END(Block)
