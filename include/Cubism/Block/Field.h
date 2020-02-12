@@ -261,6 +261,13 @@ public:
         assert(state_list[0].size() == 1);
     }
 
+    // TODO: [fabianw@mavt.ethz.ch; 2020-02-12] doxy
+    Field(const BlockDataType &d)
+        : BlockDataType(d, BlockDataType::MemoryOwner::No), is_subfield_(false),
+          state_(nullptr)
+    {
+    }
+
     /**
      * @brief Standard copy constructor for a scalar field
      * @param c Field to copy from
