@@ -363,7 +363,7 @@ public:
      */
     using iterator = IteratorBase<DataType>;
     /**
-     * @brief Const iterator for underlying data
+     * @brief ``const`` iterator for underlying data
      */
     using const_iterator = IteratorBase<const DataType>;
     /**
@@ -383,12 +383,12 @@ public:
     }
     /**
      * @brief Begin of data
-     * @return Const iterator
+     * @return ``const`` iterator
      */
     const_iterator cbegin() const noexcept { return const_iterator(block_); }
     /**
      * @brief End of data
-     * @return Const iterator
+     * @return ``const`` iterator
      */
     const_iterator cend() const noexcept
     {
@@ -408,7 +408,7 @@ public:
     bool isScalar() const { return (0 == Rank); }
     /**
      * @brief Get field state
-     * @return Non-const reference to state
+     * @return reference to state
      */
     FieldStateType &getState() { return *state_; }
     /**
