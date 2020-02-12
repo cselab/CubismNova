@@ -12,8 +12,10 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Core)
 
-/** @brief Describes a stencil
- * @tparam DIM Stencil dimensionality */
+/**
+ * @brief Describes a stencil
+ * @tparam DIM Stencil dimensionality
+ * */
 template <size_t DIM>
 class Stencil
 {
@@ -86,16 +88,16 @@ public:
     bool isTensorial() const { return is_tensorial_; }
 
 private:
-    const MultiIndex begin_; // <= 0 (inclusive)
-    const MultiIndex end_;   // > 0 (exclusive)
-    const bool is_tensorial_;
+    MultiIndex begin_; // <= 0 (inclusive)
+    MultiIndex end_;   // > 0 (exclusive)
+    bool is_tensorial_;
 
     void check_() const
     {
-        if (begin_ > 0) {
+        if (begin_ > MultiIndex(0)) {
             throw std::runtime_error("Stencil: begin_ must be <= 0");
         }
-        if (end_ < 1) {
+        if (end_ < MultiIndex(1)) {
             throw std::runtime_error("Stencil: end_ must be > 0");
         }
     }
