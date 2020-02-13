@@ -9,6 +9,9 @@
 #include "Cubism/Block/Data.h"
 #include "Cubism/Common.h"
 #include "Cubism/Core/Stencil.h"
+#include "Cubism/Core/Vector.h"
+#include "Cubism/Math.h"
+#include <cassert>
 #include <cstring>
 #include <functional>
 #include <stdexcept>
@@ -16,6 +19,17 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
+/**
+ * @brief Data laboratory
+ * @tparam TField Field type to map to the lab
+ *
+ * @rst
+ * A ``DataLab`` is an extended data structure to include ghost cells for a
+ * given stencil. Loading a lab takes care of loading the ghost cells from
+ * neighboring block fields and applies boundary conditions if present.  The
+ * default is periodic if no boundary conditions are specified otherwise.
+ * @endrst
+ * */
 template <typename TField>
 class DataLab
     : public Data<typename TField::DataType,
@@ -31,6 +45,7 @@ class DataLab
 
     using ID2Field =
         std::function<const TField &(const typename BaseType::MultiIndex &)>;
+    using BoolVec = Core::Vector<bool, TField::IndexRangeType::Dim>;
 
     using BaseType::blk_alloc_;
     using BaseType::block_;
@@ -38,11 +53,13 @@ class DataLab
     using BaseType::range_;
 
 public:
+    using typename BaseType::BlockBytes;
     using typename BaseType::DataType;
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
     using StencilType = Core::Stencil<IndexRangeType::Dim>;
 
+    /** @brief Main constructor */
     explicit DataLab()
         : BaseType(IndexRangeType()), is_allocated_(false),
           active_stencil_(0, 1), active_range_(IndexRangeType()),
@@ -56,13 +73,34 @@ public:
     DataLab &operator=(DataLab &&c) = delete;
     ~DataLab() override = default;
 
+    using iterator = Core::MultiIndexIterator<IndexRangeType::Dim>;
+    iterator begin() noexcept { return iterator(active_range_, 0); }
+    iterator begin() const noexcept { return iterator(active_range_, 0); }
+    iterator end() noexcept
+    {
+        return iterator(active_range_, active_range_.size());
+    }
+    iterator end() const noexcept
+    {
+        return iterator(active_range_, active_range_.size());
+    }
+
+    /**
+     * @brief Allocate data lab memory block for a given stencil
+     * @param s Target stencil
+     * @param max_range Maximum index range to be processed in the lab
+     * @param force Force a reallocation for subsequent requests
+     *
+     * @rst
+     * The method may be called subsequently.with a different stencil and
+     * maximum range.  If the new request can be processed using the current
+     * allocation no new memory is allocated unless the ``force`` flag is true.
+     * @endrst
+     */
     void allocate(const StencilType &s,
                   const IndexRangeType &max_range,
                   const bool force = false)
     {
-        // TODO: [fabianw@mavt.ethz.ch; 2020-02-11] does fastest moving index
-        // need to be pitched for SIMD registers?
-        //
         // TODO: [fabianw@mavt.ethz.ch; 2020-02-11] Should offsets be const? any
         // runtime difference?
 
@@ -106,9 +144,20 @@ public:
         is_allocated_ = true;
     }
 
+    /**
+     * @brief Lab data loader
+     * @param fid Multi-dimensional index of target block field
+     * @param id2field Index mapping function for block fields
+     * @param apply_bc Flag whether to apply boundary conditions
+     *
+     * @rst
+     * The ``id2field`` mapping function takes a multi-dimensional block field
+     * index as an argument and returns a reference to the corresponding block
+     * field.  The function must map indices periodically.
+     * @endrst
+     */
     void loadData(const MultiIndex &fid,
                   const ID2Field &id2field,
-                  const double time = 0,
                   const bool apply_bc = true)
     {
         static_assert(TField::Class == Cubism::FieldClass::Scalar,
@@ -119,19 +168,12 @@ public:
         }
 
         // 1. load the block field data
-        // 2. load the halos / apply boundary conditions
+        // 2. load the halos
+        // 3. apply boundary conditions
 
         // 1.
         const TField &f0 = id2field(fid);
         active_range_ = f0.getIndexRange();
-
-        // TODO: [fabianw@mavt.ethz.ch; 2020-02-12] specialized versions
-        // DataType *dst = block_data_;
-        // const DataType *src = f0.getData();
-        // const size_t l0 = range_.sizeDim(0);        // lab stride
-        // const size_t n0 = active_range_.sizeDim(0); // data stride
-        // const size_t bytes0 = n0 * sizeof(DataType);
-        // const size_t N = active_range_.size();
 
         const auto range_end = active_range_.end();
         for (auto it = active_range_.begin(); it != range_end; ++it) {
@@ -141,152 +183,171 @@ public:
 
         // 2.
         auto boundaries = f0.getBC(); // get list of boundary conditions
+        BoolVec periodic(true);
+        MultiIndex skip(1);
+        for (auto bc : boundaries) {
+            const auto info = bc->getBoundaryInfo();
+            assert(info.dir < IndexRangeType::Dim);
+            periodic[info.dir] = info.is_periodic;
+            skip[info.dir] = (info.side == 0) ? -1 : 1;
+        }
 
-        // XXX: [fabianw@mavt.ethz.ch; 2020-02-12] continue periodic BC
+        const MultiIndex one(1);
+        const IndexRangeType nbr_range(0, 3);
+        const size_t neighbors = nbr_range.size();
+        const size_t me = neighbors / 2;
+        const MultiIndex active_extent = active_range_.getExtent();
+        const MultiIndex halo_extent =
+            active_extent + active_stencil_.getEnd() - one;
+        const MultiIndex stencil_begin = active_stencil_.getBegin();
+        for (size_t i = 0; i < neighbors; ++i) {
+            if (i == me) {
+                continue;
+            }
+            const MultiIndex bi = nbr_range.getMultiIndex(i) - one;
 
-        //{
-        //    const bool xperiodic = is_xperiodic();
-        //    const bool yperiodic = is_yperiodic();
-        //    const bool zperiodic = is_zperiodic();
+            typename MultiIndex::DataType isum = 0;
+            bool skip_current = false;
+            for (size_t j = 0; j < IndexRangeType::Dim; ++j) {
+                if (!periodic[j] && bi[j] == skip[j]) {
+                    skip_current = true;
+                    break;
+                }
+                isum += Cubism::myAbs(bi[j]);
+            }
+            if (skip_current) {
+                continue;
+            }
+            if (!active_stencil_.isTensorial() && isum > 1) {
+                continue;
+            }
 
-        //    const bool xskin = info.index[0]==0 ||
-        //    info.index[0]==grid.getBlocksPerDimension(0)-1; const bool yskin =
-        //    info.index[1]==0 ||
-        //    info.index[1]==grid.getBlocksPerDimension(1)-1; const bool zskin =
-        //    info.index[2]==0 ||
-        //    info.index[2]==grid.getBlocksPerDimension(2)-1;
+            MultiIndex begin;
+            MultiIndex end;
+            for (size_t j = 0; j < IndexRangeType::Dim; ++j) {
+                begin[j] = (bi[j] < 1) ? ((bi[j] < 0) ? stencil_begin[j] : 0)
+                                       : active_extent[j];
+                end[j] = (bi[j] < 1) ? ((bi[j] < 0) ? 0 : active_extent[j])
+                                     : halo_extent[j];
+            }
+            const IndexRangeType halo_range(begin, end);
+            const MultiIndex lab_begin = begin + lab_begin_;
+            const MultiIndex nbr_begin = begin - bi * active_extent;
 
-        //    const int xskip = info.index[0]==0 ? -1 : 1;
-        //    const int yskip = info.index[1]==0 ? -1 : 1;
-        //    const int zskip = info.index[2]==0 ? -1 : 1;
-
-        //    for(int icode=0; icode<27; icode++)
-        //    {
-        //        if (icode == 1*1 + 3*1 + 9*1) continue;
-
-        //        const int code[3] = { icode%3-1, (icode/3)%3-1,
-        //        (icode/9)%3-1};
-
-        //        if (!xperiodic && code[0] == xskip && xskin) continue;
-        //        if (!yperiodic && code[1] == yskip && yskin) continue;
-        //        if (!zperiodic && code[2] == zskip && zskin) continue;
-
-        //        if (!istensorial && abs(code[0])+abs(code[1])+abs(code[2])>1)
-        //        continue;
-
-        //        const int s[3] = {
-        //            code[0]<1? (code[0]<0 ? m_stencilStart[0]:0 ) : nX,
-        //            code[1]<1? (code[1]<0 ? m_stencilStart[1]:0 ) : nY,
-        //            code[2]<1? (code[2]<0 ? m_stencilStart[2]:0 ) : nZ };
-
-        //        const int e[3] = {
-        //            code[0]<1? (code[0]<0 ? 0:nX ) : nX+m_stencilEnd[0]-1,
-        //            code[1]<1? (code[1]<0 ? 0:nY ) : nY+m_stencilEnd[1]-1,
-        //            code[2]<1? (code[2]<0 ? 0:nZ ) : nZ+m_stencilEnd[2]-1};
-
-        //        if (!grid.avail(info.index[0] + code[0], info.index[1] +
-        //        code[1], info.index[2] + code[2])) continue;
-
-        //        BlockType& b = grid(info.index[0] + code[0], info.index[1] +
-        //        code[1], info.index[2] + code[2]);
-
-        //#if 1
-        //        const int m_vSize0 = m_cacheBlock->getSize(0); //m_vSize[0];
-        //        const int m_nElemsPerSlice =
-        //        m_cacheBlock->getNumberOfElementsPerSlice();
-        //        //m_nElementsPerSlice;
-
-        //        const int my_ix = s[0]-m_stencilStart[0];
-
-        //        //printf("iy : %d %d\n", s[1], e[1]);
-        //        const int bytes = (e[0]-s[0])*sizeof(ElementType);
-        //        if (!bytes) continue;
-        //        for(int iz=s[2]; iz<e[2]; iz++)
-        //        {
-        //            const int my_izx = (iz-m_stencilStart[2])*m_nElemsPerSlice
-        //            + my_ix; #if 0 for(int iy=s[1]; iy<e[1]; iy++)
-        //            {
-        //                #if 1	// ...
-        //                //char * ptrDest =
-        //                (char*)&m_cacheBlock->Access(s[0]-m_stencilStart[0],
-        //                iy-m_stencilStart[1], iz-m_stencilStart[2]); char *
-        //                ptrDest = (char*)&m_cacheBlock->LinAccess(my_izx +
-        //                (iy-m_stencilStart[1])*m_vSize0);
-
-        //                const char * ptrSrc = (const char*)&b(s[0] -
-        //                code[0]*BlockType::sizeX, iy -
-        //                code[1]*BlockType::sizeY, iz -
-        //                code[2]*BlockType::sizeZ); memcpy2((char *)ptrDest,
-        //                (char *)ptrSrc, bytes); #else for(int ix=s[0];
-        //                ix<e[0]; ix++)
-        //                    m_cacheBlock->Access(ix-m_stencilStart[0],
-        //                    iy-m_stencilStart[1], iz-m_stencilStart[2]) =
-        //                    (ElementType)b(ix - code[0]*BlockType::sizeX, iy -
-        //                    code[1]*BlockType::sizeY, iz -
-        //                    code[2]*BlockType::sizeZ);
-        //                #endif
-        //            }
-        //            #else
-        //            if ((e[1]-s[1]) % 4 != 0)
-        //            {
-        //                for(int iy=s[1]; iy<e[1]; iy++)
-        //                {
-        //                    char * ptrDest =
-        //                    (char*)&m_cacheBlock->LinAccess(my_izx +
-        //                    (iy-m_stencilStart[1])*m_vSize0);
-
-        //                    const char * ptrSrc = (const char*)&b(s[0] -
-        //                    code[0]*BlockType::sizeX, iy -
-        //                    code[1]*BlockType::sizeY, iz -
-        //                    code[2]*BlockType::sizeZ); const int cpybytes =
-        //                    (e[0]-s[0])*sizeof(ElementType); memcpy2((char
-        //                    *)ptrDest, (char *)ptrSrc, cpybytes);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                for(int iy=s[1]; iy<e[1]; iy+=4)
-        //                {
-        //                    char * ptrDest0 =
-        //                    (char*)&m_cacheBlock->LinAccess(my_izx +
-        //                    (iy+0-m_stencilStart[1])*m_vSize0); char *
-        //                    ptrDest1 = (char*)&m_cacheBlock->LinAccess(my_izx
-        //                    + (iy+1-m_stencilStart[1])*m_vSize0); char *
-        //                    ptrDest2 = (char*)&m_cacheBlock->LinAccess(my_izx
-        //                    + (iy+2-m_stencilStart[1])*m_vSize0); char *
-        //                    ptrDest3 = (char*)&m_cacheBlock->LinAccess(my_izx
-        //                    + (iy+3-m_stencilStart[1])*m_vSize0);
-
-        //                    const char * ptrSrc0 = (const char*)&b(s[0] -
-        //                    code[0]*BlockType::sizeX, iy + 0 -
-        //                    code[1]*BlockType::sizeY, iz -
-        //                    code[2]*BlockType::sizeZ); const char * ptrSrc1 =
-        //                    (const char*)&b(s[0] - code[0]*BlockType::sizeX,
-        //                    iy + 1 - code[1]*BlockType::sizeY, iz -
-        //                    code[2]*BlockType::sizeZ); const char * ptrSrc2 =
-        //                    (const char*)&b(s[0] - code[0]*BlockType::sizeX,
-        //                    iy + 2 - code[1]*BlockType::sizeY, iz -
-        //                    code[2]*BlockType::sizeZ); const char * ptrSrc3 =
-        //                    (const char*)&b(s[0] - code[0]*BlockType::sizeX,
-        //                    iy + 3 - code[1]*BlockType::sizeY, iz -
-        //                    code[2]*BlockType::sizeZ);
-
-        //                    memcpy2((char *)ptrDest0, (char *)ptrSrc0, bytes);
-        //                    memcpy2((char *)ptrDest1, (char *)ptrSrc1, bytes);
-        //                    memcpy2((char *)ptrDest2, (char *)ptrSrc2, bytes);
-        //                    memcpy2((char *)ptrDest3, (char *)ptrSrc3, bytes);
-        //                }
-        //            }
-        //            #endif
-        //        }
-        //#else
-        //        const int off_x = - code[0]*nX + m_stencilStart[0];
-
-        if (apply_bc) {
-            for (auto bc : boundaries) {
-                (*bc)(*this, time);
+            const auto &f1 = id2field(fid + bi);
+            for (auto &p : halo_range) {
+                *(block_ + range_.getFlatIndex(p + lab_begin)) =
+                    f1[p + nbr_begin];
             }
         }
+
+        // 3.
+        if (apply_bc) {
+            for (auto bc : boundaries) {
+                (*bc)(*this);
+            }
+        }
+    }
+
+    /**
+     * @brief Linear data access
+     * @param p Local multi-dimensional index
+     * @return Reference to data element
+     *
+     * @rst
+     * The local index ``p`` may reference halo cells.  For example, ``p{-1,0}``
+     * indexes the first halo cell in the ``x`` direction that is adjacent to
+     * the inner domain.
+     * @endrst
+     */
+    DataType &operator[](const MultiIndex &p)
+    {
+        assert(range_.isIndex(p + lab_begin_));
+        return BaseType::operator[](range_.getFlatIndex(p + lab_begin_));
+    }
+
+    /**
+     * @brief Linear data access
+     * @param p Local multi-dimensional index
+     * @return ``const`` reference to data element
+     *
+     * @rst
+     * The local index ``p`` may reference halo cells.  For example, ``p{-1,0}``
+     * indexes the first halo cell in the ``x`` direction that is adjacent to
+     * the inner domain.
+     * @endrst
+     */
+    const DataType &operator[](const MultiIndex &p) const
+    {
+        assert(range_.isIndex(p + lab_begin_));
+        return BaseType::operator[](range_.getFlatIndex(p + lab_begin_));
+    }
+
+    /**
+     * @brief Get pointer to inner block data
+     * @return Pointer to first data element of base field
+     *
+     * @rst
+     * The returned pointer points to the first element defined in
+     * ``active_range_``.
+     * @endrst
+     */
+    DataType *getInnerData() { return block_data_; }
+
+    /**
+     * @brief Get pointer to inner block data
+     * @return Pointer to first data element of base field
+     *
+     * @rst
+     * The returned pointer points to the first element defined in
+     * ``active_range_``.
+     * @endrst
+     */
+    const DataType *getInnerData() const { return block_data_; }
+
+    /**
+     * @brief Get currently active stencil
+     * @return ``const`` reference to ``StencilType``
+     */
+    const StencilType &getActiveStencil() const { return active_stencil_; }
+
+    /**
+     * @brief Get currently active index range
+     * @return ``const`` reference to ``IndexRangeType``
+     */
+    const IndexRangeType &getActiveRange() const { return active_range_; }
+
+    /**
+     * @brief Get currently active lab index range
+     * @return Index range including ghost indices
+     *
+     * @rst
+     * The index range begin is identical to the active stencil begin, which is
+     * ``< 0``.
+     * @endrst
+     */
+    IndexRangeType getActiveLabRange() const
+    {
+        return IndexRangeType(active_stencil_.getBegin(),
+                              active_range_.getExtent() +
+                                  active_stencil_.getEnd() - MultiIndex(1));
+    }
+
+    /**
+     * @brief Get byte utilization of block
+     * @return Structure of byte usage for this instance
+     */
+    BlockBytes getMemoryFootprint() const override
+    {
+        BlockBytes bb = {};
+        if (is_allocated_) {
+            bb.allocated = this->bytes_;
+            bb.used = (active_range_.getExtent() + active_stencil_.getEnd() -
+                       active_stencil_.getBegin() - MultiIndex(1))
+                          .prod() *
+                      sizeof(DataType);
+        }
+        return bb;
     }
 
     // template <typename TField>
@@ -296,8 +357,20 @@ public:
     //               const double time = 0,
     //               const bool apply_bc = true)
 
+    // TODO: [fabianw@mavt.ethz.ch; 2020-02-12] specialized versions (notes)
+    // DataType *dst = block_data_;
+    // const DataType *src = f0.getData();
+    // const size_t l0 = range_.sizeDim(0);        // lab stride
+    // const size_t n0 = active_range_.sizeDim(0); // data stride
+    // const size_t bytes0 = n0 * sizeof(DataType);
+    // const size_t N = active_range_.size();
+
 protected:
-    bool allocBlock_() override { return true; }
+    bool allocBlock_() override
+    {
+        // allocate nothing during constructor call
+        return true;
+    }
 
 private:
     bool is_allocated_;

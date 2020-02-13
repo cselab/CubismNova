@@ -14,5 +14,5 @@ target_sources(${EXE} PRIVATE IO/FieldAOSTest.cpp)
 target_sources(${EXE} PRIVATE Mesh/BlockMeshTest.cpp)
 target_sources(${EXE} PRIVATE Mesh/StructuredUniformTest.cpp)
 
-target_link_libraries(${EXE} gtest gtest_main CubismIO)
+target_link_libraries(${EXE} gtest gtest_main)
 gtest_discover_tests(${EXE})
