@@ -15,7 +15,22 @@ NAMESPACE_BEGIN(Cubism)
 /** @brief Namespace for block field boundary conditions */
 NAMESPACE_BEGIN(BC)
 
-// TODO: [fabianw@mavt.ethz.ch; 2020-02-12] doxy
+/** @brief Boundary information meta data */
+struct BoundaryInfo {
+    bool is_periodic;
+    size_t dir;
+    size_t side;
+};
+
+/**
+ * @brief Boundary condition base class
+ * @tparam Lab Type of ``DataLab``
+ *
+ * @rst
+ * Each boundary condition is applied for a specific ``dir < CUBISM_DIMENSION``
+ * and corresponding ``side``.
+ * @endrst
+ * */
 template <typename Lab>
 class Base
 {
@@ -23,9 +38,20 @@ public:
     Base() = default;
     virtual ~Base() {}
 
-    // XXX: [fabianw@mavt.ethz.ch; 2020-02-12] pure virtual ?
-    virtual void operator()(Lab &, const double = 0) {}
-    virtual bool isPeriodic() const { return true; }
+    /**
+     * @brief Apply boundary condition
+     * @param lab ``DataLab`` where boundary is applied
+     */
+    virtual void operator()(Lab &) {}
+
+    /**
+     * @brief Get boundary information
+     * @return ``BoundaryInfo`` structure
+     */
+    BoundaryInfo getBoundaryInfo() const { return binfo_; }
+
+protected:
+    BoundaryInfo binfo_;
 };
 
 NAMESPACE_END(BC)
