@@ -2,6 +2,7 @@ set(EXE UnitTests)
 add_executable(${EXE})
 
 target_sources(${EXE} PRIVATE Alloc/AlignedBlockAllocatorTest.cpp)
+target_sources(${EXE} PRIVATE BC/BaseTest.cpp)
 target_sources(${EXE} PRIVATE Block/DataLabTest.cpp)
 target_sources(${EXE} PRIVATE Block/DataTest.cpp)
 target_sources(${EXE} PRIVATE Block/FieldTest.cpp)
