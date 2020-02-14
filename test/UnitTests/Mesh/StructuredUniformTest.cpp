@@ -48,6 +48,18 @@ TEST(StructuredUniform, Construction)
         }
     }
 
+    { // mesh in [0,1]
+        Mesh m(cells);
+        EXPECT_EQ(m.getExtent(), end);
+        EXPECT_EQ(m.getBegin(), MIndex(0));
+        EXPECT_EQ(m.getGlobalBegin(), MIndex(0));
+        EXPECT_EQ(m.getMultiIndex(0, Entity::Cell), MIndex(0));
+        const PointType h0 = end / PointType(cells);
+        for (const auto &c : m.getIterator(Entity::Cell)) {
+            EXPECT_EQ(m.getCellSize(c), h0);
+        }
+    }
+
     { // local and global origin at start
         Mesh m(start, end, cells, MeshIntegrity::FullMesh);
         EXPECT_EQ(m.getExtent(), extent);

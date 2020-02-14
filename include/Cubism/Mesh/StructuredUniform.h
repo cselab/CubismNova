@@ -81,6 +81,19 @@ public:
 
     /**
      * @brief Standard mesh constructor
+     * @param cells Number of cells in mesh
+     *
+     * Physical domain [0, 1], always a full mesh type
+     */
+    StructuredUniform(const MultiIndex &cells)
+        : BaseMesh(cells),
+          mesh_spacing_(range_.getExtent() / PointType(crange_.getExtent())),
+          cell_volume_(mesh_spacing_.prod())
+    {
+    }
+
+    /**
+     * @brief Standard mesh constructor
      * @param grange Global domain range spanned by this mesh
      * @param range Domain range spanned by this mesh
      * @param crange Cell range spanned by this mesh
