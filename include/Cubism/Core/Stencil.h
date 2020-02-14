@@ -26,6 +26,9 @@ public:
     using PointType = typename BaseType::PointType;
     using MultiIndex = PointType;
 
+    /** @brief Default constructor */
+    Stencil() : begin_(0), end_(1), is_tensorial_(false) {}
+
     /**
      * @brief Main constructor
      * @param b Begin of stencil
