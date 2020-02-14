@@ -39,6 +39,7 @@ class DataLab
              FieldType::EntityType,
              FieldType::IndexRangeType::Dim,
              Cubism::AlignedBlockAllocator<typename FieldType::DataType>>;
+    using BCVector = typename FieldType::BCVector;
     using LabLoader =
         Block::DataLabLoader<FieldType, BaseType::IndexRangeType::Dim>;
     using BoolVec = typename LabLoader::BoolVec;
@@ -142,6 +143,7 @@ public:
      * @param fid Multi-dimensional index of target block field
      * @param id2field Index mapping function for block fields
      * @param apply_bc Flag whether to apply boundary conditions
+     * @param extern_bc Pointer to external boundary conditions
      *
      * @rst
      * The ``id2field`` mapping function takes a multi-dimensional block field
@@ -151,7 +153,8 @@ public:
      */
     void loadData(const MultiIndex &fid,
                   const ID2Field &id2field,
-                  const bool apply_bc = true)
+                  const bool apply_bc = true,
+                  const BCVector *extern_bc = nullptr)
     {
         static_assert(FieldType::Class == Cubism::FieldClass::Scalar,
                       "DataLab: field class must be scalar.");
@@ -170,22 +173,21 @@ public:
         loader_.loadInner(f0, block_, range_, lab_begin_);
 
         // 2.
-        auto boundaries = f0.getBC(); // get list of boundary conditions
+        const BCVector &bcs = (extern_bc) ? *extern_bc : f0.getBC();
         BoolVec periodic(true);
         MultiIndex skip(1);
-        for (auto bc : boundaries) {
+        for (const auto bc : bcs) {
             const auto info = bc->getBoundaryInfo();
             assert(info.dir < IndexRangeType::Dim);
             periodic[info.dir] = info.is_periodic;
             skip[info.dir] = (info.side == 0) ? -1 : 1;
         }
-
         loader_.loadGhosts(
             fid, id2field, block_, range_, lab_begin_, periodic, skip);
 
         // 3.
         if (apply_bc) {
-            for (auto bc : boundaries) {
+            for (const auto bc : bcs) {
                 (*bc)(*this);
             }
         }
@@ -195,19 +197,24 @@ public:
      * @brief Lab data loader
      * @param fid Multi-dimensional index of target block field
      * @param id2field Index mapping function for block fields
+     * @param boundaries Vector of boundary conditions
      * @param apply_bc Flag whether to apply boundary conditions
      *
      * @rst
-     * The ``id2field`` mapping function takes a multi-dimensional block field
-     * index as an argument and returns a reference to the corresponding block
-     * field.  The function must map indices periodically.
+     * This loader is a convenience wrapper around the default loader if
+     * boundary conditions need to be enforced.  This wrapper applies the
+     * boundary conditions specified in ``boundaries`` instead of the boundary
+     * conditions specified in the block field with index ``fid`` (if any).  The
+     * vector ``boundaries`` may be empty.
      * @endrst
      */
-    // void loadData(const MultiIndex &fid,
-    //               const ID2Field &id2field,
-    //               const bool apply_bc = true)
-    // {
-    // }
+    void loadData(const MultiIndex &fid,
+                  const ID2Field &id2field,
+                  const BCVector &boundaries,
+                  const bool apply_bc = true)
+    {
+        loadData(fid, id2field, apply_bc, &boundaries);
+    }
 
     /**
      * @brief Linear data access
