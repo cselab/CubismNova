@@ -1,8 +1,11 @@
 set(EXE UnitTests)
 add_executable(${EXE})
 
+target_include_directories(${EXE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
 target_sources(${EXE} PRIVATE Alloc/AlignedBlockAllocatorTest.cpp)
 target_sources(${EXE} PRIVATE BC/BaseTest.cpp)
+target_sources(${EXE} PRIVATE BC/AbsorbingTest.cpp)
 target_sources(${EXE} PRIVATE Block/DataLabTest.cpp)
 target_sources(${EXE} PRIVATE Block/DataTest.cpp)
 target_sources(${EXE} PRIVATE Block/FieldTest.cpp)
