@@ -114,4 +114,90 @@ TEST(DataLab, Ghosts)
     runTest<int, 2, Cubism::EntityType::Face, false>();
     runTest<int, 2, Cubism::EntityType::Face, true>();
 }
+
+TEST(DataLab, Reuse)
+{
+    using Field = Block::Field<int, Cubism::EntityType::Cell, 2>;
+    using IRange = typename Field::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    using DataLab = Block::DataLab<Field>;
+    using Stencil = typename DataLab::StencilType;
+
+    MIndex elements(16);
+    IRange element_domain(elements);
+    Field f(element_domain);
+
+    DataLab dlab;
+    const Stencil ssmall(-1, 2);
+    const Stencil slarge(-3, 4);
+    const Stencil shuge(-128, 129);
+    dlab.allocate(slarge, f.getIndexRange());
+    const void *p0 = dlab.getBlockPtr();
+    const size_t b0 = dlab.getBlockBytes();
+    const size_t a0 = reinterpret_cast<size_t>(p0) % CUBISM_ALIGNMENT;
+    EXPECT_EQ(a0, 0);
+    dlab.allocate(ssmall, f.getIndexRange());
+    const void *p1 = dlab.getBlockPtr();
+    const size_t b1 = dlab.getBlockBytes();
+    const size_t a1 = reinterpret_cast<size_t>(p1) % CUBISM_ALIGNMENT;
+    EXPECT_EQ(a1, 0);
+    EXPECT_EQ(p0, p1);
+    EXPECT_EQ(b0, b1);
+    dlab.allocate(shuge, f.getIndexRange());
+    const void *p2 = dlab.getBlockPtr();
+    const size_t b2 = dlab.getBlockBytes();
+    const size_t a2 = reinterpret_cast<size_t>(p2) % CUBISM_ALIGNMENT;
+    EXPECT_EQ(a2, 0);
+    EXPECT_NE(p2, p1);
+    EXPECT_NE(b2, b1);
+}
+
+TEST(DataLab, Interface)
+{
+    using Field = Block::Field<int, Cubism::EntityType::Cell, 2>;
+    using IRange = typename Field::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    using DataLab = Block::DataLab<Field>;
+    using Stencil = typename DataLab::StencilType;
+    using DataType = typename Field::DataType;
+
+    MIndex elements(16);
+    IRange element_domain(elements);
+    Field f(element_domain);
+    DataType k = 0;
+    for (auto &c : f) {
+        c = k;
+        k += 1;
+    }
+
+    DataLab dlab;
+    const auto bytes0 = dlab.getMemoryFootprint();
+    EXPECT_EQ(bytes0.allocated, 0);
+    EXPECT_EQ(bytes0.used, 0);
+    const Stencil stencil(-3, 4);
+    auto fields = [&](const MIndex &) -> const Field & { return f; };
+    dlab.allocate(stencil, f.getIndexRange());
+    dlab.loadData(MIndex(0), fields);
+    EXPECT_EQ(*dlab.getInnerData(), f[0]);
+    *dlab.getInnerData() = 1;
+    EXPECT_NE(*dlab.getInnerData(), f[0]);
+
+    EXPECT_EQ(dlab.getActiveStencil().getBegin(), stencil.getBegin());
+    EXPECT_EQ(dlab.getActiveStencil().getEnd(), stencil.getEnd());
+    EXPECT_EQ(dlab.getActiveStencil().isTensorial(), stencil.isTensorial());
+
+    const IRange arange = dlab.getActiveRange();
+    EXPECT_EQ(arange.getBegin(), f.getIndexRange().getBegin());
+    EXPECT_EQ(arange.getEnd(), f.getIndexRange().getEnd());
+    EXPECT_EQ(arange.getExtent(), f.getIndexRange().getExtent());
+
+    const IRange lrange = dlab.getActiveLabRange();
+    EXPECT_EQ(lrange.getBegin(), stencil.getBegin());
+    EXPECT_EQ(lrange.getEnd(),
+              f.getIndexRange().getExtent() + stencil.getEnd() - MIndex(1));
+
+    const auto abytes = dlab.getMemoryFootprint();
+    EXPECT_EQ(abytes.allocated, dlab.getBlockBytes());
+    EXPECT_EQ(abytes.used, lrange.size() * sizeof(DataType));
+}
 } // namespace

@@ -57,7 +57,7 @@ public:
     using StencilType = typename LabLoader::StencilType;
 
     /** @brief Main constructor */
-    explicit DataLab()
+    DataLab()
         : BaseType(IndexRangeType()), is_allocated_(false),
           block_data_(nullptr), lab_begin_(0), lab_end_(0)
     {
@@ -132,10 +132,7 @@ public:
 
         // 3.
         BaseType::deallocBlock_();
-        if (!BaseType::allocBlock_()) {
-            throw std::runtime_error(
-                "DataLab: error allocating new lab block memory.");
-        }
+        BaseType::allocBlock_();
         block_data_ = block_ + range_.getFlatIndex(lab_begin_);
         is_allocated_ = true;
     }
