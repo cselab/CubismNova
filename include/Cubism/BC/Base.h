@@ -7,6 +7,8 @@
 #define BASE_H_EJIAASP9
 
 #include "Cubism/Common.h"
+#include <cassert>
+#include <string>
 
 NAMESPACE_BEGIN(Cubism)
 /**
@@ -17,9 +19,10 @@ NAMESPACE_BEGIN(BC)
 
 /** @brief Boundary information meta data */
 struct BoundaryInfo {
-    bool is_periodic;
     size_t dir;
     size_t side;
+    bool apply_tensorial;
+    bool is_periodic;
 };
 
 /**
@@ -34,9 +37,23 @@ struct BoundaryInfo {
 template <typename Lab>
 class Base
 {
+    using StencilType = typename Lab::StencilType;
+
 public:
-    Base() = default;
+    Base(const size_t dir, const size_t side, const bool tensorial = false)
+    {
+        binfo_.dir = dir;
+        binfo_.side = side;
+        binfo_.apply_tensorial = tensorial;
+        binfo_.is_periodic = true;
+    }
     virtual ~Base() {}
+
+    /**
+     * @brief Get boundary information
+     * @return ``BoundaryInfo`` structure
+     */
+    const BoundaryInfo &getBoundaryInfo() const { return binfo_; }
 
     /**
      * @brief Apply boundary condition
@@ -45,13 +62,20 @@ public:
     virtual void operator()(Lab &) {}
 
     /**
-     * @brief Get boundary information
-     * @return ``BoundaryInfo`` structure
+     * @brief Name of boundary condition
+     * @return Name string
      */
-    BoundaryInfo getBoundaryInfo() const { return binfo_; }
+    virtual std::string name() const { return std::string("Base"); }
 
 protected:
     BoundaryInfo binfo_;
+
+    bool isValidStencil_(const StencilType &s) const
+    {
+        assert(binfo_.dir < Lab::IndexRangeType::Dim);
+        return !((0 == s.getBegin()[binfo_.dir]) ||
+                 (1 == s.getEnd()[binfo_.dir]));
+    }
 };
 
 NAMESPACE_END(BC)
