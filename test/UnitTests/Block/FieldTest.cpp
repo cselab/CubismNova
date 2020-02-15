@@ -47,6 +47,16 @@ TEST(Field, Construction)
         EXPECT_EQ(cf.isScalar(), cf_view.isScalar());
     }
 
+    { // from block data type
+        using Data = Block::Data<int, EntityType::Cell, 3>;
+        Data data(cell_domain);
+        CellField cf(data);
+        EXPECT_FALSE(cf.isMemoryOwner());
+        EXPECT_EQ(cf.getBlockPtr(), data.getBlockPtr());
+        EXPECT_EQ(&cf.getState(), nullptr);
+        EXPECT_TRUE(cf.isScalar());
+    }
+
     { // copy assignment
         CellField cf(cell_domain);
         CellField cf1(cell_domain);
@@ -95,6 +105,7 @@ TEST(Field, Construction)
 TEST(Field, Interface)
 {
     using FaceField = Block::Field<double, EntityType::Face, 3>; // 3D
+    using FieldView = Block::FieldView<FaceField>;
     using IRange = typename FaceField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 
@@ -104,6 +115,17 @@ TEST(Field, Interface)
     EXPECT_EQ(ff.size(), face_domain.size());
     EXPECT_TRUE(ff.isScalar());
     EXPECT_NE(&ff.getState(), nullptr);
+
+    ff.getBC().push_back(nullptr);
+    ff.getBC().push_back(nullptr);
+    EXPECT_EQ(ff.getBC().size(), 2);
+    FieldView fv(ff);
+    EXPECT_EQ(fv.getBC().size(), 2);
+    EXPECT_EQ(fv.getBC()[0], nullptr);
+    EXPECT_EQ(fv.getBC()[1], nullptr);
+    fv.getBC().clear();
+    EXPECT_EQ(fv.getBC().size(), 0);
+    EXPECT_EQ(ff.getBC().size(), 2);
 }
 
 TEST(Field, Iterator)
@@ -1030,6 +1052,44 @@ TEST(TensorField, Construction)
     }
 }
 
+TEST(TensorField, Interface)
+{
+    // Rank 2 tensor, cell-centered data, 3-dimensional
+    using TensorField =
+        Block::TensorField<double, 2, Cubism::EntityType::Cell, 3>;
+    using FieldView = Block::FieldView<TensorField>;
+    using IRange = typename TensorField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    TensorField tf(cell_domain);
+
+    EXPECT_EQ(tf.getIndexRange(), cell_domain);
+    EXPECT_EQ(tf.getMemoryOwnership(), TensorField::MemoryOwner::Yes);
+    EXPECT_NE(&tf.getState(), nullptr);
+    auto &fs = tf.getState();
+    EXPECT_NE(&fs, nullptr);
+
+    for (auto c : tf) {
+        c->getBC().push_back(nullptr);
+        c->getBC().push_back(nullptr);
+        EXPECT_EQ(c->getBC().size(), 2);
+    }
+    FieldView tfv(tf);
+    for (auto c : tfv) {
+        EXPECT_EQ(c->getBC().size(), 2);
+        EXPECT_EQ(c->getBC()[0], nullptr);
+        EXPECT_EQ(c->getBC()[1], nullptr);
+        c->getBC().clear();
+        EXPECT_EQ(c->getBC().size(), 0);
+    }
+
+    for (auto c : tf) {
+        EXPECT_EQ(c->getBC().size(), 2);
+    }
+}
+
 TEST(FaceContainer, Construction)
 {
     using FaceField =
@@ -1142,6 +1202,46 @@ TEST(FaceContainer, TensorConstruction)
         for (auto c : *f) { // tensor components for each f
             EXPECT_EQ(&c->getState(), pstate);
         }
+    }
+}
+
+TEST(FaceContainer, Interface)
+{
+    using FaceField =
+        Block::FaceContainer<Block::Field<double, EntityType::Face, 3>>;
+    using FieldView = Block::FieldView<FaceField>;
+    using IRange = typename FaceField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+
+    MIndex cells(16);
+    IRange cell_domain(cells);
+    FaceField ff(cell_domain);
+
+    for (size_t i = 0; i < IRange::Dim; ++i) {
+        const IRange frange(cells + MIndex::getUnitVector(i));
+        EXPECT_EQ(ff.getIndexRange(i), frange);
+    }
+    EXPECT_EQ(ff.getMemoryOwnership(), FaceField::MemoryOwner::Yes);
+    EXPECT_NE(&ff.getState(), nullptr);
+    auto &fs = ff.getState();
+    EXPECT_NE(&fs, nullptr);
+
+    for (auto c : ff) {
+        c->getBC().push_back(nullptr);
+        c->getBC().push_back(nullptr);
+        EXPECT_EQ(c->getBC().size(), 2);
+    }
+    FieldView ffv(ff);
+    for (auto c : ffv) {
+        EXPECT_EQ(c->getBC().size(), 2);
+        EXPECT_EQ(c->getBC()[0], nullptr);
+        EXPECT_EQ(c->getBC()[1], nullptr);
+        c->getBC().clear();
+        EXPECT_EQ(c->getBC().size(), 0);
+    }
+
+    for (auto c : ff) {
+        EXPECT_EQ(c->getBC().size(), 2);
     }
 }
 

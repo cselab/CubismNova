@@ -402,7 +402,7 @@ public:
      * @brief Get byte utilization of block
      * @return Structure of byte usage for this instance
      */
-    BlockBytes getMemoryFootprint() const
+    virtual BlockBytes getMemoryFootprint() const
     {
         BlockBytes bb = {};
         bb.allocated = bytes_;
@@ -411,7 +411,7 @@ public:
     }
 
 protected:
-    const IndexRangeType range_; // range of DIM-dimensional data
+    IndexRangeType range_;       // range of DIM-dimensional data
     const MemoryOwner owner_;    // owns memory
     const bool external_memory_; // true if memory allocation is external
     DataType *block_;            // pointer to first block element
@@ -422,7 +422,7 @@ protected:
      * @brief Allocate single block memory
      * @return True if success
      */
-    bool allocBlock_()
+    virtual bool allocBlock_()
     {
         bytes_ = range_.size() * sizeof(DataType);
         block_ = blk_alloc_.allocate(bytes_);

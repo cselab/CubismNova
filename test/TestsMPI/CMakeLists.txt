@@ -1,6 +1,3 @@
-set(MPI_COMPILE_FLAGS "-Wno-unused-parameter -Wno-uninitialized")
-set(CMAKE_CXX_FLAGS "${MPI_COMPILE_FLAGS} ${CMAKE_CXX_FLAGS}")
-
 # Cartesian MPI grid
 set(EXE CartesianMPI)
 add_executable(${EXE})

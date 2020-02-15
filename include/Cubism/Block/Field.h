@@ -7,7 +7,9 @@
 #define FIELD_H_7NZ0QFMC
 
 #include "Cubism/Alloc/AlignedBlockAllocator.h"
+#include "Cubism/BC/Base.h"
 #include "Cubism/Block/Data.h"
+#include "Cubism/Block/DataLab.h"
 #include "Cubism/Block/FieldOperator.h"
 #include "Cubism/Common.h"
 #include <array>
@@ -66,6 +68,10 @@ public:
     using typename BlockDataType::IndexRangeType;
     using typename BlockDataType::MultiIndex;
     using FieldStateType = State;
+
+    // boundary conditions
+    using BCType = BC::Base<Block::DataLab<FieldType>>;
+    using BCVector = std::vector<BCType *>;
 
 protected:
     template <typename U>
@@ -198,7 +204,7 @@ public:
      * copy)
      */
     Field(const Field &f, const typename BlockDataType::MemoryOwner o)
-        : BlockDataType(f, o), is_subfield_(false), state_(nullptr)
+        : BlockDataType(f, o), is_subfield_(false), state_(nullptr), bc_(f.bc_)
     {
         if (!is_subfield_ && this->isMemoryOwner()) {
             state_ = new FieldStateType();
@@ -217,7 +223,7 @@ public:
     Field(const Field &f,
           const typename BlockDataType::MemoryOwner o,
           FieldStateType *pfs)
-        : BlockDataType(f, o), is_subfield_(true), state_(pfs)
+        : BlockDataType(f, o), is_subfield_(true), state_(pfs), bc_(f.bc_)
     {
     }
 
@@ -256,6 +262,20 @@ public:
     }
 
     /**
+     * @brief Low-level constructor for use with a block data type
+     * @param d Base block data object (owns memory)
+     *
+     * @rst
+     * Useful for a ``DataLab`` and ``Cubsim::IO`` routines for example.
+     * @endrst
+     */
+    Field(const BlockDataType &d)
+        : BlockDataType(d, BlockDataType::MemoryOwner::No), is_subfield_(false),
+          state_(nullptr)
+    {
+    }
+
+    /**
      * @brief Standard copy constructor for a scalar field
      * @param c Field to copy from
      *
@@ -266,7 +286,8 @@ public:
      * @endrst
      */
     Field(const Field &c)
-        : BlockDataType(c), is_subfield_(c.is_subfield_), state_(nullptr)
+        : BlockDataType(c), is_subfield_(c.is_subfield_), state_(nullptr),
+          bc_(c.bc_)
     {
         if (!is_subfield_ && this->isMemoryOwner()) {
             state_ = new FieldStateType();
@@ -280,7 +301,7 @@ public:
      */
     Field(Field &&c) noexcept
         : BlockDataType(std::move(c)), is_subfield_(c.is_subfield_),
-          state_(std::move(c.state_))
+          state_(std::move(c.state_)), bc_(std::move(c.bc_))
     {
         c.state_ = nullptr;
     }
@@ -312,7 +333,8 @@ public:
         assert(range_.size() == c.range_.size());
         if (this != &c) {
             // XXX: [fabianw@mavt.ethz.ch; 2020-01-26] this copies state too
-            // here?
+            // here?  Also boundary conditions must not be copied during
+            // assignment
             // if (!is_subfield_) {
             //     copyState_(c);
             // } else if (is_subfield_ && !this->isMemoryOwner()) {
@@ -345,6 +367,7 @@ public:
             disposeState_();
             state_ = std::move(c.state_);
             c.state_ = nullptr;
+            bc_ = std::move(c.bc_);
         }
         return *this;
     }
@@ -354,7 +377,7 @@ public:
      */
     using iterator = IteratorBase<DataType>;
     /**
-     * @brief Const iterator for underlying data
+     * @brief ``const`` iterator for underlying data
      */
     using const_iterator = IteratorBase<const DataType>;
     /**
@@ -374,12 +397,12 @@ public:
     }
     /**
      * @brief Begin of data
-     * @return Const iterator
+     * @return ``const`` iterator
      */
     const_iterator cbegin() const noexcept { return const_iterator(block_); }
     /**
      * @brief End of data
-     * @return Const iterator
+     * @return ``const`` iterator
      */
     const_iterator cend() const noexcept
     {
@@ -399,7 +422,7 @@ public:
     bool isScalar() const { return (0 == Rank); }
     /**
      * @brief Get field state
-     * @return Non-const reference to state
+     * @return reference to state
      */
     FieldStateType &getState() { return *state_; }
     /**
@@ -407,6 +430,16 @@ public:
      * @return ``const`` reference to state
      */
     const FieldStateType &getState() const { return *state_; }
+    /**
+     * @brief Get list of boundary conditions
+     * @return Reference to vector of BC's
+     */
+    BCVector &getBC() { return bc_; }
+    /**
+     * @brief Get list of boundary conditions
+     * @return ``const`` reference to vector of BC's
+     */
+    const BCVector &getBC() const { return bc_; }
 
     Field operator-() const
     {
@@ -530,6 +563,7 @@ private:
                              // tensor_component[1]: is_subfield_ = true
                              // tensor_component[n]: is_subfield_ = true
     FieldStateType *state_;  // Field state values/meta data
+    BCVector bc_;            // Vector of boundary conditions for this field
 
     /**
      * @brief Deallocate state data

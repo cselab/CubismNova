@@ -190,6 +190,20 @@ public:
 
     /**
      * @brief Standard mesh constructor
+     * @param cells Number of cells in mesh
+     *
+     * Physical domain [0, 1], always a full mesh type
+     */
+    StructuredBase(const MultiIndex &cells)
+        : type_(MeshIntegrity::FullMesh), range_(PointType(1)),
+          global_range_(range_.getBegin(), range_.getEnd()), crange_(cells),
+          nrange_(crange_.getBegin(), crange_.getEnd() + 1)
+    {
+        initFaceRange_(crange_);
+    }
+
+    /**
+     * @brief Standard mesh constructor
      * @param grange Global domain range spanned by this mesh
      * @param range Domain range spanned by this mesh
      * @param crange Cell range spanned by this mesh

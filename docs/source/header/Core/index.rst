@@ -13,4 +13,5 @@ Core
 
 .. include:: Index.rst
 .. include:: Range.rst
+.. include:: Stencil.rst
 .. include:: Vector.rst
