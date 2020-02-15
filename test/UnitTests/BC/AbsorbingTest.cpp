@@ -72,10 +72,10 @@ void testDirection()
     using BCVector = typename FAL::BCVector;
 
     BCVector bcv;
-    bcv.push_back(new BC(dir, 0, true)); // tensorial boundary
-    bcv.push_back(new BC(dir, 1, true)); // tensorial boundary
+    bcv.push_back(new BC(dir, 0));
+    bcv.push_back(new BC(dir, 1));
 
-    FAL fal(FAL::Tensorial::On);
+    FAL fal(FAL::Tensorial::On); // tensorial stencil
     fal.loadData(&bcv);
     const auto &lab = fal.getLab();
     const auto &range = lab.getActiveLabRange();

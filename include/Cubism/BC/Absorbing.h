@@ -27,8 +27,7 @@ class Absorbing : public BC::Base<Lab>
     using BaseType::binfo_;
 
 public:
-    Absorbing(const size_t dir, const size_t side, const bool tensorial = false)
-        : BaseType(dir, side, tensorial)
+    Absorbing(const size_t dir, const size_t side) : BaseType(dir, side)
     {
         binfo_.is_periodic = false;
     }
@@ -65,7 +64,7 @@ private:
         MIndex slice;
         MIndex begin(0);
         Index end;
-        if (binfo_.apply_tensorial) {
+        if (stencil.isTensorial()) {
             slice = lab.getActiveLabRange().getExtent();
             begin = stencil.getBegin();
         } else {

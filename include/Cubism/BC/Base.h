@@ -21,7 +21,6 @@ NAMESPACE_BEGIN(BC)
 struct BoundaryInfo {
     size_t dir;
     size_t side;
-    bool apply_tensorial;
     bool is_periodic;
 };
 
@@ -40,11 +39,10 @@ class Base
     using StencilType = typename Lab::StencilType;
 
 public:
-    Base(const size_t dir, const size_t side, const bool tensorial = false)
+    Base(const size_t dir, const size_t side)
     {
         binfo_.dir = dir;
         binfo_.side = side;
-        binfo_.apply_tensorial = tensorial;
         binfo_.is_periodic = true;
     }
     virtual ~Base() {}
