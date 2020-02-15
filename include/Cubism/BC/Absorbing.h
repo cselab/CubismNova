@@ -41,28 +41,28 @@ public:
 
 private:
     using DataType = typename Lab::DataType;
-    using IRange = typename Lab::IndexRangeType;
-    using MIndex = typename Lab::MultiIndex;
-    using Index = typename MIndex::DataType;
+    using IndexRangeType = typename Lab::IndexRangeType;
+    using MultiIndex = typename Lab::MultiIndex;
+    using Index = typename MultiIndex::DataType;
     using Stencil = typename Lab::StencilType;
 
     void apply_(Lab &lab) const
     {
-        assert(binfo_.dir < IRange::Dim);
+        assert(binfo_.dir < IndexRangeType::Dim);
         assert(0 == binfo_.side || 1 == binfo_.side);
 
         const Stencil &stencil = lab.getActiveStencil();
         if (!this->isValidStencil_(stencil)) {
-            return; // zero stencil width for binfo_.dir
+            return; // nothing to do; zero stencil width for binfo_.dir
         }
-        const MIndex extent = lab.getActiveRange().getExtent();
-        const MIndex src = (0 == binfo_.side)
-                               ? MIndex::getUnitVector(binfo_.dir)
-                               : -MIndex::getUnitVector(binfo_.dir);
+        const MultiIndex extent = lab.getActiveRange().getExtent();
+        const MultiIndex src = (0 == binfo_.side)
+                                   ? MultiIndex::getUnitVector(binfo_.dir)
+                                   : -MultiIndex::getUnitVector(binfo_.dir);
         const Index sdir = (0 == binfo_.side) ? -1 : 1;
 
-        MIndex slice;
-        MIndex begin(0);
+        MultiIndex slice;
+        MultiIndex begin(0);
         Index end;
         if (stencil.isTensorial()) {
             slice = lab.getActiveLabRange().getExtent();
@@ -78,9 +78,9 @@ private:
             end = stencil.getEnd()[binfo_.dir] - 1;
         }
         slice[binfo_.dir] = 1;
-        const IRange srange(slice);
+        const IndexRangeType srange(slice);
         for (const auto &p : srange) {
-            MIndex q = p + begin;
+            MultiIndex q = p + begin;
             const DataType val = lab[q + src];
             lab[q] = val;
             for (Index i = 1; i < end; ++i) {
