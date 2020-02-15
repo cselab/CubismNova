@@ -265,7 +265,6 @@ void HDFDriverMPI<FileDataType, Mesh, Class>::read(
         const MIndex dbegin = data_span.getBegin();
         const MIndex fbegin = file_span.getBegin();
         const MIndex rextent = data_span.getExtent();
-        const MIndex fextent = file_span.getExtent();
         constexpr size_t HDFDim = Mesh::Dim + 1;
         hsize_t offsetZYXC[HDFDim] = {};
         hsize_t countZYXC[HDFDim];
