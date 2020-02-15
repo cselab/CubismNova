@@ -6,4 +6,4 @@
 	url = https://github.com/benhoyt/inih.git
 [submodule "test/gtest-mpi-listener"]
 	path = test/gtest-mpi-listener
-	url = https://github.com/LLNL/gtest-mpi-listener.git
+	url = https://github.com/cselab/gtest-mpi-listener.git
