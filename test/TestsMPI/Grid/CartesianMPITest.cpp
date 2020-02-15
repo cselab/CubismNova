@@ -7,7 +7,6 @@
 #include "Cubism/Core/Vector.h"
 #include "Cubism/Grid/CartesianMPI.h"
 #include "Cubism/Mesh/StructuredUniform.h"
-#include "gtest-mpi-listener.hpp"
 #include "gtest/gtest.h"
 #include <mpi.h>
 

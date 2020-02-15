@@ -5,6 +5,11 @@
 // Copyright 2020 ETH Zurich. All Rights Reserved.
 
 #include "Cubism/Common.h"
+#include "Cubism/Compiler.h"
+
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
+
 #include "gtest-mpi-listener.hpp"
 #include "gtest/gtest.h"
 #include <mpi.h>
@@ -36,3 +41,5 @@ int main(int argc, char **argv)
     // pass and 1 if some test fails.
     return RUN_ALL_TESTS();
 }
+
+DISABLE_WARNING_POP
