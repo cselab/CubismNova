@@ -9,6 +9,8 @@
 #include "Cubism/Block/DataLab.h"
 #include "Cubism/Block/Field.h"
 #include "Cubism/Common.h"
+#include "Cubism/IO/FieldHDF.h"
+#include "Cubism/Mesh/StructuredUniform.h"
 
 template <typename T, Cubism::EntityType Entity, size_t DIM>
 class FieldAndLab
@@ -44,6 +46,13 @@ public:
     const DataLab &getLab() const { return lab_; }
     Stencil &getStencil() { return stencil_; }
     const Stencil &getStencil() const { return stencil_; }
+
+    void dumpLabHDF()
+    {
+        Cubism::Mesh::StructuredUniform<double, DIM> m(
+            lab_.getIndexRange().getExtent());
+        Cubism::IO::FieldWriteHDF<DataType>("lab", "data", Field(lab_), m, 0);
+    }
 
     void loadData(const BCVector *bcs = nullptr)
     {
