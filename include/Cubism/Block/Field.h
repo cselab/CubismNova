@@ -204,7 +204,7 @@ public:
      * copy)
      */
     Field(const Field &f, const typename BlockDataType::MemoryOwner o)
-        : BlockDataType(f, o), is_subfield_(false), state_(nullptr)
+        : BlockDataType(f, o), is_subfield_(false), state_(nullptr), bc_(f.bc_)
     {
         if (!is_subfield_ && this->isMemoryOwner()) {
             state_ = new FieldStateType();
@@ -223,7 +223,7 @@ public:
     Field(const Field &f,
           const typename BlockDataType::MemoryOwner o,
           FieldStateType *pfs)
-        : BlockDataType(f, o), is_subfield_(true), state_(pfs)
+        : BlockDataType(f, o), is_subfield_(true), state_(pfs), bc_(f.bc_)
     {
     }
 
@@ -261,7 +261,14 @@ public:
         assert(state_list[0].size() == 1);
     }
 
-    // TODO: [fabianw@mavt.ethz.ch; 2020-02-12] doxy
+    /**
+     * @brief Low-level constructor for use with a block data type
+     * @param d Base block data object (owns memory)
+     *
+     * @rst
+     * Useful for a ``DataLab`` and ``Cubsim::IO`` routines for example.
+     * @endrst
+     */
     Field(const BlockDataType &d)
         : BlockDataType(d, BlockDataType::MemoryOwner::No), is_subfield_(false),
           state_(nullptr)
