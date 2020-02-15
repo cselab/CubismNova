@@ -27,13 +27,26 @@ class Absorbing : public BC::Base<Lab>
     using BaseType::binfo_;
 
 public:
+    /**
+     * @brief Main constructor
+     * @param dir Direction in which to apply the boundary
+     * @param side On which side along direction ``dir``
+     */
     Absorbing(const size_t dir, const size_t side) : BaseType(dir, side)
     {
         binfo_.is_periodic = false;
     }
 
+    /**
+     * @brief Apply boundary condition
+     * @param lab Lab on which the boundary is applied
+     */
     void operator()(Lab &lab) override { apply_(lab); }
 
+    /**
+     * @brief Name of boundary condition
+     * @return Name string
+     */
     std::string name() const override
     {
         return std::string("Zeroth-Order Absorbing");
