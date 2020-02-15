@@ -14,6 +14,7 @@
     __pragma(warning(disable : warningNumber))
 
 #define DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER DISABLE_WARNING(4100)
+#define DISABLE_WARNING_UNREFERENCED_FORMAL_VARIABLE DISABLE_WARNING(4101)
 #define DISABLE_WARNING_UNREFERENCED_FUNCTION DISABLE_WARNING(4505)
 
 #elif defined(__GNUC__) || defined(__clang__)
@@ -25,6 +26,8 @@
 
 #define DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER                          \
     DISABLE_WARNING(-Wunused-parameter)
+#define DISABLE_WARNING_UNREFERENCED_FORMAL_VARIABLE                           \
+    DISABLE_WARNING(-Wunused-variable)
 #define DISABLE_WARNING_UNREFERENCED_FUNCTION                                  \
     DISABLE_WARNING(-Wunused-function)
 
