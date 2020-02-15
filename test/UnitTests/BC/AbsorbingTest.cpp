@@ -67,7 +67,7 @@ TEST(BC, Absorbing)
 }
 
 template <size_t dir, typename FAL, typename BC>
-void testDirection()
+void testTensorial()
 {
     using BCVector = typename FAL::BCVector;
 
@@ -91,8 +91,8 @@ TEST(BC, AbsorbingTensorial)
 {
     using FAL = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
     using BC = BC::Absorbing<typename FAL::DataLab>;
-    testDirection<0, FAL, BC>();
-    testDirection<1, FAL, BC>();
-    testDirection<2, FAL, BC>();
+    testTensorial<0, FAL, BC>();
+    testTensorial<1, FAL, BC>();
+    testTensorial<2, FAL, BC>();
 }
 } // namespace
