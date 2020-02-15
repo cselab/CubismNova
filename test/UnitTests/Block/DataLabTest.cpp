@@ -7,6 +7,7 @@
 #include "Cubism/Block/DataLab.h"
 #include "Cubism/Block/Field.h"
 #include "Cubism/Common.h"
+#include "Cubism/Compiler.h"
 #include "gtest/gtest.h"
 
 namespace
@@ -33,7 +34,7 @@ void runTest()
         c = k;
         k += 1;
     }
-    auto fields = [&](const MIndex &) -> const Field & { return f; };
+    auto fields = [&](const MIndex &) -> Field & { return f; };
 
     DataLab dlab;
     const Stencil s(-2, 3, TENSORIAL);
@@ -152,6 +153,9 @@ TEST(DataLab, Reuse)
     EXPECT_NE(b2, b1);
 }
 
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_UNREFERENCED_FORMAL_VARIABLE
+
 TEST(DataLab, Interface)
 {
     using Field = Block::Field<int, Cubism::EntityType::Cell, 2>;
@@ -174,8 +178,23 @@ TEST(DataLab, Interface)
     const auto bytes0 = dlab.getMemoryFootprint();
     EXPECT_EQ(bytes0.allocated, 0);
     EXPECT_EQ(bytes0.used, 0);
+
+    try {
+        auto &f1 = dlab.getActiveField();
+    } catch (const std::runtime_error &e) {
+        EXPECT_STREQ("DataLab: no field loaded", e.what());
+    }
+    EXPECT_THROW(auto &f1 = dlab.getActiveField(), std::runtime_error);
+
+    try {
+        const auto &f2 = dlab.getActiveField();
+    } catch (const std::runtime_error &e) {
+        EXPECT_STREQ("DataLab: no field loaded", e.what());
+    }
+    EXPECT_THROW(const auto &f2 = dlab.getActiveField(), std::runtime_error);
+
     const Stencil stencil(-3, 4);
-    auto fields = [&](const MIndex &) -> const Field & { return f; };
+    auto fields = [&](const MIndex &) -> Field & { return f; };
     dlab.allocate(stencil, f.getIndexRange());
     dlab.loadData(MIndex(0), fields);
     EXPECT_EQ(*dlab.getInnerData(), f[0]);
@@ -191,6 +210,12 @@ TEST(DataLab, Interface)
     EXPECT_EQ(arange.getEnd(), f.getIndexRange().getEnd());
     EXPECT_EQ(arange.getExtent(), f.getIndexRange().getExtent());
 
+    auto &f3 = dlab.getActiveField();
+    EXPECT_EQ(&f, &f3);
+
+    const auto &f4 = dlab.getActiveField();
+    EXPECT_EQ(&f, &f4);
+
     const IRange lrange = dlab.getActiveLabRange();
     EXPECT_EQ(lrange.getBegin(), stencil.getBegin());
     EXPECT_EQ(lrange.getEnd(),
@@ -200,4 +225,7 @@ TEST(DataLab, Interface)
     EXPECT_EQ(abytes.allocated, dlab.getBlockBytes());
     EXPECT_EQ(abytes.used, lrange.size() * sizeof(DataType));
 }
+
+DISABLE_WARNING_POP
+
 } // namespace

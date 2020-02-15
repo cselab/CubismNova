@@ -60,7 +60,7 @@ public:
     /** @brief Main constructor */
     DataLab()
         : BaseType(IndexRangeType()), is_allocated_(false),
-          block_data_(nullptr), lab_begin_(0), lab_end_(0)
+          block_data_(nullptr), field_(nullptr), lab_begin_(0), lab_end_(0)
     {
     }
 
@@ -160,7 +160,7 @@ public:
                       "DataLab: field class must be scalar.");
         if (!is_allocated_) {
             throw std::runtime_error(
-                "DataLab: can not load lab data when not allocated first.");
+                "DataLab: can not load lab data when not allocated first");
         }
 
         // 1. load the block field data
@@ -168,12 +168,12 @@ public:
         // 3. apply boundary conditions
 
         // 1.
-        const FieldType &f0 = id2field(fid);
-        loader_.curr_range = f0.getIndexRange();
-        loader_.loadInner(f0, block_, range_, lab_begin_);
+        field_ = &(id2field(fid));
+        loader_.curr_range = field_->getIndexRange();
+        loader_.loadInner(*field_, block_, range_, lab_begin_);
 
         // 2.
-        const BCVector &bcs = (extern_bc) ? *extern_bc : f0.getBC();
+        const BCVector &bcs = (extern_bc) ? *extern_bc : field_->getBC();
         BoolVec periodic(true);
         MultiIndex skip(1);
         for (const auto bc : bcs) {
@@ -285,6 +285,30 @@ public:
     const IndexRangeType &getActiveRange() const { return loader_.curr_range; }
 
     /**
+     * @brief Get reference to currently loaded field
+     * @return Reference to ``FieldType``
+     */
+    FieldType &getActiveField()
+    {
+        if (!field_) {
+            throw std::runtime_error("DataLab: no field loaded");
+        }
+        return *field_;
+    }
+
+    /**
+     * @brief Get reference to currently loaded field
+     * @return ``const`` reference to ``FieldType``
+     */
+    const FieldType &getActiveField() const
+    {
+        if (!field_) {
+            throw std::runtime_error("DataLab: no field loaded");
+        }
+        return *field_;
+    }
+
+    /**
      * @brief Get currently active lab index range
      * @return Index range including ghost indices
      *
@@ -330,6 +354,7 @@ private:
     bool is_allocated_;
     LabLoader loader_;
     DataType *block_data_; // start of block data
+    FieldType *field_;     // currently loaded field
 
     // lab memory
     MultiIndex lab_begin_;

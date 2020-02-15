@@ -22,7 +22,7 @@ struct DataLabLoader {
     using StencilType = Core::Stencil<DIM>;
     using IndexRangeType = typename Core::IndexRange<DIM>;
     using MultiIndex = typename IndexRangeType::MultiIndex;
-    using ID2Field = std::function<const FieldType &(const MultiIndex &)>;
+    using ID2Field = std::function<FieldType &(const MultiIndex &)>;
     using BoolVec = Core::Vector<bool, DIM>;
 
     StencilType curr_stencil;

@@ -47,7 +47,7 @@ public:
 
     void loadData(const BCVector *bcs = nullptr)
     {
-        auto fields = [this](const MIndex &) -> const Field & {
+        auto fields = [this](const MIndex &) -> Field & {
             return this->field_;
         };
         if (bcs) {
