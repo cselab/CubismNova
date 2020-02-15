@@ -89,10 +89,16 @@ void testTensorial()
 
 TEST(BC, AbsorbingTensorial)
 {
-    using FAL = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
-    using BC = BC::Absorbing<typename FAL::DataLab>;
-    testTensorial<0, FAL, BC>();
-    testTensorial<1, FAL, BC>();
-    testTensorial<2, FAL, BC>();
+    using FALC = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
+    using BCC = BC::Absorbing<typename FALC::DataLab>;
+    testTensorial<0, FALC, BCC>();
+    testTensorial<1, FALC, BCC>();
+    testTensorial<2, FALC, BCC>();
+
+    using FALN = FieldAndLab<int, Cubism::EntityType::Node, 3>;
+    using BCN = BC::Absorbing<typename FALN::DataLab>;
+    testTensorial<0, FALN, BCN>();
+    testTensorial<1, FALN, BCN>();
+    testTensorial<2, FALN, BCN>();
 }
 } // namespace
