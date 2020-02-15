@@ -7,6 +7,7 @@
 #include "Cubism/BC/Absorbing.h"
 #include "BC/FieldAndLab.h"
 #include "gtest/gtest.h"
+#include <string>
 
 namespace
 {
@@ -52,6 +53,8 @@ TEST(BC, Absorbing)
     bcv.push_back(new BC(1, 1));
     bcv.push_back(new BC(2, 0));
     bcv.push_back(new BC(2, 1));
+
+    EXPECT_EQ(bcv[0]->name(), std::string("Zeroth-Order Absorbing"));
 
     FAL fal;
     fal.loadData(&bcv);

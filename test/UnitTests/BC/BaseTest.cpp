@@ -7,6 +7,7 @@
 #include "Cubism/BC/Base.h"
 #include "BC/FieldAndLab.h"
 #include "gtest/gtest.h"
+#include <string>
 
 namespace
 {
@@ -25,6 +26,8 @@ TEST(BC, Base)
     bcv.push_back(new BC(1, 1));
     bcv.push_back(new BC(2, 0));
     bcv.push_back(new BC(2, 1));
+
+    EXPECT_EQ(bcv[0]->name(), std::string("Base"));
 
     FAL fal;
     fal.loadData(&bcv);

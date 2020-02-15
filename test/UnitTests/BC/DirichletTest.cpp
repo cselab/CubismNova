@@ -7,6 +7,7 @@
 #include "Cubism/BC/Dirichlet.h"
 #include "BC/FieldAndLab.h"
 #include "gtest/gtest.h"
+#include <string>
 
 namespace
 {
@@ -48,6 +49,8 @@ TEST(BC, Dirichlet)
     bcv.push_back(new BC(1, 1, 13));
     bcv.push_back(new BC(2, 0, 14));
     bcv.push_back(new BC(2, 1, 15));
+
+    EXPECT_EQ(bcv[0]->name(), std::string("Dirichlet"));
 
     FAL fal;
     fal.loadData(&bcv);

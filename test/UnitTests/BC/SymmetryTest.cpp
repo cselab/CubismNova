@@ -7,6 +7,7 @@
 #include "Cubism/BC/Symmetry.h"
 #include "BC/FieldAndLab.h"
 #include "gtest/gtest.h"
+#include <string>
 
 namespace
 {
@@ -57,6 +58,8 @@ TEST(BC, Symmetry)
     bcv.push_back(new BC(1, 1, -1));
     bcv.push_back(new BC(2, 0, 1));
     bcv.push_back(new BC(2, 1, -1));
+
+    EXPECT_EQ(bcv[0]->name(), std::string("Symmetry"));
 
     FAL fal;
     fal.loadData(&bcv);
