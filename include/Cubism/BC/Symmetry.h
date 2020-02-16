@@ -33,6 +33,12 @@ public:
      * @brief Main constructor
      * @param dir Direction in which to apply the boundary
      * @param side On which side along direction ``dir``
+     * @param sign Determines the sign of the value computed in the ghosts
+     *
+     * @rst
+     * The ``sign`` parameter can be used to flip the sign of the boundary value
+     * for example the momentum vector.
+     * @endrst
      */
     Symmetry(const size_t dir, const size_t side, const DataType sign = 1)
         : BaseType(dir, side), sign_(sign)

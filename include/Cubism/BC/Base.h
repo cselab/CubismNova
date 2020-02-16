@@ -19,8 +19,11 @@ NAMESPACE_BEGIN(BC)
 
 /** @brief Boundary information meta data */
 struct BoundaryInfo {
+    /** @brief Boundary direction index */
     size_t dir;
+    /** @brief Side index alond direction ``dir`` */
     size_t side;
+    /** @brief Periodic flag */
     bool is_periodic;
 };
 
@@ -55,9 +58,8 @@ public:
 
     /**
      * @brief Apply boundary condition
-     * @param lab ``DataLab`` where boundary is applied
      */
-    virtual void operator()(Lab &) {}
+    virtual void operator()(Lab & /* lab */) {}
 
     /**
      * @brief Name of boundary condition

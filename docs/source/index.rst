@@ -12,6 +12,7 @@
    :name: headers
 
    header/Alloc/index.rst
+   header/BC/index.rst
    header/Block/index.rst
    header/Core/index.rst
    header/Grid/index.rst

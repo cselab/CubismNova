@@ -4,6 +4,7 @@
 .. Description: Doxygen namespaces documentation
 .. Copyright 2020 ETH Zurich. All Rights Reserved.
 
+.. include:: BC.rst
 .. include:: Block.rst
 .. include:: Core.rst
 .. include:: Grid.rst
