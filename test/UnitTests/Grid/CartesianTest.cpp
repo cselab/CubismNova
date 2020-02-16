@@ -137,6 +137,37 @@ TEST(Cartesian, GridFill)
     }
 }
 
+TEST(Cartesian, BlockAccess)
+{
+    // 2D mesh
+    using Mesh = Mesh::StructuredUniform<float, 2>;
+    using MIndex = typename Mesh::MultiIndex;
+
+    // grid blocks and cells per block
+    const MIndex nblocks(2);
+    const MIndex block_cells(8);
+
+    { // scalar (rank-0) Cartesian cell field (int)
+        using Grid = Grid::Cartesian<int, Mesh, Cubism::EntityType::Cell, 0>;
+        Grid grid(nblocks, block_cells);
+        auto fields = grid.getIndexFunctor();
+        const MIndex f00{0, 0};
+        const MIndex f01{0, 1};
+        const MIndex f10{1, 0};
+        const MIndex f11{1, 1};
+        EXPECT_EQ(fields(f00 - f10).getState().idx, f10);
+        EXPECT_EQ(fields(f10 - f10).getState().idx, f00);
+        EXPECT_EQ(fields(f00 + f10).getState().idx, f10);
+        EXPECT_EQ(fields(f10 + f10).getState().idx, f00);
+        EXPECT_EQ(fields(f10 - f01).getState().idx, f11);
+        EXPECT_EQ(fields(f11 - f01).getState().idx, f10);
+        EXPECT_EQ(fields(f11 + f01).getState().idx, f10);
+        EXPECT_EQ(fields(f10 + f01).getState().idx, f11);
+        EXPECT_EQ(fields(f11 + f11).getState().idx, f00);
+        EXPECT_EQ(fields(f00 - f11).getState().idx, f11);
+    }
+}
+
 TEST(Cartesian, BlockMesh)
 {
     // 2D mesh

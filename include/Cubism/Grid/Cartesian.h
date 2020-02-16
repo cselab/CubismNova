@@ -47,6 +47,48 @@ template <typename T,
           template <typename> class Alloc = AlignedBlockAllocator>
 class Cartesian
 {
+    template <typename FContainer, typename IndexRange>
+    class PeriodicBlockFunctor
+    {
+    public:
+        using Field = typename FContainer::BaseType;
+        using MultiIndex = typename IndexRange::MultiIndex;
+
+        PeriodicBlockFunctor(FContainer &fields, const IndexRange &range)
+            : fields_(fields), range_(range), extent_(range_.getExtent())
+        {
+        }
+        PeriodicBlockFunctor() = delete;
+        PeriodicBlockFunctor(const PeriodicBlockFunctor &c) = default;
+        PeriodicBlockFunctor(PeriodicBlockFunctor &&c) = default;
+        PeriodicBlockFunctor &
+        operator=(const PeriodicBlockFunctor &c) = default;
+        PeriodicBlockFunctor &operator=(PeriodicBlockFunctor &&c) = default;
+
+        Field &operator()(const MultiIndex &p)
+        {
+            return fields_[range_.getFlatIndex(periodic_(p))];
+        }
+
+        const Field &operator()(const MultiIndex &p) const
+        {
+            return fields_[range_.getFlatIndex(periodic_(p))];
+        }
+
+    private:
+        FContainer &fields_;
+        const IndexRange range_;
+        const MultiIndex extent_;
+
+        MultiIndex periodic_(MultiIndex p) const
+        {
+            for (size_t i = 0; i < IndexRange::Dim; ++i) {
+                p[i] = (p[i] + extent_[i]) % extent_[i];
+            }
+            return p;
+        }
+    };
+
 public:
     /** @brief Type of mesh */
     using MeshType = Mesh;
@@ -96,6 +138,8 @@ public:
     using DataType = typename Assembler::DataType;
     /** @brief Container type for field views */
     using FieldContainer = typename Assembler::FieldContainer;
+    /** @brief Periodic field access by index */
+    using IndexFunctor = PeriodicBlockFunctor<FieldContainer, IndexRangeType>;
 
     /** @brief Field dimension */
     static constexpr size_t Dim = MeshType::Dim;
@@ -365,6 +409,15 @@ public:
         assert(assembler_.fields.size() > 0);
         assert(i < assembler_.fields.size());
         return assembler_.fields[i];
+    }
+
+    /**
+     * @brief Get field access functor
+     * @return Periodic field access functor given the block index
+     */
+    IndexFunctor getIndexFunctor()
+    {
+        return IndexFunctor(assembler_.fields, block_range_);
     }
 
     /**
