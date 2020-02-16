@@ -12,4 +12,5 @@ Block
 .. TODO: [fabianw@mavt.ethz.ch; 2020-01-16] intro
 
 .. include:: Data.rst
+.. include:: DataLab.rst
 .. include:: Field.rst
