@@ -28,6 +28,7 @@ struct DataLabLoader {
 
     StencilType curr_stencil;
     IndexRangeType curr_range;
+    IndexRangeType curr_labrange;
 
     void loadInner(const FieldType &src,
                    DataType *dst,
@@ -49,19 +50,17 @@ struct DataLabLoader {
                     const BoolVec &periodic,
                     const MultiIndex &skip)
     {
-        const MultiIndex one(1);
         const IndexRangeType nbr_range(0, 3);
         const size_t neighbors = nbr_range.size();
         const size_t me = neighbors / 2;
         const MultiIndex curr_extent = curr_range.getExtent();
-        const MultiIndex halo_extent =
-            curr_extent + curr_stencil.getEnd() - one;
+        const MultiIndex halo_extent = curr_extent + curr_stencil.getEnd() - 1;
         const MultiIndex stencil_begin = curr_stencil.getBegin();
         for (size_t i = 0; i < neighbors; ++i) {
             if (i == me) {
                 continue;
             }
-            const MultiIndex bi = nbr_range.getMultiIndex(i) - one;
+            const MultiIndex bi = nbr_range.getMultiIndex(i) - 1;
 
             typename MultiIndex::DataType isum = 0;
             bool skip_current = false;
@@ -79,19 +78,29 @@ struct DataLabLoader {
                 continue;
             }
 
+            const auto &f = i2f(i0 + bi); // neighbor block field
+            const MultiIndex nbr_extent = f.getIndexRange().getExtent();
             MultiIndex begin;
             MultiIndex end;
+            MultiIndex shift(0);
             for (size_t j = 0; j < IndexRangeType::Dim; ++j) {
-                begin[j] = (bi[j] < 1) ? ((bi[j] < 0) ? stencil_begin[j] : 0)
-                                       : curr_extent[j];
-                end[j] = (bi[j] < 1) ? ((bi[j] < 0) ? 0 : curr_extent[j])
-                                     : halo_extent[j];
+                if (bi[j] < 1) {
+                    if (bi[j] < 0) {
+                        shift[j] = nbr_extent[j] - curr_extent[j];
+                        begin[j] = stencil_begin[j];
+                        end[j] = 0;
+                    } else {
+                        begin[j] = 0;
+                        end[j] = curr_extent[j];
+                    }
+                } else {
+                    begin[j] = curr_extent[j];
+                    end[j] = halo_extent[j];
+                }
             }
             const IndexRangeType halo_range(begin, end);
             const MultiIndex lab_begin = begin + offset;
-            const MultiIndex nbr_begin = begin - bi * curr_extent;
-
-            const auto &f = i2f(i0 + bi);
+            const MultiIndex nbr_begin = begin - bi * curr_extent + shift;
             for (auto &p : halo_range) {
                 *(dst + rmemory.getFlatIndex(p + lab_begin)) = f[p + nbr_begin];
             }
@@ -112,6 +121,7 @@ struct DataLabLoader<FieldType, 3> {
 
     StencilType curr_stencil;
     IndexRangeType curr_range;
+    IndexRangeType curr_labrange;
 
     void loadInner(const FieldType &src,
                    DataType *dst,
@@ -167,12 +177,11 @@ struct DataLabLoader<FieldType, 3> {
                     const BoolVec &periodic,
                     const MultiIndex &skip)
     {
-        const MultiIndex one(1);
         const IndexRangeType nbr_range(0, 3);
         const size_t neighbors = nbr_range.size();
         const size_t me = neighbors / 2;
         const MultiIndex extent = curr_range.getExtent();
-        const MultiIndex halo_extent = extent + curr_stencil.getEnd() - one;
+        const MultiIndex halo_extent = extent + curr_stencil.getEnd() - 1;
         const MultiIndex stencil_begin = curr_stencil.getBegin();
         DataType *pdst = dst + rmemory.getFlatIndex(offset + stencil_begin);
         for (size_t i = 0; i < neighbors; ++i) {
@@ -191,17 +200,19 @@ struct DataLabLoader<FieldType, 3> {
                 continue;
             }
 
+            const auto &f = i2f(i0 + bi);
+            const MultiIndex nbr_extent = f.getIndexRange().getExtent();
             const MultiIndex begin{
                 bi[0] < 1 ? (bi[0] < 0 ? stencil_begin[0] : 0) : extent[0],
                 bi[1] < 1 ? (bi[1] < 0 ? stencil_begin[1] : 0) : extent[1],
                 bi[2] < 1 ? (bi[2] < 0 ? stencil_begin[2] : 0) : extent[2]};
-
             const MultiIndex end{
                 bi[0] < 1 ? (bi[0] < 0 ? 0 : extent[0]) : halo_extent[0],
                 bi[1] < 1 ? (bi[1] < 0 ? 0 : extent[1]) : halo_extent[1],
                 bi[2] < 1 ? (bi[2] < 0 ? 0 : extent[2]) : halo_extent[2]};
-
-            const auto &f = i2f(i0 + bi);
+            const MultiIndex shift{bi[0] < 0 ? nbr_extent[0] - extent[0] : 0,
+                                   bi[1] < 0 ? nbr_extent[1] - extent[1] : 0,
+                                   bi[2] < 0 ? nbr_extent[2] - extent[2] : 0};
             const MultiIndex lextent = rmemory.getExtent(); // lab extent
             const Index lstridex = lextent[0];              // lab stride x
             const Index lslicexy = lextent[0] * lextent[1]; // lab slice xy
@@ -216,9 +227,10 @@ struct DataLabLoader<FieldType, 3> {
                     for (Index iy = begin[1]; iy < end[1]; ++iy) {
                         DataType *dst0 =
                             pdst + szx + (iy - stencil_begin[1]) * lstridex;
-                        const DataType *src0 = &f(begin[0] - bi[0] * extent[0],
-                                                  iy - bi[1] * extent[1],
-                                                  iz - bi[2] * extent[2]);
+                        const DataType *src0 =
+                            &f(begin[0] - bi[0] * extent[0] + shift[0],
+                               iy - bi[1] * extent[1] + shift[1],
+                               iz - bi[2] * extent[2] + shift[2]);
                         std::memcpy(dst0, src0, bytesx);
                     }
                 } else {
@@ -231,18 +243,22 @@ struct DataLabLoader<FieldType, 3> {
                             pdst + szx + (iy + 2 - stencil_begin[1]) * lstridex;
                         DataType *dst3 =
                             pdst + szx + (iy + 3 - stencil_begin[1]) * lstridex;
-                        const DataType *src0 = &f(begin[0] - bi[0] * extent[0],
-                                                  iy + 0 - bi[1] * extent[1],
-                                                  iz - bi[2] * extent[2]);
-                        const DataType *src1 = &f(begin[0] - bi[0] * extent[0],
-                                                  iy + 1 - bi[1] * extent[1],
-                                                  iz - bi[2] * extent[2]);
-                        const DataType *src2 = &f(begin[0] - bi[0] * extent[0],
-                                                  iy + 2 - bi[1] * extent[1],
-                                                  iz - bi[2] * extent[2]);
-                        const DataType *src3 = &f(begin[0] - bi[0] * extent[0],
-                                                  iy + 3 - bi[1] * extent[1],
-                                                  iz - bi[2] * extent[2]);
+                        const DataType *src0 =
+                            &f(begin[0] - bi[0] * extent[0] + shift[0],
+                               iy + 0 - bi[1] * extent[1] + shift[1],
+                               iz - bi[2] * extent[2] + shift[2]);
+                        const DataType *src1 =
+                            &f(begin[0] - bi[0] * extent[0] + shift[0],
+                               iy + 1 - bi[1] * extent[1] + shift[1],
+                               iz - bi[2] * extent[2] + shift[2]);
+                        const DataType *src2 =
+                            &f(begin[0] - bi[0] * extent[0] + shift[0],
+                               iy + 2 - bi[1] * extent[1] + shift[1],
+                               iz - bi[2] * extent[2] + shift[2]);
+                        const DataType *src3 =
+                            &f(begin[0] - bi[0] * extent[0] + shift[0],
+                               iy + 3 - bi[1] * extent[1] + shift[1],
+                               iz - bi[2] * extent[2] + shift[2]);
                         std::memcpy(dst0, src0, bytesx);
                         std::memcpy(dst1, src1, bytesx);
                         std::memcpy(dst2, src2, bytesx);

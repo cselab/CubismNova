@@ -170,6 +170,9 @@ public:
         // 1.
         field_ = &(id2field(fid));
         loader_.curr_range = field_->getIndexRange();
+        loader_.curr_labrange = IndexRangeType(
+            loader_.curr_stencil.getBegin(),
+            loader_.curr_range.getExtent() + loader_.curr_stencil.getEnd() - 1);
         loader_.loadInner(*field_, block_, range_, lab_begin_);
 
         // 2.
@@ -317,13 +320,7 @@ public:
      * ``< 0``.
      * @endrst
      */
-    IndexRangeType getActiveLabRange() const
-    {
-        return IndexRangeType(loader_.curr_stencil.getBegin(),
-                              loader_.curr_range.getExtent() +
-                                  loader_.curr_stencil.getEnd() -
-                                  MultiIndex(1));
-    }
+    IndexRangeType getActiveLabRange() const { return loader_.curr_labrange; }
 
     /**
      * @brief Get byte utilization of block
@@ -336,7 +333,7 @@ public:
             bb.allocated = this->bytes_;
             bb.used = (loader_.curr_range.getExtent() +
                        loader_.curr_stencil.getEnd() -
-                       loader_.curr_stencil.getBegin() - MultiIndex(1))
+                       loader_.curr_stencil.getBegin() - 1)
                           .prod() *
                       sizeof(DataType);
         }

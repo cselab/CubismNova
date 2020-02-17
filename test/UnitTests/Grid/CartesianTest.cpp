@@ -5,10 +5,11 @@
 // Copyright 2020 ETH Zurich. All Rights Reserved.
 
 #include "Cubism/Grid/Cartesian.h"
+#include "Cubism/Block/DataLab.h"
+#include "Cubism/Math.h"
 #include "Cubism/Mesh/StructuredUniform.h"
 #include "gtest/gtest.h"
 #include <algorithm>
-#include <cmath>
 #include <limits>
 #include <vector>
 
@@ -166,6 +167,105 @@ TEST(Cartesian, BlockAccess)
         EXPECT_EQ(fields(f11 + f11).getState().block_index, f00);
         EXPECT_EQ(fields(f00 - f11).getState().block_index, f11);
     }
+}
+
+template <Cubism::EntityType Entity, size_t DIM>
+void testLab()
+{
+    static_assert(
+        Entity == Cubism::EntityType::Cell ||
+            Entity == Cubism::EntityType::Node,
+        "Entity must be Cubism::EntityType::Cell or Cubism::EntityType::Node");
+    using Mesh = Mesh::StructuredUniform<double, DIM>;
+    using Point = typename Mesh::PointType;
+    using MIndex = typename Mesh::MultiIndex;
+    using Grid = Grid::Cartesian<double, Mesh, Entity, 0>;
+    using DataType = typename Grid::DataType;
+    using FieldType = typename Grid::BaseType;
+    using Lab = Block::DataLab<FieldType>;
+    using Stencil = typename Lab::StencilType;
+
+    // grid blocks and cells per block
+    const MIndex nblocks(3);
+    const MIndex block_cells(8);
+    Grid grid(nblocks, block_cells);
+    const Point h = grid.getMesh().getCellSize(0);
+
+    // test function: p \in [0,1]
+    auto fexact = [h](const Point &p) -> DataType {
+        const DataType fac = 2 * M_PI;
+        DataType f = 1;
+        int k = 0;
+        for (auto x : p) {
+            if (Entity == EntityType::Node) {
+                if (x < 0) {
+                    x += h[k];
+                } else if (x > 1) {
+                    x -= h[k];
+                }
+            }
+            if (k % 2 == 0) {
+                f *= std::sin(fac * x);
+            } else {
+                f *= std::cos(fac * x);
+            }
+            ++k;
+        }
+        return f;
+    };
+
+    // initialize grid
+    for (auto f : grid) {
+        FieldType &bf = *f;
+        const Mesh &fm = *bf.getState().mesh;
+        for (auto &ci : fm[Entity]) {
+            const Point p = fm.getCoords(ci, Entity);
+            bf[ci] = fexact(p);
+        }
+    }
+
+    // setup lab
+    Lab lab;
+    const Stencil s(-2, 3, true);      // tensorial stencil
+    const MIndex sbegin(s.getBegin()); // stencil begin
+    const MIndex send(s.getEnd() - 1); // stencil end
+    lab.allocate(s, grid[0].getIndexRange());
+
+    // process block fields
+    auto findex = grid.getIndexFunctor(); // grid block index functor
+    for (auto f : grid) {
+        const FieldType &bf = *f;                // reference for field
+        lab.loadData(bf.getState().block_index,
+                     findex); // load the data lab block
+
+        // create a lab mesh
+        const auto lab_range = lab.getActiveLabRange(); // lab index range
+        const Mesh &bm = *bf.getState().mesh;           // block mesh
+        const MIndex lab_cells =
+            bm.getIndexRange(EntityType::Cell).getExtent() + send - sbegin;
+        const Mesh mlab(bm.getBegin() + Point(sbegin) * h,
+                        bm.getEnd() + Point(send) * h,
+                        lab_cells,
+                        Mesh::MeshIntegrity::SubMesh);
+
+        // process lab
+        for (auto i : lab_range) {
+            const Point x = mlab.getCoords(i, Entity);
+            const DataType adiff = Cubism::myAbs(lab[i + sbegin] - fexact(x));
+            EXPECT_LE(adiff, 8 * std::numeric_limits<DataType>::epsilon());
+        }
+    }
+}
+
+TEST(Cartesian, DataLab)
+{
+    testLab<Cubism::EntityType::Cell, 1>();
+    testLab<Cubism::EntityType::Cell, 2>();
+    testLab<Cubism::EntityType::Cell, 3>();
+
+    testLab<Cubism::EntityType::Node, 1>();
+    testLab<Cubism::EntityType::Node, 2>();
+    testLab<Cubism::EntityType::Node, 3>();
 }
 
 TEST(Cartesian, BlockMesh)
