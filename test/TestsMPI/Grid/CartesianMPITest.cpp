@@ -93,10 +93,10 @@ TEST(CartesianMPI, BlockMesh)
     for (auto bf : grid) { // loop over blocks
         const FieldState &fs = bf->getState();
         const Mesh &fm = *fs.mesh;
-        const MIndex global_bi = grid.getGlobalBlockIndex(fs.idx);
+        const MIndex global_bi = grid.getGlobalBlockIndex(fs.block_index);
         extent += fm.getExtent();
         volume += fm.getVolume();
-        blocks += fs.idx;
+        blocks += fs.block_index;
         EXPECT_TRUE(fm.isSubMesh());
         EXPECT_EQ(fm.getGlobalBegin(), gm.getGlobalBegin());
         for (const auto &ci : fm[EntityType::Cell]) { // cell checks
@@ -111,7 +111,7 @@ TEST(CartesianMPI, BlockMesh)
             }
         }
         if (pe_index[1] == 0 &&
-            fs.idx[1] == 0) { // number of global entities along x
+            fs.block_index[1] == 0) { // number of global entities along x
             cells[0] += fm.getIndexRange(EntityType::Cell).getExtent()[0];
             nodes[0] += fm.getIndexRange(EntityType::Node).getExtent()[0];
             for (size_t d = 0; d < Grid::Dim; ++d) {
@@ -120,7 +120,7 @@ TEST(CartesianMPI, BlockMesh)
             }
         }
         if (pe_index[0] == 0 &&
-            fs.idx[0] == 0) { // number of global entities along y
+            fs.block_index[0] == 0) { // number of global entities along y
             cells[1] += fm.getIndexRange(EntityType::Cell).getExtent()[1];
             nodes[1] += fm.getIndexRange(EntityType::Node).getExtent()[1];
             for (size_t d = 0; d < Grid::Dim; ++d) {
@@ -130,7 +130,7 @@ TEST(CartesianMPI, BlockMesh)
         }
 
         { // block mesh origin
-            const PointType mO = O + PointType(fs.idx) * block_extent;
+            const PointType mO = O + PointType(fs.block_index) * block_extent;
             const RealType diff =
                 std::fabs((fm.getBegin() - mO).sum() / PointType::Dim);
             EXPECT_LE(diff, std::numeric_limits<RealType>::epsilon());
@@ -142,13 +142,13 @@ TEST(CartesianMPI, BlockMesh)
         }
         { // global index offsets
             const MIndex gc = fm.getIndexRange(EntityType::Cell).getBegin();
-            EXPECT_EQ(gc, Oi + fs.idx * block_cells);
+            EXPECT_EQ(gc, Oi + fs.block_index * block_cells);
             const MIndex gn = fm.getIndexRange(EntityType::Node).getBegin();
-            EXPECT_EQ(gn, Oi + fs.idx * block_cells);
+            EXPECT_EQ(gn, Oi + fs.block_index * block_cells);
             for (size_t d = 0; d < Grid::Dim; ++d) {
                 const MIndex gf =
                     fm.getIndexRange(EntityType::Face, d).getBegin();
-                EXPECT_EQ(gf, Oi + fs.idx * block_cells);
+                EXPECT_EQ(gf, Oi + fs.block_index * block_cells);
             }
         }
         { // local index extents

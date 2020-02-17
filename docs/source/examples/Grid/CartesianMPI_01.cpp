@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
         std::fill(bf->begin(), bf->end(), 0); // initialize data to 0
         const auto &fs = bf->getState();      // get state for this field
         const Mesh &bm = *fs.mesh; // get the block mesh for this field
-        const MIndex bi = fs.idx;  // get the block index for this field
+        const MIndex bi = fs.block_index; // get the block index for this field
     }
 
     MPI_Finalize();

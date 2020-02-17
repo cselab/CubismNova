@@ -36,7 +36,7 @@ TEST(BlockMesh, Field)
 
     // custom field state
     struct MyFieldState {
-        MIndex idx;
+        MIndex block_index;
         Mesh *mesh;
     };
     using CellField = Block::CellField<double, Mesh::Dim, MyFieldState>;
@@ -70,7 +70,7 @@ TEST(BlockMesh, Field)
                                            IRange(nodes),
                                            vfaces,
                                            MeshIntegrity::SubMesh));
-                fs.idx = bi;
+                fs.block_index = bi;
                 fs.mesh = mfields.back();
                 fields.pushBack(new CellField(IRange(cells), fs));
             }
@@ -84,7 +84,7 @@ TEST(BlockMesh, Field)
     size_t sum_faces_z = 0;
     for (const auto f : fields) {
         const MyFieldState &fs = f->getState();
-        const MIndex bi = fs.idx;
+        const MIndex bi = fs.block_index;
         const Mesh &fm = *fs.mesh;
         const PointType morigin = m.getBegin() + PointType(bi) * block_extent;
         const PointType gorigin = m.getGlobalBegin();

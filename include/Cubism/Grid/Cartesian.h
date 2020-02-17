@@ -117,7 +117,7 @@ public:
      */
     struct FieldState {
         /** @brief Block index */
-        MultiIndex idx;
+        MultiIndex block_index;
         /** @brief Block mesh */
         MeshType *mesh;
         /** @brief User extension */

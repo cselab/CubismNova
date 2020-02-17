@@ -141,7 +141,7 @@ struct BlockFieldAssembler {
                                         MeshIntegrity::SubMesh);
             assert(fm != nullptr);
             field_meshes.push_back(fm);
-            fs->idx = bi;
+            fs->block_index = bi;
             fs->mesh = fm;
 
             // generate fields
