@@ -235,7 +235,19 @@ public:
     DataType &operator[](const MultiIndex &p)
     {
         assert(range_.isIndex(p + lab_begin_));
-        return BaseType::operator[](range_.getFlatIndex(p + lab_begin_));
+        if (1 == IndexRangeType::Dim) {
+            return block_[p[0] + lab_begin_[0]];
+        } else if (2 == IndexRangeType::Dim) {
+            return block_[p[0] + lab_begin_[0] +
+                          range_.sizeDim(0) * (p[1] + lab_begin_[1])];
+        } else if (3 == IndexRangeType::Dim) {
+            return block_[p[0] + lab_begin_[0] +
+                          range_.sizeDim(0) *
+                              (p[1] + lab_begin_[1] +
+                               range_.sizeDim(1) * (p[2] + lab_begin_[2]))];
+        } else {
+            return BaseType::operator[](range_.getFlatIndex(p + lab_begin_));
+        }
     }
 
     /**
@@ -252,7 +264,19 @@ public:
     const DataType &operator[](const MultiIndex &p) const
     {
         assert(range_.isIndex(p + lab_begin_));
-        return BaseType::operator[](range_.getFlatIndex(p + lab_begin_));
+        if (1 == IndexRangeType::Dim) {
+            return block_[p[0] + lab_begin_[0]];
+        } else if (2 == IndexRangeType::Dim) {
+            return block_[p[0] + lab_begin_[0] +
+                          range_.sizeDim(0) * (p[1] + lab_begin_[1])];
+        } else if (3 == IndexRangeType::Dim) {
+            return block_[p[0] + lab_begin_[0] +
+                          range_.sizeDim(0) *
+                              (p[1] + lab_begin_[1] +
+                               range_.sizeDim(1) * (p[2] + lab_begin_[2]))];
+        } else {
+            return BaseType::operator[](range_.getFlatIndex(p + lab_begin_));
+        }
     }
 
     /**

@@ -223,6 +223,7 @@ struct DataLabLoader<FieldType, 3> {
             if (0 == bytesx) {
                 continue;
             }
+            const DataType *psrc = f.getData();
             for (Index iz = begin[2]; iz < end[2]; ++iz) {
                 const Index szx = (iz - stencil_begin[2]) * lslicexy + sx;
                 if ((end[1] - begin[1]) % 4 != 0) {
@@ -230,9 +231,11 @@ struct DataLabLoader<FieldType, 3> {
                         DataType *dst0 =
                             pdst + szx + (iy - stencil_begin[1]) * lstridex;
                         const DataType *src0 =
-                            &f(begin[0] - bi[0] * extent[0] + shift[0],
-                               iy - bi[1] * extent[1] + shift[1],
-                               iz - bi[2] * extent[2] + shift[2]);
+                            psrc + begin[0] - bi[0] * extent[0] + shift[0] +
+                            nbr_extent[0] *
+                                (iy - bi[1] * extent[1] + shift[1] +
+                                 nbr_extent[1] *
+                                     (iz - bi[2] * extent[2] + shift[2]));
                         std::memcpy(dst0, src0, bytesx);
                     }
                 } else {
@@ -246,21 +249,29 @@ struct DataLabLoader<FieldType, 3> {
                         DataType *dst3 =
                             pdst + szx + (iy + 3 - stencil_begin[1]) * lstridex;
                         const DataType *src0 =
-                            &f(begin[0] - bi[0] * extent[0] + shift[0],
-                               iy + 0 - bi[1] * extent[1] + shift[1],
-                               iz - bi[2] * extent[2] + shift[2]);
+                            psrc + begin[0] - bi[0] * extent[0] + shift[0] +
+                            nbr_extent[0] *
+                                (iy + 0 - bi[1] * extent[1] + shift[1] +
+                                 nbr_extent[1] *
+                                     (iz - bi[2] * extent[2] + shift[2]));
                         const DataType *src1 =
-                            &f(begin[0] - bi[0] * extent[0] + shift[0],
-                               iy + 1 - bi[1] * extent[1] + shift[1],
-                               iz - bi[2] * extent[2] + shift[2]);
+                            psrc + begin[0] - bi[0] * extent[0] + shift[0] +
+                            nbr_extent[0] *
+                                (iy + 1 - bi[1] * extent[1] + shift[1] +
+                                 nbr_extent[1] *
+                                     (iz - bi[2] * extent[2] + shift[2]));
                         const DataType *src2 =
-                            &f(begin[0] - bi[0] * extent[0] + shift[0],
-                               iy + 2 - bi[1] * extent[1] + shift[1],
-                               iz - bi[2] * extent[2] + shift[2]);
+                            psrc + begin[0] - bi[0] * extent[0] + shift[0] +
+                            nbr_extent[0] *
+                                (iy + 2 - bi[1] * extent[1] + shift[1] +
+                                 nbr_extent[1] *
+                                     (iz - bi[2] * extent[2] + shift[2]));
                         const DataType *src3 =
-                            &f(begin[0] - bi[0] * extent[0] + shift[0],
-                               iy + 3 - bi[1] * extent[1] + shift[1],
-                               iz - bi[2] * extent[2] + shift[2]);
+                            psrc + begin[0] - bi[0] * extent[0] + shift[0] +
+                            nbr_extent[0] *
+                                (iy + 3 - bi[1] * extent[1] + shift[1] +
+                                 nbr_extent[1] *
+                                     (iz - bi[2] * extent[2] + shift[2]));
                         std::memcpy(dst0, src0, bytesx);
                         std::memcpy(dst1, src1, bytesx);
                         std::memcpy(dst2, src2, bytesx);

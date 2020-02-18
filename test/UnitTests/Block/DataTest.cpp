@@ -95,38 +95,9 @@ void runTest()
 
     CData test(cdata_move, CData::MemoryOwner::No);
     const auto r = test.getIndexRange();
-    if (2 == DIM) { // test operator() for DIM == 2
-        for (size_t j = 0; j < r.sizeDim(1); ++j) {
-            for (size_t i = 0; i < r.sizeDim(0); ++i) {
-                const auto val = static_cast<T>(i + r.sizeDim(0) * j);
-                test(i, j) = val;
-                EXPECT_EQ(test(i, j), val); // const access
-            }
-        }
-    } else {
-        for (size_t i = 0; i < test.getBlockSize(); ++i) {
-            const MIndex p = r.getMultiIndex(i);
-            test[p] = static_cast<T>(i);
-        }
-    }
-    if (DIM > 3) {
-        try {
-            test(0);
-        } catch (const std::runtime_error &e) {
-            EXPECT_STREQ("Data::operator(): You can not call this "
-                         "method for DIM > 3",
-                         e.what());
-        }
-        EXPECT_THROW(test(0), std::runtime_error);
-
-        try {
-            test(0) = 0;
-        } catch (const std::runtime_error &e) {
-            EXPECT_STREQ("Data::operator(): You can not call this "
-                         "method for DIM > 3",
-                         e.what());
-        }
-        EXPECT_THROW((test(0) = 0), std::runtime_error);
+    for (size_t i = 0; i < test.getBlockSize(); ++i) {
+        const MIndex p = r.getMultiIndex(i);
+        test[p] = static_cast<T>(i);
     }
 
     for (size_t i = 0; i < ref.getBlockSize(); ++i) {

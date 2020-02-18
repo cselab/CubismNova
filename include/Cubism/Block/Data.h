@@ -309,7 +309,17 @@ public:
      */
     DataType &operator[](const MultiIndex &p)
     {
-        return this->operator[](range_.getFlatIndex(p));
+        assert(range_.isIndex(p));
+        if (1 == IndexRangeType::Dim) {
+            return block_[p[0]];
+        } else if (2 == IndexRangeType::Dim) {
+            return block_[p[0] + range_.sizeDim(0) * p[1]];
+        } else if (3 == IndexRangeType::Dim) {
+            return block_[p[0] + range_.sizeDim(0) *
+                                     (p[1] + range_.sizeDim(1) * p[2])];
+        } else {
+            return this->operator[](range_.getFlatIndex(p));
+        }
     }
 
     /**
@@ -319,56 +329,16 @@ public:
      */
     const DataType &operator[](const MultiIndex &p) const
     {
-        return this->operator[](range_.getFlatIndex(p));
-    }
-
-    /**
-     * @brief Access operator for cases DIM <= 3
-     * @param ix Local flat index along first dimension
-     * @param iy Local flat index along second dimension
-     * @param iz Local flat index along third dimension
-     * @return Reference to data element
-     */
-    DataType &operator()(size_t ix, size_t iy = 0, size_t iz = 0)
-    {
-        assert(ix < range_.sizeDim(0) && "Block X-index out of bounds");
-        if (1 == DIM) {
-            return block_[ix];
-        } else if (2 == DIM) {
-            assert(iy < range_.sizeDim(1) && "Block Y-index out of bounds");
-            return block_[ix + range_.sizeDim(0) * iy];
-        } else if (3 == DIM) {
-            assert(iz < range_.sizeDim(2) && "Block Z-index out of bounds");
-            return block_[ix +
-                          range_.sizeDim(0) * (iy + range_.sizeDim(1) * iz)];
+        assert(range_.isIndex(p));
+        if (1 == IndexRangeType::Dim) {
+            return block_[p[0]];
+        } else if (2 == IndexRangeType::Dim) {
+            return block_[p[0] + range_.sizeDim(0) * p[1]];
+        } else if (3 == IndexRangeType::Dim) {
+            return block_[p[0] + range_.sizeDim(0) *
+                                     (p[1] + range_.sizeDim(1) * p[2])];
         } else {
-            throw std::runtime_error(
-                "Data::operator(): You can not call this method for DIM > 3");
-        }
-    }
-
-    /**
-     * @brief Access operator for cases DIM <= 3
-     * @param ix Local flat index along first dimension
-     * @param iy Local flat index along second dimension
-     * @param iz Local flat index along third dimension
-     * @return ``const`` reference to data element
-     */
-    const DataType &operator()(size_t ix, size_t iy = 0, size_t iz = 0) const
-    {
-        assert(ix < range_.sizeDim(0) && "Block X-index out of bounds");
-        if (1 == DIM) {
-            return block_[ix];
-        } else if (2 == DIM) {
-            assert(iy < range_.sizeDim(1) && "Block Y-index out of bounds");
-            return block_[ix + range_.sizeDim(0) * iy];
-        } else if (3 == DIM) {
-            assert(iz < range_.sizeDim(2) && "Block Z-index out of bounds");
-            return block_[ix +
-                          range_.sizeDim(0) * (iy + range_.sizeDim(1) * iz)];
-        } else {
-            throw std::runtime_error(
-                "Data::operator(): You can not call this method for DIM > 3");
+            return this->operator[](range_.getFlatIndex(p));
         }
     }
 
