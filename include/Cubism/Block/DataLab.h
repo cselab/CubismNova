@@ -43,7 +43,7 @@ class DataLab
     using LabLoader =
         Block::DataLabLoader<FieldType, BaseType::IndexRangeType::Dim>;
     using BoolVec = typename LabLoader::BoolVec;
-    using ID2Field = typename LabLoader::ID2Field;
+    using STDFunction = typename LabLoader::STDFunction;
 
     using BaseType::blk_alloc_;
     using BaseType::block_;
@@ -151,8 +151,9 @@ public:
      * field.  The function must map indices periodically.
      * @endrst
      */
+    template <typename Functor = STDFunction>
     void loadData(const MultiIndex &fid,
-                  const ID2Field &id2field,
+                  Functor &id2field,
                   const bool apply_bc = true,
                   const BCVector *extern_bc = nullptr)
     {
@@ -185,7 +186,7 @@ public:
             periodic[info.dir] = info.is_periodic;
             skip[info.dir] = (info.side == 0) ? -1 : 1;
         }
-        loader_.loadGhosts(
+        loader_.template loadGhosts<Functor>(
             fid, id2field, block_, range_, lab_begin_, periodic, skip);
 
         // 3.
@@ -211,12 +212,13 @@ public:
      * vector ``boundaries`` may be empty.
      * @endrst
      */
+    template <typename Functor = STDFunction>
     void loadData(const MultiIndex &fid,
-                  const ID2Field &id2field,
+                  Functor &id2field,
                   const BCVector &boundaries,
                   const bool apply_bc = true)
     {
-        loadData(fid, id2field, apply_bc, &boundaries);
+        this->template loadData<Functor>(fid, id2field, apply_bc, &boundaries);
     }
 
     /**

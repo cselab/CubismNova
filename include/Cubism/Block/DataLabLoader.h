@@ -23,7 +23,7 @@ struct DataLabLoader {
     using StencilType = Core::Stencil<DIM>;
     using IndexRangeType = typename Core::IndexRange<DIM>;
     using MultiIndex = typename IndexRangeType::MultiIndex;
-    using ID2Field = std::function<FieldType &(const MultiIndex &)>;
+    using STDFunction = std::function<FieldType &(const MultiIndex &)>;
     using BoolVec = Core::Vector<bool, DIM>;
 
     StencilType curr_stencil;
@@ -42,8 +42,9 @@ struct DataLabLoader {
         }
     }
 
+    template <typename Functor = STDFunction>
     void loadGhosts(const MultiIndex &i0,
-                    const ID2Field &i2f,
+                    const Functor &i2f,
                     DataType *dst,
                     const IndexRangeType &rmemory,
                     const MultiIndex &offset,
@@ -116,7 +117,7 @@ struct DataLabLoader<FieldType, 3> {
     using IndexRangeType = typename Core::IndexRange<3>;
     using MultiIndex = typename IndexRangeType::MultiIndex;
     using Index = typename MultiIndex::DataType;
-    using ID2Field = std::function<FieldType &(const MultiIndex &)>;
+    using STDFunction = std::function<FieldType &(const MultiIndex &)>;
     using BoolVec = Core::Vector<bool, 3>;
 
     StencilType curr_stencil;
@@ -169,8 +170,9 @@ struct DataLabLoader<FieldType, 3> {
         }
     }
 
+    template <typename Functor = STDFunction>
     void loadGhosts(const MultiIndex &i0,
-                    const ID2Field &i2f,
+                    Functor &i2f,
                     DataType *dst,
                     const IndexRangeType &rmemory,
                     const MultiIndex &offset,
@@ -267,6 +269,130 @@ struct DataLabLoader<FieldType, 3> {
                 }
             }
         }
+    }
+};
+
+template <typename FContainer, Cubism::FieldClass Class, size_t RANK>
+struct ScalarFieldMap {
+    using BaseType = typename FContainer::BaseType;
+    FContainer &fields;
+    ScalarFieldMap(FContainer &f) : fields(f) {}
+    typename BaseType::FieldType &
+    operator()(const size_t i, const size_t c, const size_t)
+    {
+        assert(c < BaseType::NComponents);
+        return fields[i][c];
+    }
+    const typename BaseType::FieldType &
+    operator()(const size_t i, const size_t c, const size_t) const
+    {
+        assert(c < BaseType::NComponents);
+        return fields[i][c];
+    }
+};
+
+template <typename FContainer, Cubism::FieldClass Class>
+struct ScalarFieldMap<FContainer, Class, 0> {
+    using BaseType = typename FContainer::BaseType;
+    FContainer &fields;
+    ScalarFieldMap(FContainer &f) : fields(f) {}
+    typename BaseType::FieldType &
+    operator()(const size_t i, const size_t, const size_t)
+    {
+        return fields[i];
+    }
+    const typename BaseType::FieldType &
+    operator()(const size_t i, const size_t, const size_t) const
+    {
+        return fields[i];
+    }
+};
+
+template <typename FContainer, size_t RANK>
+struct ScalarFieldMap<FContainer, Cubism::FieldClass::FaceContainer, RANK> {
+    using BaseType = typename FContainer::BaseType;
+    FContainer &fields;
+    ScalarFieldMap(FContainer &f) : fields(f) {}
+    typename BaseType::FieldType &
+    operator()(const size_t i, const size_t c, const size_t d)
+    {
+        assert(c < BaseType::NComponents);
+        assert(d < BaseType::IndexRangeType::Dim);
+        return fields[i][d][c];
+    }
+    const typename BaseType::FieldType &
+    operator()(const size_t i, const size_t c, const size_t d) const
+    {
+        assert(c < BaseType::NComponents);
+        assert(d < BaseType::IndexRangeType::Dim);
+        return fields[i][d][c];
+    }
+};
+
+template <typename FContainer>
+struct ScalarFieldMap<FContainer, Cubism::FieldClass::FaceContainer, 0> {
+    using BaseType = typename FContainer::BaseType;
+    FContainer &fields;
+    ScalarFieldMap(FContainer &f) : fields(f) {}
+    typename BaseType::FieldType &
+    operator()(const size_t i, const size_t, const size_t d)
+    {
+        assert(d < BaseType::IndexRangeType::Dim);
+        return fields[i][d];
+    }
+    const typename BaseType::FieldType &
+    operator()(const size_t i, const size_t, const size_t d) const
+    {
+        assert(d < BaseType::IndexRangeType::Dim);
+        return fields[i][d];
+    }
+};
+
+template <typename FContainer, Cubism::FieldClass Class, size_t RANK>
+class PeriodicIndexFunctor
+{
+public:
+    using ScalarField = typename FContainer::BaseType::FieldType;
+    using IndexRangeType = typename ScalarField::IndexRangeType;
+    using MultiIndex = typename IndexRangeType::MultiIndex;
+
+    PeriodicIndexFunctor(FContainer &fields,
+                         const IndexRangeType &range,
+                         const size_t comp = 0,
+                         const size_t fdir = 0)
+        : fields_(fields), range_(range), extent_(range_.getExtent()),
+          comp_(comp), face_dir_(fdir)
+    {
+    }
+    PeriodicIndexFunctor() = delete;
+    PeriodicIndexFunctor(const PeriodicIndexFunctor &c) = default;
+    PeriodicIndexFunctor(PeriodicIndexFunctor &&c) = default;
+    PeriodicIndexFunctor &operator=(const PeriodicIndexFunctor &c) = default;
+    PeriodicIndexFunctor &operator=(PeriodicIndexFunctor &&c) = default;
+
+    ScalarField &operator()(const MultiIndex &p)
+    {
+        return fields_(range_.getFlatIndex(periodic_(p)), comp_, face_dir_);
+    }
+
+    const ScalarField &operator()(const MultiIndex &p) const
+    {
+        return fields_(range_.getFlatIndex(periodic_(p)), comp_, face_dir_);
+    }
+
+private:
+    ScalarFieldMap<FContainer, Class, RANK> fields_;
+    const IndexRangeType range_;
+    const MultiIndex extent_;
+    const size_t comp_;     // component
+    const size_t face_dir_; // face direction
+
+    MultiIndex periodic_(MultiIndex p) const
+    {
+        for (size_t i = 0; i < IndexRangeType::Dim; ++i) {
+            p[i] = (p[i] + extent_[i]) % extent_[i];
+        }
+        return p;
     }
 };
 

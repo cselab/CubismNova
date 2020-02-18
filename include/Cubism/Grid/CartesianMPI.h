@@ -65,6 +65,7 @@ public:
     using typename BaseGrid::DataType;
     using typename BaseGrid::FieldContainer;
     using typename BaseGrid::FieldState;
+    using typename BaseGrid::IndexFunctor;
     using typename BaseGrid::IndexRangeType;
     using typename BaseGrid::MeshType;
     using typename BaseGrid::MultiIndex;
