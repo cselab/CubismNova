@@ -7,6 +7,7 @@
 #define CARTESIAN_H_QBSFTWK7
 
 #include "Cubism/Alloc/AlignedBlockAllocator.h"
+#include "Cubism/Block/DataLabLoader.h"
 #include "Cubism/Block/Field.h"
 #include "Cubism/Common.h"
 #include "Cubism/Grid/BlockFieldAssembler.h"
@@ -47,48 +48,6 @@ template <typename T,
           template <typename> class Alloc = AlignedBlockAllocator>
 class Cartesian
 {
-    template <typename FContainer, typename IndexRange>
-    class PeriodicBlockFunctor
-    {
-    public:
-        using Field = typename FContainer::BaseType;
-        using MultiIndex = typename IndexRange::MultiIndex;
-
-        PeriodicBlockFunctor(FContainer &fields, const IndexRange &range)
-            : fields_(fields), range_(range), extent_(range_.getExtent())
-        {
-        }
-        PeriodicBlockFunctor() = delete;
-        PeriodicBlockFunctor(const PeriodicBlockFunctor &c) = default;
-        PeriodicBlockFunctor(PeriodicBlockFunctor &&c) = default;
-        PeriodicBlockFunctor &
-        operator=(const PeriodicBlockFunctor &c) = default;
-        PeriodicBlockFunctor &operator=(PeriodicBlockFunctor &&c) = default;
-
-        Field &operator()(const MultiIndex &p)
-        {
-            return fields_[range_.getFlatIndex(periodic_(p))];
-        }
-
-        const Field &operator()(const MultiIndex &p) const
-        {
-            return fields_[range_.getFlatIndex(periodic_(p))];
-        }
-
-    private:
-        FContainer &fields_;
-        const IndexRange range_;
-        const MultiIndex extent_;
-
-        MultiIndex periodic_(MultiIndex p) const
-        {
-            for (size_t i = 0; i < IndexRange::Dim; ++i) {
-                p[i] = (p[i] + extent_[i]) % extent_[i];
-            }
-            return p;
-        }
-    };
-
 public:
     /** @brief Type of mesh */
     using MeshType = Mesh;
@@ -138,8 +97,9 @@ public:
     using DataType = typename Assembler::DataType;
     /** @brief Container type for field views */
     using FieldContainer = typename Assembler::FieldContainer;
-    /** @brief Periodic field access by index */
-    using IndexFunctor = PeriodicBlockFunctor<FieldContainer, IndexRangeType>;
+    /** @brief Periodic block field access by index */
+    using IndexFunctor =
+        Block::PeriodicIndexFunctor<FieldContainer, BaseType::Class, RANK>;
 
     /** @brief Field dimension */
     static constexpr size_t Dim = MeshType::Dim;
@@ -413,11 +373,19 @@ public:
 
     /**
      * @brief Get field access functor
+     * @tparam Comp Type for components that defines a cast to ``size_t``
+     * @tparam Dir Type for direction that defines a cast to ``size_t``
+     * @param c Component index
+     * @param d Face direction
      * @return Periodic field access functor given the block index
      */
-    IndexFunctor getIndexFunctor()
+    template <typename Comp = size_t, typename Dir = size_t>
+    IndexFunctor getIndexFunctor(const Comp c = 0, const Dir d = 0)
     {
-        return IndexFunctor(assembler_.fields, block_range_);
+        return IndexFunctor(assembler_.fields,
+                            block_range_,
+                            static_cast<size_t>(c),
+                            static_cast<size_t>(d));
     }
 
     /**
