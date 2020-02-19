@@ -79,7 +79,6 @@ void runTest()
             }
         }
     } else {
-        const MIndex one(1);
         const IRange inner_range = dlab.getActiveRange();
         const MIndex inner_extent = inner_range.getExtent();
         const MIndex ghost_begin = dlab.getActiveLabRange().getBegin();
@@ -155,6 +154,72 @@ TEST(DataLab, Reuse)
 
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_UNREFERENCED_FORMAL_VARIABLE
+
+template <size_t Rank,
+          Cubism::EntityType Entity,
+          size_t Dim,
+          size_t Comp = 0,
+          size_t FDir = 0>
+void testIndexer()
+{
+    using IRange = typename Core::IndexRange<Dim>;
+    using MIndex = typename IRange::MultiIndex;
+
+    struct MyFieldState {
+        MIndex index;
+    };
+    using Field = typename Block::
+        FieldTypeFactory<char, Rank, Entity, Dim, MyFieldState>::Type;
+    using FContainer = Block::FieldContainer<Field>;
+
+    MIndex elements(8);
+    IRange element_domain(elements);
+    IRange block_range(MIndex(3)); // 3 ^ Dim blocks
+    FContainer fields;
+    for (auto i : block_range) {
+        Field *f = new Field(element_domain);
+        f->getState().index = i;
+        fields.pushBack(f);
+    }
+
+    using Indexer = Block::PeriodicIndexFunctor<FContainer, Field::Class, Rank>;
+    Indexer i2f(fields, block_range, Comp, FDir);
+    IRange block_mirror(MIndex(9));
+    const MIndex block_extent = block_range.getExtent();
+    const MIndex shift(-3);
+    for (auto i : block_mirror) {
+        const MIndex q = i + shift;
+        MIndex s(q);
+        for (auto &v : s) {
+            v = (v + 3) % 3; // 3 as in block_range(3) above
+        }
+        EXPECT_EQ(i2f(q).getState().index, s);
+    }
+}
+
+TEST(DataLab, PeriodicIndexer)
+{
+    testIndexer<0, EntityType::Cell, 3>();
+    testIndexer<0, EntityType::Node, 3>();
+    testIndexer<0, EntityType::Face, 3, 0, 0>();
+    testIndexer<0, EntityType::Face, 3, 0, 1>();
+    testIndexer<0, EntityType::Face, 3, 0, 2>();
+    testIndexer<1, EntityType::Cell, 3, 0>();
+    testIndexer<1, EntityType::Cell, 3, 1>();
+    testIndexer<1, EntityType::Cell, 3, 2>();
+    testIndexer<1, EntityType::Node, 3, 0>();
+    testIndexer<1, EntityType::Node, 3, 1>();
+    testIndexer<1, EntityType::Node, 3, 2>();
+    testIndexer<1, EntityType::Face, 3, 0, 0>();
+    testIndexer<1, EntityType::Face, 3, 0, 1>();
+    testIndexer<1, EntityType::Face, 3, 0, 2>();
+    testIndexer<1, EntityType::Face, 3, 1, 0>();
+    testIndexer<1, EntityType::Face, 3, 1, 1>();
+    testIndexer<1, EntityType::Face, 3, 1, 2>();
+    testIndexer<1, EntityType::Face, 3, 2, 0>();
+    testIndexer<1, EntityType::Face, 3, 2, 1>();
+    testIndexer<1, EntityType::Face, 3, 2, 2>();
+}
 
 TEST(DataLab, Interface)
 {
