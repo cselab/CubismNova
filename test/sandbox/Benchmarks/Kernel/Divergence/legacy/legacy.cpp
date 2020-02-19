@@ -7,12 +7,17 @@
 #include <cmath>
 
 #include "BlockProcessor.h"
-#include "Cubism/HDF5Dumper.h"
 #include "Cubism/StencilInfo.h"
 #include "Types.h"
+#ifdef _DUMP_
+#include "Cubism/HDF5Dumper.h"
+#endif /* _DUMP_ */
+#include "../../../Utils/Timer.h"
+#include <cstdio>
 
 using namespace std;
 using namespace cubism;
+using Utils::Timer;
 
 const double twopi = atan(1.0)*8.0;
 
@@ -115,32 +120,40 @@ struct StreamerPickOne_HDF5
 int main(int argc, char* argv[])
 {
     int provided;
-    ArgumentParser parser(argc, argv);
-
-    const int bpdx = parser("-bpdx").asInt(16);
-    const int bpdy    = parser("-bpdy").asInt(bpdx);
-    const int bpdz    = parser("-bpdz").asInt(bpdx);
-
-    const double maxextent = parser("-maxextent").asDouble(1.0);
+    const int bpdx = 16;
+    const int bpdy = bpdx;
+    const int bpdz = bpdx;
+    const double maxextent = 1.0;
 
     // allocate the grid
+    Timer t;
     NodeGrid *const mygrid = new NodeGrid(bpdx, bpdy, bpdz, maxextent);
 
     // initialize values
     initGrid(*mygrid);
+    const double t0 = t.stop();
 #ifdef _DUMP_
+    t.start();
     DumpHDF5<StreamerPickOne_HDF5<0>, Real>(*mygrid, 0, 0, "data0");
     DumpHDF5<StreamerPickOne_HDF5<1>, Real>(*mygrid, 0, 0, "data1");
     DumpHDF5<StreamerPickOne_HDF5<2>, Real>(*mygrid, 0, 0, "data2");
+    double td = t.stop();
 #endif /* _DUMP_ */
 
     // evaluate div([data[0], data[1], data[2]]')
     Evaluate123Divergence_CPP myOperator;
+    t.start();
     BlockProcessor<PLab>(myOperator, *mygrid); // absorbing BC
+    const double t1 = t.stop();
 
     // dump result
 #ifdef _DUMP_
+    t.start();
     DumpHDF5<StreamerPickOne_HDF5<3>, Real>(*mygrid, 0, 0, "div123");
+    td += t.stop();
+    printf("%e\t%e\t%e\t%e\n", t0, t1, td, t0 + t1 + td);
+#else
+    printf("%e\t%e\t%e\n", t0, t1, t0 + t1);
 #endif /* _DUMP_ */
     return 0;
 }

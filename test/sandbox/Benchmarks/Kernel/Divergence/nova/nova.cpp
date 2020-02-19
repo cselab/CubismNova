@@ -6,12 +6,17 @@
 
 #include "Cubism/Block/DataLab.h"
 #include "Cubism/Grid/Cartesian.h"
-#include "Cubism/IO/CartesianHDF.h"
 #include "Cubism/Math.h"
 #include "Cubism/Mesh/StructuredUniform.h"
+#ifdef _DUMP_
+#include "Cubism/IO/CartesianHDF.h"
+#endif /* _DUMP_ */
+#include "../../../Utils/Timer.h"
 #include <cmath>
+#include <cstdio>
 
 using namespace Cubism;
+using Utils::Timer;
 
 int main(void)
 {
@@ -27,8 +32,10 @@ int main(void)
     // grid blocks and cells per block
     const MIndex nblocks(16);
     const MIndex block_cells(32);
+    Timer t;
     SGrid result(nblocks, block_cells);
     VGrid grid(nblocks, block_cells);
+    double t0 = t.stop();
     const Point h = grid.getMesh().getCellSize(0);
 
     auto finit = [h](FieldType &b) {
@@ -57,13 +64,18 @@ int main(void)
     };
 
     // initialize grid
+    t.start();
     for (auto f : grid) {
         finit(*f);
     }
+    t0 += t.stop();
 #ifdef _DUMP_
+    t.start();
     IO::CartesianWriteHDF<float>("init", "U", grid, 0);
+    double td = t.stop();
 #endif /* _DUMP_ */
 
+    t.start();
     // setup lab
     Lab lab0, lab1, lab2;
     const Stencil s(-1, 2, false);     // stencil
@@ -109,8 +121,14 @@ int main(void)
             sf[i] = 0.5 * (dd0_dx * ih0 + dd1_dy * ih1 + dd2_dz * ih2);
         }
     }
+    const double t1 = t.stop();
 #ifdef _DUMP_
+    t.start();
     IO::CartesianWriteHDF<float>("result", "S", result, 0);
+    td += t.stop();
+    printf("%e\t%e\t%e\t%e\n", t0, t1, td, t0 + t1 + td);
+#else
+    printf("%e\t%e\t%e\n", t0, t1, t0 + t1);
 #endif /* _DUMP_ */
 
     return 0;

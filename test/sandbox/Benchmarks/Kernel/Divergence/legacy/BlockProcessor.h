@@ -1,7 +1,7 @@
-// File       : BlockProcessorMPI.h
+// File       : BlockProcessor.h
 // Date       : Fri 01 Apr 2016 05:52:01 PM CEST
 // Author     : Fabian Wermelinger
-// Description: Process all blocks with MPI
+// Description: Process all blocks
 // Copyright 2016 ETH Zurich. All Rights Reserved.
 #ifndef BLOCKPROCESSORMPI_H_IKFSZWUJ
 #define BLOCKPROCESSORMPI_H_IKFSZWUJ

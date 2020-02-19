@@ -3,7 +3,7 @@ SHELL := /bin/bash
 CC = mpic++
 LD = $(CC)
 
-ROOT = ../../LegacyCubism
+ROOT = ../../../CubismLegacy
 
 dump ?= 0
 
@@ -18,9 +18,7 @@ CPPFLAGS = -std=c++11 -I$(ROOT)/include -g -O3
 CPPFLAGS += -DCUBISM_ALIGNMENT=$(align) -D_BLOCKSIZEX_=$(bsx) -D_BLOCKSIZEY_=$(bsy) -D_BLOCKSIZEZ_=$(bsz)
 LIBS = -lm -lz
 
-OBJ += legacy.cpp \
-	   $(ROOT)/src/ArgumentParser.cpp \
-	   $(ROOT)/src/Histogram.cpp
+OBJ += legacy.cpp
 
 ifeq "$(ap)" "float"
 	CPPFLAGS += -D_FLOAT_PRECISION_

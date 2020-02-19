@@ -6,7 +6,6 @@
 #ifndef TYPES_H_NTYWLJPY
 #define TYPES_H_NTYWLJPY
 
-#include "Cubism/ArgumentParser.h"
 #include "Cubism/BlockInfo.h"
 #include "Cubism/BlockLab.h"
 #include "Cubism/Grid.h"

@@ -3,7 +3,7 @@ SHELL := /bin/bash
 CC = mpic++
 LD ?= $(CC)
 
-ROOT = ../../../../..
+ROOT = ../../../CubismNova
 
 dump ?= 0
 
@@ -12,7 +12,7 @@ CPPFLAGS = -std=c++11 -I$(ROOT)/include -g -O3
 OBJ += nova.cpp
 
 ifeq "$(dump)" "1"
-	CPPFLAGS += -D_DUMP_ -I$(HDF5_ROOT)/include -DCUBISM_USE_HDF
+	CPPFLAGS += -D_DUMP_ -DCUBISM_USE_HDF
 	LIBS += -L$(ROOT)/release/build/lib -lCubismIO
 endif
 
