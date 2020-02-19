@@ -54,4 +54,5 @@ const char *CubismBranch = "${BRANCH}";
 NAMESPACE_END(Util)
 NAMESPACE_END(Cubism)
 EOF
+echo -n "${VERSION#*v}"
 exit 0

@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.12.0)
 
-project("CubismNova")
+project(CubismNova
+    DESCRIPTION "CubismNova -- HPC library for structured uniform and adaptive multi resolution"
+    HOMEPAGE_URL "https://github.com/cselab/CubismNova")
+
+execute_process(COMMAND
+    ${PROJECT_SOURCE_DIR}/tools/version/gen_version
+    "${PROJECT_SOURCE_DIR}/src/Util"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    OUTPUT_VARIABLE CUBISM_VERSION)
+
+if (CUBISM_VERSION MATCHES ^[0-9]+\.[0-9]+\.[0-9]+$)
+    set(PROJECT_VERSION ${CUBISM_VERSION})
+endif ()
 
 # build options
 option(CUBISM_COVERAGE "Build instrumented tests for code coverage" OFF)
