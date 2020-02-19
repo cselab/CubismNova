@@ -1,0 +1,8 @@
+gmon.out
+profile*
+*.swp
+*~
+nova/nova
+legacy/legacy
+nova/nova-profile
+legacy/legacy-profile
