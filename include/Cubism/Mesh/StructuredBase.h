@@ -721,6 +721,97 @@ public:
     }
 
     /**
+     * @brief Get global cell coordinates
+     * @param p Local multi-dimensional cell index
+     * @return Global cell coordinates
+     *
+     * Contains one virtual call.  This method is overloaded in the derived
+     * class without virtual calls.  Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    PointType getGlobalCoordsCell(const MultiIndex &p) const
+    {
+        return global_range_.getBegin() + getCoords_(p, EntityType::Cell, 0);
+    }
+
+    /**
+     * @brief Get global node coordinates
+     * @param p Local multi-dimensional node index
+     * @return Global node coordinates
+     *
+     * Contains one virtual call.  This method is overloaded in the derived
+     * class without virtual calls.  Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    PointType getGlobalCoordsNode(const MultiIndex &p) const
+    {
+        return global_range_.getBegin() + getCoords_(p, EntityType::Node, 0);
+    }
+
+    /**
+     * @brief Get global face coordinates
+     * @tparam Dir Special type that defines a cast to ``size_t``
+     * @param p Local multi-dimensional face index
+     * @param dir Face direction identifier
+     * @return Global face coordinates
+     *
+     * Contains one virtual call.  This method is overloaded in the derived
+     * class without virtual calls.  Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    template <typename Dir = size_t>
+    PointType getGlobalCoordsFace(const MultiIndex &p, const Dir dir) const
+    {
+        return global_range_.getBegin() +
+               getCoords_(p, EntityType::Face, static_cast<size_t>(dir));
+    }
+
+    /**
+     * @brief Get local cell coordinates
+     * @param p Local multi-dimensional cell index
+     * @return Local cell coordinates
+     *
+     * Contains one virtual call.  This method is overloaded in the derived
+     * class without virtual calls.  Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    PointType getCoordsCell(const MultiIndex &p) const
+    {
+        return getCoords_(p, EntityType::Cell, 0);
+    }
+
+    /**
+     * @brief Get local node coordinates
+     * @param p Local multi-dimensional node index
+     * @return Local node coordinates
+     *
+     * Contains one virtual call.  This method is overloaded in the derived
+     * class without virtual calls.  Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    PointType getCoordsNode(const MultiIndex &p) const
+    {
+        return getCoords_(p, EntityType::Node, 0);
+    }
+
+    /**
+     * @brief Get local face coordinates
+     * @tparam Dir Special type that defines a cast to ``size_t``
+     * @param p Local multi-dimensional face index
+     * @param dir Face direction identifier
+     * @return Local face coordinates
+     *
+     * Contains one virtual call.  This method is overloaded in the derived
+     * class without virtual calls.  Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    template <typename Dir = size_t>
+    PointType getCoordsFace(const MultiIndex &p, const Dir dir) const
+    {
+        return getCoords_(p, EntityType::Face, static_cast<size_t>(dir));
+    }
+
+    /**
      * @brief Get cell volume
      * @param i Local flat cell index
      * @return Cell volume

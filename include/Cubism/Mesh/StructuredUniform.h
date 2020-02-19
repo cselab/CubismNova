@@ -41,6 +41,7 @@ public:
 private:
     using BaseMesh::crange_;
     using BaseMesh::frange_;
+    using BaseMesh::global_range_;
     using BaseMesh::nrange_;
     using BaseMesh::range_;
 
@@ -226,21 +227,97 @@ public:
                                   MeshIntegrity::SubMesh));
     }
 
+    // non-virtual overloads for coordinate lookup:
+    /**
+     * @brief Get global cell coordinates
+     * @param p Local multi-dimensional cell index
+     * @return Global cell coordinates
+     *
+     * This is a non-virtual method. Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    PointType getGlobalCoordsCell(const MultiIndex &p) const
+    {
+        return global_range_.getBegin() + getCoordsCell_(p);
+    }
+    /**
+     * @brief Get global node coordinates
+     * @param p Local multi-dimensional node index
+     * @return Global node coordinates
+     *
+     * This is a non-virtual method. Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    PointType getGlobalCoordsNode(const MultiIndex &p) const
+    {
+        return global_range_.getBegin() + getCoordsNode_(p);
+    }
+    /**
+     * @brief Get global face coordinates
+     * @tparam Dir Special type that defines a cast to ``size_t``
+     * @param p Local multi-dimensional face index
+     * @param dir Face direction identifier
+     * @return Global face coordinates
+     *
+     * This is a non-virtual method. Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    template <typename Dir = size_t>
+    PointType getGlobalCoordsFace(const MultiIndex &p, const Dir dir) const
+    {
+        return global_range_.getBegin() + getCoordsFace_(p, dir);
+    }
+    /**
+     * @brief Get local cell coordinates
+     * @param p Local multi-dimensional cell index
+     * @return Local cell coordinates
+     *
+     * This is a non-virtual method. Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    PointType getCoordsCell(const MultiIndex &p) const
+    {
+        return getCoordsCell_(p);
+    }
+    /**
+     * @brief Get local node coordinates
+     * @param p Local multi-dimensional node index
+     * @return Local node coordinates
+     *
+     * This is a non-virtual method. Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    PointType getCoordsNode(const MultiIndex &p) const
+    {
+        return getCoordsNode_(p);
+    }
+    /**
+     * @brief Get local face coordinates
+     * @tparam Dir Special type that defines a cast to ``size_t``
+     * @param p Local multi-dimensional face index
+     * @param dir Face direction identifier
+     * @return Local face coordinates
+     *
+     * This is a non-virtual method. Prefer this method for excessive coordinate
+     * lookup in loops.
+     */
+    template <typename Dir = size_t>
+    PointType getCoordsFace(const MultiIndex &p, const Dir dir) const
+    {
+        return getCoordsFace_(p, dir);
+    }
+
 protected:
     PointType getCoords_(const MultiIndex &p,
                          const EntityType t,
                          const size_t dir) const override
     {
         if (t == EntityType::Cell) {
-            PointType c = PointType(p) + 0.5;
-            return range_.getBegin() + c * mesh_spacing_;
+            return getCoordsCell_(p);
         } else if (t == EntityType::Node) {
-            PointType c(p);
-            return range_.getBegin() + c * mesh_spacing_;
+            return getCoordsNode_(p);
         } else if (t == EntityType::Face) {
-            PointType c =
-                PointType(p) + 0.5 * (1.0 - PointType::getUnitVector(dir));
-            return range_.getBegin() + c * mesh_spacing_;
+            return getCoordsFace_(p, dir);
         } else {
             throw std::runtime_error(
                 "StructuredBase::getIndexRange: Unknown entity type t");
@@ -280,6 +357,27 @@ protected:
 private:
     const PointType mesh_spacing_;
     const RealType cell_volume_;
+
+    PointType getCoordsCell_(const MultiIndex &p) const
+    {
+        PointType c = PointType(p) + 0.5;
+        return range_.getBegin() + c * mesh_spacing_;
+    }
+
+    PointType getCoordsNode_(const MultiIndex &p) const
+    {
+        PointType c(p);
+        return range_.getBegin() + c * mesh_spacing_;
+    }
+
+    template <typename Dir = size_t>
+    PointType getCoordsFace_(const MultiIndex &p, const Dir dir) const
+    {
+        PointType c =
+            PointType(p) +
+            0.5 * (1.0 - PointType::getUnitVector(static_cast<size_t>(dir)));
+        return range_.getBegin() + c * mesh_spacing_;
+    }
 
     IndexRangeType getSubCellRange_(PointType begin, PointType end) const
     {
