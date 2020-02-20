@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
            static_cast<int>(nblocks.prod()),
            t0,
            t1,
-           0,
+           0.,
            t0 + t1);
 #endif /* _DUMP_ */
 

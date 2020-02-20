@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     printf(
         "%d\t%e\t%e\t%e\t%e\n", bpdx * bpdy * bpdz, t0, t1, td, t0 + t1 + td);
 #else
-    printf("%d\t%e\t%e\t%e\t%e\n", bpdx * bpdy * bpdz, t0, t1, 0, t0 + t1);
+    printf("%d\t%e\t%e\t%e\t%e\n", bpdx * bpdy * bpdz, t0, t1, 0., t0 + t1);
 #endif /* _DUMP_ */
     return 0;
 }
