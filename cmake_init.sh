@@ -41,8 +41,14 @@ EOF
     fi
 }
 
+cc=mpicc
+CC=mpic++
+if [[ "$(hostname)" == *"daint"* ]]; then
+    cc=cc
+    CC=CC
+fi
 ROOT="$(pwd -P)"
-COMPILER='-DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpic++'
+COMPILER="-DCMAKE_C_COMPILER=${cc} -DCMAKE_CXX_COMPILER=${CC}"
 DST="./x86_64"
 BUILD='debug'
 OPT='-DCMAKE_BUILD_TYPE=Debug'
