@@ -14,6 +14,7 @@
 #endif /* _DUMP_ */
 #include "../../../Utils/Timer.h"
 #include <cstdio>
+#include <cstdlib>
 
 using namespace std;
 using namespace cubism;
@@ -123,7 +124,7 @@ struct StreamerPickOne_HDF5
 int main(int argc, char* argv[])
 {
     int provided;
-    const int bpdx = 16;
+    const int bpdx = (2 == argc) ? std::atoi(argv[1]) : 8;
     const int bpdy = bpdx;
     const int bpdz = bpdx;
     const double maxextent = 1.0;
@@ -154,9 +155,10 @@ int main(int argc, char* argv[])
     t.start();
     DumpHDF5<StreamerPickOne_HDF5<3>, Real>(*mygrid, 0, 0, "div123");
     td += t.stop();
-    printf("%e\t%e\t%e\t%e\n", t0, t1, td, t0 + t1 + td);
+    printf(
+        "%d\t%e\t%e\t%e\t%e\n", bpdx * bpdy * bpdz, t0, t1, td, t0 + t1 + td);
 #else
-    printf("%e\t%e\t%e\n", t0, t1, t0 + t1);
+    printf("%d\t%e\t%e\t%e\t%e\n", bpdx * bpdy * bpdz, t0, t1, 0, t0 + t1);
 #endif /* _DUMP_ */
     return 0;
 }

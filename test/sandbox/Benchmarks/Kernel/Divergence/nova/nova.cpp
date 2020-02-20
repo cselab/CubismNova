@@ -14,11 +14,12 @@
 #include "../../../Utils/Timer.h"
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 
 using namespace Cubism;
 using Utils::Timer;
 
-int main(void)
+int main(int argc, char *argv[])
 {
     using Mesh = Mesh::StructuredUniform<double, 3>;
     using Point = typename Mesh::PointType;
@@ -30,7 +31,7 @@ int main(void)
     using Lab = Block::DataLab<typename FieldType::FieldType>;
     using Stencil = typename Lab::StencilType;
     // grid blocks and cells per block
-    const MIndex nblocks(16);
+    const MIndex nblocks((2 == argc) ? std::atoi(argv[1]) : 8);
     const MIndex block_cells(32);
     Timer t;
     SGrid result(nblocks, block_cells);
@@ -126,9 +127,19 @@ int main(void)
     t.start();
     IO::CartesianWriteHDF<float>("result", "S", result, 0);
     td += t.stop();
-    printf("%e\t%e\t%e\t%e\n", t0, t1, td, t0 + t1 + td);
+    printf("%d\t%e\t%e\t%e\t%e\n",
+           static_cast<int>(nblocks.prod()),
+           t0,
+           t1,
+           td,
+           t0 + t1 + td);
 #else
-    printf("%e\t%e\t%e\n", t0, t1, t0 + t1);
+    printf("%d\t%e\t%e\t%e\t%e\n",
+           static_cast<int>(nblocks.prod()),
+           t0,
+           t1,
+           0,
+           t0 + t1);
 #endif /* _DUMP_ */
 
     return 0;
