@@ -27,10 +27,15 @@ public:
     Timer() : start_(clock_.now()) {}
 
     /**
-     * @brief Get the currently elapsed seconds
-     * @return Elapsed seconds
+     * @brief Restart the timer
      */
-    double getSeconds() const
+    void start() { start_ = clock_.now(); }
+
+    /**
+     * @brief Get the currently elapsed seconds
+     * @return Elapsed seconds since construction or start
+     */
+    double stop() const
     {
         return std::chrono::duration<double>(clock_.now() - start_).count();
     }

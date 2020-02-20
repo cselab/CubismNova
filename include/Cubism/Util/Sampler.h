@@ -58,7 +58,7 @@ public:
     void collectSample(const std::string &name)
     {
         if (active_ && !timer_stack_.empty()) {
-            samples_[name].push_back(timer_stack_.top().getSeconds());
+            samples_[name].push_back(timer_stack_.top().stop());
             timer_stack_.pop();
         }
     }
