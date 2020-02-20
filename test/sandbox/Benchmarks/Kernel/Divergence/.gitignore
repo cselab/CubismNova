@@ -2,6 +2,8 @@ gmon.out
 profile*
 *.swp
 *~
+*.h5
+*.xmf
 nova/nova
 legacy/legacy
 nova/nova-profile

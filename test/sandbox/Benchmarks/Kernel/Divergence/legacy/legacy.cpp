@@ -40,9 +40,12 @@ void initGrid(NodeGrid &grid)
                     const double x = pos[0];
                     const double y = pos[1];
                     const double z = pos[2];
-                    const double q1 = sin(twopi*x) * cos(twopi*y) * sin(twopi*z);
-                    const double q2 = cos(twopi*y) * cos(twopi*x) * sin(twopi*z);
-                    const double q3 = cos(twopi*z) * cos(twopi*y) * sin(twopi*x);
+                    const double q1 =
+                        sin(twopi * x) * cos(twopi * y) * sin(twopi * z);
+                    const double q2 =
+                        cos(twopi * x) * cos(twopi * y) * sin(twopi * z);
+                    const double q3 =
+                        cos(twopi * x) * cos(twopi * y) * sin(twopi * z);
                     b(ix, iy, iz).data[0] = q1;
                     b(ix, iy, iz).data[1] = q2;
                     b(ix, iy, iz).data[2] = q3;

@@ -13,7 +13,7 @@ OBJ += nova.cpp
 
 ifeq "$(dump)" "1"
 	CPPFLAGS += -D_DUMP_ -DCUBISM_USE_HDF
-	LIBS += -L$(ROOT)/release/build/lib -lCubismIO
+	LIBS += -L$(ROOT)/lib -lCubismIO
 endif
 
 .DEFAULT_GOAL := nova
