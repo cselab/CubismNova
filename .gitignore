@@ -8,6 +8,8 @@
 *.a
 *.pyc
 
+perf.data*
+
 /00_sandbox
 /build
 /release
