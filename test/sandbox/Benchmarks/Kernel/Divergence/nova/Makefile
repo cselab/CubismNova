@@ -6,8 +6,14 @@ LD ?= $(CC)
 ROOT = ../../../CubismNova
 
 dump ?= 0
+debug ?= 0
 
-CPPFLAGS = -std=c++11 -I$(ROOT)/include -g -O3
+CPPFLAGS = -DCUBISM_ALIGNMENT=16
+ifeq "$(debug)" "1"
+	CPPFLAGS += -std=c++11 -I$(ROOT)/include -g
+else
+	CPPFLAGS += -std=c++11 -I$(ROOT)/include -g -O3 -DNDEBUG
+endif
 
 OBJ += nova.cpp
 

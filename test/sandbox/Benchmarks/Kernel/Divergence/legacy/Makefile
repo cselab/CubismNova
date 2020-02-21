@@ -14,7 +14,7 @@ ap ?= float
 omp ?= 0
 align ?= 16
 
-CPPFLAGS = -std=c++11 -I$(ROOT)/include -g -O3
+CPPFLAGS = -std=c++11 -I$(ROOT)/include -g -O3 -DNDEBUG
 CPPFLAGS += -DCUBISM_ALIGNMENT=$(align) -D_BLOCKSIZEX_=$(bsx) -D_BLOCKSIZEY_=$(bsy) -D_BLOCKSIZEZ_=$(bsz)
 LIBS = -lm -lz
 
