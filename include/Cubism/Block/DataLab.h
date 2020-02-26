@@ -186,7 +186,7 @@ public:
             periodic[info.dir] = info.is_periodic;
             skip[info.dir] = (info.side == 0) ? -1 : 1;
         }
-        loader_.template loadGhosts<Functor>(
+        loader_.loadGhosts(
             fid, id2field, block_, range_, lab_begin_, periodic, skip);
 
         // 3.
@@ -218,7 +218,7 @@ public:
                   const BCVector &boundaries,
                   const bool apply_bc = true)
     {
-        this->template loadData<Functor>(fid, id2field, apply_bc, &boundaries);
+        loadData(fid, id2field, apply_bc, &boundaries);
     }
 
     /**
