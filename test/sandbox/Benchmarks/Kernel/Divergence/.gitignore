@@ -5,6 +5,9 @@ profile*
 *.h5
 *.xmf
 nova/nova
+nova/nova-iter
 legacy/legacy
 nova/nova-profile
+nova/nova-profile-iter
 legacy/legacy-profile
+amrex/amrex
