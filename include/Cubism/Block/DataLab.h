@@ -55,6 +55,7 @@ public:
     using typename BaseType::DataType;
     using typename BaseType::IndexRangeType;
     using typename BaseType::MultiIndex;
+    using Index = typename MultiIndex::DataType;
     using StencilType = typename LabLoader::StencilType;
 
     /** @brief Main constructor */
@@ -277,6 +278,73 @@ public:
         } else {
             return BaseType::operator[](range_.getFlatIndex(p + lab_begin_));
         }
+    }
+
+    /**
+     * @brief Classic data access
+     * @param ix Index for first dimension
+     * @param iy Index for second dimension
+     * @param iz Index for third dimension
+     * @return Reference to data element
+     *
+     * This operator is only supported for dimensions 1, 2 and 3.  Accessing
+     * data with this operator has less latency than the multi-index sibling.
+     */
+    DataType &operator()(const Index ix, const Index iy = 0, const Index iz = 0)
+    {
+        assert((ix + lab_begin_[0] >= 0) && (ix + lab_begin_[0] < lab_end_[0]));
+        if (1 == IndexRangeType::Dim) {
+            return block_[ix + lab_begin_[0]];
+        } else if (2 == IndexRangeType::Dim) {
+            assert((iy + lab_begin_[1] >= 0) &&
+                   (iy + lab_begin_[1] < lab_end_[1]));
+            return block_[ix + lab_begin_[0] +
+                          range_.sizeDim(0) * (iy + lab_begin_[1])];
+        } else if (3 == IndexRangeType::Dim) {
+            assert((iy + lab_begin_[1] >= 0) &&
+                   (iy + lab_begin_[1] < lab_end_[1]));
+            assert((iz + lab_begin_[2] >= 0) &&
+                   (iz + lab_begin_[2] < lab_end_[2]));
+            return block_[ix + lab_begin_[0] +
+                          range_.sizeDim(0) *
+                              (iy + lab_begin_[1] +
+                               range_.sizeDim(1) * (iz + lab_begin_[2]))];
+        }
+        throw std::runtime_error("DataLab: operator() not supported");
+    }
+
+    /**
+     * @brief Classic data access
+     * @param ix Index for first dimension
+     * @param iy Index for second dimension
+     * @param iz Index for third dimension
+     * @return ``const`` reference to data element
+     *
+     * This operator is only supported for dimensions 1, 2 and 3.  Accessing
+     * data with this operator has less latency than the multi-index sibling.
+     */
+    const DataType &
+    operator()(const Index ix, const Index iy = 0, const Index iz = 0) const
+    {
+        assert((ix + lab_begin_[0] >= 0) && (ix + lab_begin_[0] < lab_end_[0]));
+        if (1 == IndexRangeType::Dim) {
+            return block_[ix + lab_begin_[0]];
+        } else if (2 == IndexRangeType::Dim) {
+            assert((iy + lab_begin_[1] >= 0) &&
+                   (iy + lab_begin_[1] < lab_end_[1]));
+            return block_[ix + lab_begin_[0] +
+                          range_.sizeDim(0) * (iy + lab_begin_[1])];
+        } else if (3 == IndexRangeType::Dim) {
+            assert((iy + lab_begin_[1] >= 0) &&
+                   (iy + lab_begin_[1] < lab_end_[1]));
+            assert((iz + lab_begin_[2] >= 0) &&
+                   (iz + lab_begin_[2] < lab_end_[2]));
+            return block_[ix + lab_begin_[0] +
+                          range_.sizeDim(0) *
+                              (iy + lab_begin_[1] +
+                               range_.sizeDim(1) * (iz + lab_begin_[2]))];
+        }
+        throw std::runtime_error("DataLab: operator() not supported");
     }
 
     /**

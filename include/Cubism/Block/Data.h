@@ -11,6 +11,7 @@
 #include "Cubism/Core/Index.h"
 #include <cassert>
 #include <cstring>
+#include <stdexcept>
 #include <type_traits>
 
 NAMESPACE_BEGIN(Cubism)
@@ -96,6 +97,7 @@ public:
     using AllocType = BlockAlloc;
     using IndexRangeType = Core::IndexRange<DIM>;
     using MultiIndex = typename IndexRangeType::MultiIndex;
+    using Index = typename MultiIndex::DataType;
     using DataType = typename BlockAlloc::DataType;
     static_assert(std::is_same<DataType, T>::value,
                   "Block allocator data type does not match type T");
@@ -340,6 +342,61 @@ public:
         } else {
             return this->operator[](range_.getFlatIndex(p));
         }
+    }
+
+    /**
+     * @brief Classic data access
+     * @param ix Index for first dimension
+     * @param iy Index for second dimension
+     * @param iz Index for third dimension
+     * @return Reference to data element
+     *
+     * This operator is only supported for dimensions 1, 2 and 3.  Accessing
+     * data with this operator has less latency than the multi-index sibling.
+     */
+    DataType &operator()(const Index ix, const Index iy = 0, const Index iz = 0)
+    {
+        assert((ix >= 0) && (ix < range_.sizeDim(0)));
+        if (1 == IndexRangeType::Dim) {
+            return block_[ix];
+        } else if (2 == IndexRangeType::Dim) {
+            assert((iy >= 0) && (iy < range_.sizeDim(1)));
+            return block_[ix + range_.sizeDim(0) * iy];
+        } else if (3 == IndexRangeType::Dim) {
+            assert((iy >= 0) && (iy < range_.sizeDim(1)));
+            assert((iz >= 0) && (iz < range_.sizeDim(2)));
+            return block_[ix +
+                          range_.sizeDim(0) * (iy + range_.sizeDim(1) * iz)];
+        }
+        throw std::runtime_error("DataLab: operator() not supported");
+    }
+
+    /**
+     * @brief Classic data access
+     * @param ix Index for first dimension
+     * @param iy Index for second dimension
+     * @param iz Index for third dimension
+     * @return ``const`` reference to data element
+     *
+     * This operator is only supported for dimensions 1, 2 and 3.  Accessing
+     * data with this operator has less latency than the multi-index sibling.
+     */
+    const DataType &
+    operator()(const Index ix, const Index iy = 0, const Index iz = 0) const
+    {
+        assert((ix >= 0) && (ix < range_.sizeDim(0)));
+        if (1 == IndexRangeType::Dim) {
+            return block_[ix];
+        } else if (2 == IndexRangeType::Dim) {
+            assert((iy >= 0) && (iy < range_.sizeDim(1)));
+            return block_[ix + range_.sizeDim(0) * iy];
+        } else if (3 == IndexRangeType::Dim) {
+            assert((iy >= 0) && (iy < range_.sizeDim(1)));
+            assert((iz >= 0) && (iz < range_.sizeDim(2)));
+            return block_[ix +
+                          range_.sizeDim(0) * (iy + range_.sizeDim(1) * iz)];
+        }
+        throw std::runtime_error("DataLab: operator() not supported");
     }
 
     /**
