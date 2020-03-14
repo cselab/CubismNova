@@ -29,17 +29,26 @@ all: nova
 nova: nova.cpp
 	$(CC) $(CPPFLAGS) $(extra) $^ -o $@ $(LIBS)
 
+nova-iter: nova.cpp
+	$(CC) $(CPPFLAGS) -DUSE_ITERATOR $(extra) $^ -o $@ $(LIBS)
+
 nova-profile: nova.cpp
 	$(CC) $(CPPFLAGS) -pg $(extra) $^ -o $@ $(LIBS)
 	./nova-profile
 	gprof ./nova-profile > profile
 
+nova-profile-iter: nova.cpp
+	$(CC) $(CPPFLAGS) -DUSE_ITERATOR -pg $(extra) $^ -o $@ $(LIBS)
+	./nova-profile-iter
+	gprof ./nova-profile-iter > profile-iter
+
 %.o: %.cpp
 	$(CC) $(CPPFLAGS) -c $^ -o $@
 
 clean:
-	rm -f *.o nova nova-profile
+	rm -f *.o nova nova-iter nova-profile*
 	rm -f *.h5 *.xmf
 
 cleandeep: clean
+	rm -f profile profile-iter
 	find . -iname "*~" -exec rm -f {} \;
