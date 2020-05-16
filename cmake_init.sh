@@ -43,7 +43,7 @@ EOF
 
 cc=mpicc
 CC=mpic++
-if [[ "$(hostname)" == *"daint"* ]]; then
+if [[ -f /etc/hostname && "$(cat /etc/hostname)" == *"daint"* ]]; then
     cc=cc
     CC=CC
 fi
@@ -55,7 +55,7 @@ OPT='-DCMAKE_BUILD_TYPE=Debug'
 if [[ $# -gt 0 ]]; then
     BUILD="${1}"; shift
     DST="${1}"; shift
-    if [[ "${BUILD}" == 'debug' ]]; then
+    if [[ "${BUILD}" == "debug"* ]]; then
         OPT='-DCMAKE_BUILD_TYPE=Debug'
     else
         OPT='-DCMAKE_BUILD_TYPE=RelWithDebInfo'

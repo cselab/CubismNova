@@ -8,11 +8,11 @@ set -e
 
 mkdir -p covhtml
 gcovr -g -k -s -r .. \
-    --filter ../include/.* \
-    --filter ../src/.* \
-    --filter ../test/.* \
-    --exclude ../test/googletest/.* \
-    --exclude ../test/gtest-mpi-listener/.* \
-    --exclude ../test/sandbox/.* \
+    --filter ../include/ \
+    --filter ../src/ \
+    --filter ../test/ \
+    --exclude ../test/googletest \
+    --exclude ../test/gtest-mpi-listener \
+    --exclude ../test/sandbox \
     --html --html-details -o covhtml/index.html \
     "$@"
