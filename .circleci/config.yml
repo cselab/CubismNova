@@ -39,6 +39,8 @@ jobs:
                     ./cmake_init.sh debug ./install -DCUBISM_COVERAGE=ON &&
                     cd debug &&
                     make -j1 && make gcov && make install
+            - store_artifacts:
+                path: debug/covhtml
 
     debug:
         parameters:
