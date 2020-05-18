@@ -8,4 +8,4 @@ set -e
 
 mkdir -p coverage
 cd coverage
-find ../ -type f -path ../coverage -prune -o -name "*.gcno" -exec gcov -b {} \;
+find ../ -type f -path ../coverage -prune -o -name "*.gcno" -exec gcov -b -p {} \;
