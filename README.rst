@@ -32,18 +32,19 @@ operators as well as various data compression schemes is available to the user.
 Extended data structures for use with various time integration schemes is
 available as well.
 
-The library is a full refactoring of its successful predecessor Cubism that has
-won the Gordon Bell award for a compressible multicomponent flow problem in 2013
-:cite:`rossinelli2013a`.  Further optimizations on the same code are presented
-in :cite:`hadjidoukas2015a` and :cite:`hadjidoukas2015b`.  The refactored
-library offers easier access for the community by separating high performance
-computing (HPC) concepts from the user of the library.  The library user must be
-concerned with the algorithm design depending on the problem that needs to be
-solved.  The refactored library further offers integrated multigrid solvers and
-compression algorithms to reduce the I/O overhead at scale.  Moreover, the
-refactored library takes into account suitable data structures for use with
-heterogeneous accelerators :cite:`wermelinger2016a`.  Apart from compressible
-multicomponent flow simulations (:cite:`sukys2018a`, :cite:`wermelinger2018a`,
+The library is a full refactoring of its successful predecessor Cubism
+:cite:`hejazialhosseini2012a` that has later won the Gordon Bell award for a
+compressible multicomponent flow problem in 2013 :cite:`rossinelli2013a`.
+Further optimizations on the same code are presented in :cite:`hadjidoukas2015a`
+and :cite:`hadjidoukas2015b`.  The refactored library offers easier access for
+the community by separating high performance computing (HPC) concepts from the
+user of the library.  The library user must be concerned with the algorithm
+design depending on the problem that needs to be solved.  The refactored library
+further offers integrated multigrid solvers and compression algorithms to reduce
+the I/O overhead at scale.  Moreover, the refactored library takes into account
+suitable data structures for use with heterogeneous accelerators
+:cite:`wermelinger2016a`.  Apart from compressible multicomponent flow
+simulations (:cite:`sukys2018a`, :cite:`wermelinger2018a`,
 :cite:`rasthofer2019a`), the library is also used for incompressible multi-phase
 flow (:cite:`karnakov2019a`) as well as incompressible flow with collective
 swimmers (:cite:`verma2018a`).
