@@ -177,7 +177,8 @@ latex_documents = [
     (master_doc, 'CubismNova.tex', 'CubismNova Documentation',
      'Fabian Wermelinger', 'manual'),
 ]
-
+# BibTeX files
+bibtex_bibfiles = ['bibtex/references.bib']
 
 # -- Options for manual page output ------------------------------------------
 
