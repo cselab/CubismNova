@@ -6,9 +6,7 @@ int main(void)
 {
     // a custom field state data structure
     struct MyFieldState {
-        size_t rank; // required
-        size_t comp; // required
-        size_t myID; // my addition
+        size_t myID; // custom field state
     };
 
     using CellField = Block::CellField<double, MyFieldState, 2>; // 2D field

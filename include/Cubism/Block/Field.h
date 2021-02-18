@@ -1137,7 +1137,7 @@ public:
     }
 
 protected:
-    ContainerType components_; // the stars of the show
+    ContainerType components_;
 
 private:
     /**
