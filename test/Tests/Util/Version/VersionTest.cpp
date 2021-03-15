@@ -15,7 +15,5 @@ using namespace Cubism;
 TEST(Version, Stdout)
 {
     std::cout << "CubismVersion     = " << Util::CubismVersion << std::endl;
-    std::cout << "CubismVersionHEAD = " << Util::CubismVersionHEAD << std::endl;
-    std::cout << "CubismBranch      = " << Util::CubismBranch << std::endl;
 }
 } // namespace

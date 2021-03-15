@@ -13,23 +13,7 @@ NAMESPACE_BEGIN(Util)
 
 /**
  * @ingroup Util
- * @brief Cubism release version string
- *
- * @rst
- * Command:
- *
- * .. code-block:: bash
- *
- *    git describe --abbrev=0
- *
- * Examples: ``v1.0.0``, ``v1.0.0-rc1``
- * @endrst
- */
-extern const char *CubismVersion;
-
-/**
- * @ingroup Util
- * @brief Cubism HEAD at build time
+ * @brief Cubism version at build time. Falls back to VERSION for a release
  *
  * @rst
  * Command:
@@ -45,23 +29,7 @@ extern const char *CubismVersion;
  * hash (SHA-1)  of HEAD, followed by the state of the working tree (if any).
  * @endrst
  */
-extern const char *CubismVersionHEAD;
-
-/**
- * @ingroup Util
- * @brief Cubism build branch
- *
- * @rst
- * Command:
- *
- * .. code-block:: bash
- *
- *   git rev-parse --abbrev-ref HEAD
- *
- * Example: ``master``
- * @endrst
- */
-extern const char *CubismBranch;
+extern const char *CubismVersion;
 
 NAMESPACE_END(Util)
 NAMESPACE_END(Cubism)
