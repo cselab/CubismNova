@@ -1,4 +1,4 @@
-project('CubismNova', ['cpp'],
+project('CubismNova', ['c', 'cpp'],
   version: files('./VERSION'),
   meson_version: '>=0.57.0',
   license: 'BSD-2-Clause',
@@ -9,12 +9,66 @@ project('CubismNova', ['cpp'],
     ]
 )
 
-subdir('src/Util')
+if get_option('IGNORE_UNKNOWN_PRAGMAS')
+  add_project_arguments('-Wno-unknown-pragmas', language: ['c', 'cpp'])
+endif
+null_dep = dependency('', required : false)
 
 # check for MPI and OpenMP support
-mpi_dep = dependency('mpi', language: 'cpp', required: false)
+mpi_dep = dependency('mpi', language: 'cpp', required: true)
 openmp_dep = dependency('openmp', required: false)
 
+if get_option('CUBISM_32BIT_INDEX')
+  add_project_arguments('-DCUBISM_32BIT_INDEX', language: ['cpp'])
+endif
+
+# code coverage
+# FIXME: [fabianw@mavt.ethz.ch; 2021-03-15] testing
+if get_option('b_coverage')
+  add_project_arguments(
+    [
+      '-fno-inline',
+      '-fno-default-inline',
+      '-fno-inline-small-function',
+      '-Wno-error=cpp', # bypass _FORTIFY_SOURCE
+    ],
+    language: ['c', 'cpp'])
+endif
+
+# IO
+hdf5_dep = dependency('hdf5-1.12.0', required: get_option('CUBISM_IO'))
+if hdf5_dep.found()
+  add_project_arguments('-DCUBISM_USE_HDF', language: ['cpp'])
+endif
+
+# .ini type config parser (git submodule): https://github.com/benhoyt/inih.git
+inih_dep = declare_dependency(
+  sources: files([
+    'subprojects/inih/ini.c',
+    'subprojects/inih/ini.h',
+    ]),
+  include_directories: 'subprojects/inih'
+)
+
+# Cubism sources
+inc_cubism_nova = include_directories('include')
+install_subdir('include/Cubism', install_dir: 'include')
+subdir('src')
+
+# tools
+subdir('tools')
+
+# testing
+if get_option('CUBISM_TESTS')
+  inc_gtest_mpi = include_directories('subprojects/gtest-mpi-listener/include')
+  subdir('test')
+endif
+
+# # debugging
+# if (CMAKE_BUILD_TYPE MATCHES Debug)
+#     message("Debug Mode Enabled")
+#     add_subdirectory(test/sandbox)
+# endif ()
 
 # # create a pkg-config entry
 # pkg_mod = import('pkgconfig')

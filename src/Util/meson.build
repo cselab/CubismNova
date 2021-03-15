@@ -1,12 +1,23 @@
-# vcs_dep = vcs_tag(
-#   command: ['python3', join_paths(meson.project_source_root(),
-#   'tools', 'version', 'gen_version.py'), '--project_root',
-#   meson.project_source_root(), '--input', '@INPUT@', '--output',
-#   '@OUTPUT@'],
-#   input: 'Version.cpp.in',
-#   output: 'Version.cpp'
-# )
+# File       : meson.build
+# Created    : Mon Mar 15 2021 06:07:34 PM (+0100)
+# Author     : Fabian Wermelinger
+# Description: Build definitions for libCubismUtil
+# Copyright 2021 ETH Zurich. All Rights Reserved.
+
 vcs_dep = vcs_tag(
   input: 'Version.cpp.in',
   output: 'Version.cpp'
+)
+
+src_util = files([
+    'Histogram.cpp',
+    'INIParser.cpp',
+    'Profiler.cpp',
+  ])
+
+lib_cubism_util = library('CubismUtil',
+  [src_util, vcs_dep],
+  include_directories: inc_cubism_nova,
+  dependencies: [mpi_dep, openmp_dep, inih_dep],
+  install: true
 )
