@@ -1,9 +1,6 @@
-[submodule "test/googletest"]
-	path = test/googletest
-	url = https://github.com/google/googletest
 [submodule "third/inih"]
-	path = third/inih
+	path = subprojects/inih
 	url = https://github.com/benhoyt/inih.git
 [submodule "test/gtest-mpi-listener"]
-	path = test/gtest-mpi-listener
+	path = subprojects/gtest-mpi-listener
 	url = https://github.com/cselab/gtest-mpi-listener.git
