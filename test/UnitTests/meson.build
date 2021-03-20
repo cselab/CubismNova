@@ -18,7 +18,7 @@ e = executable('unit',
     'Mesh/StructuredUniformTest.cpp',
   ]),
   include_directories: inc_cubism_nova,
-  dependencies: gtest_main_dep
+  dependencies: [mpi_dep, openmp_dep, gtest_main_dep],
   )
 test('unit', e,
   protocol: 'gtest',

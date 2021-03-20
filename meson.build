@@ -33,8 +33,8 @@ endif
 # dependencies
 null_dep = dependency('', required : false)
 # FIXME: [fabianw@mavt.ethz.ch; 2021-03-20] buggy with MPICH
-mpi_dep = dependency('mpi', language: 'cpp', required: true, method: 'config-tool')
-# mpi_dep = dependency('mpi', language: 'cpp', required: true)
+# mpi_dep = dependency('mpi', language: 'cpp', required: true, method: 'config-tool')
+mpi_dep = dependency('mpi', language: 'cpp', required: true)
 openmp_dep = dependency('openmp', required: false)
 
 # Cubism sources
