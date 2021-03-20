@@ -17,7 +17,7 @@ TEST(INIParser, FileRead)
     Cubism::Util::INIParser p("INIFiles/main.ini");
     ASSERT_FALSE(p.parseError());
 
-    for (const auto e : p.fileErrors()) {
+    for (const auto &e : p.fileErrors()) {
         ASSERT_EQ(e.second, 0);
     }
 }
