@@ -9,33 +9,33 @@ project('CubismNova', ['cpp'],
     ]
 )
 
+# option processing
 if get_option('IGNORE_UNKNOWN_PRAGMAS')
   add_project_arguments('-Wno-unknown-pragmas', language: ['cpp'])
 endif
-null_dep = dependency('', required : false)
-
-# check for MPI and OpenMP support
-# FIXME: [fabianw@mavt.ethz.ch; 2021-03-20] buggy with MPICH
-mpi_dep = dependency('mpi', language: 'cpp', required: true, method: 'config-tool')
-# mpi_dep = dependency('mpi', language: 'cpp', required: true)
-openmp_dep = dependency('openmp', required: false)
 
 if get_option('CUBISM_32BIT_INDEX')
   add_project_arguments('-DCUBISM_32BIT_INDEX', language: ['cpp'])
 endif
 
 # code coverage
-# FIXME: [fabianw@mavt.ethz.ch; 2021-03-15] testing
 if get_option('b_coverage')
   add_project_arguments(
     [
       '-fno-inline',
       '-fno-default-inline',
-      '-fno-inline-small-function',
+      '-fno-inline-small-functions',
       '-Wno-error=cpp', # bypass _FORTIFY_SOURCE
     ],
     language: ['cpp'])
 endif
+
+# dependencies
+null_dep = dependency('', required : false)
+# FIXME: [fabianw@mavt.ethz.ch; 2021-03-20] buggy with MPICH
+mpi_dep = dependency('mpi', language: 'cpp', required: true, method: 'config-tool')
+# mpi_dep = dependency('mpi', language: 'cpp', required: true)
+openmp_dep = dependency('openmp', required: false)
 
 # Cubism sources
 inc_cubism_nova = include_directories('include')
