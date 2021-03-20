@@ -35,12 +35,6 @@ if get_option('b_coverage')
     language: ['c', 'cpp'])
 endif
 
-# IO
-hdf5_dep = dependency('hdf5-1.12.0', required: get_option('CUBISM_IO'))
-if hdf5_dep.found()
-  add_project_arguments('-DCUBISM_USE_HDF', language: ['cpp'])
-endif
-
 # Cubism sources
 inc_cubism_nova = include_directories('include')
 install_subdir('include/Cubism', install_dir: 'include')
