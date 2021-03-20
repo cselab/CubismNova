@@ -1,9 +1,3 @@
-option('CUBISM_COVERAGE',
-  type : 'boolean',
-  value : false,
-  description : 'Build instrumented tests for code coverage',
-  yield: false
-)
 option('CUBISM_IO',
   type : 'boolean',
   value : true,
