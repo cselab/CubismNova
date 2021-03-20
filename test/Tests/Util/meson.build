@@ -19,7 +19,7 @@ p = executable('ini-parser',
   dependencies: gtest_main_dep,
   link_with: lib_cubism_util,
 )
-test('parser', p,
+test('ini-parser', p,
   workdir: meson.current_build_dir(),
   protocol: 'gtest',
   suite: 'Util',

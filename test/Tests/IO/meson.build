@@ -8,7 +8,7 @@ if hdf5_dep.found()
     dependencies: [gtest_main_dep, hdf5_dep],
     link_with: lib_cubism_io,
   )
-  test('hdf5', e,
+  test('hdf5-io', e,
     workdir: '/tmp',
     protocol: 'gtest',
     suite: 'IO',
