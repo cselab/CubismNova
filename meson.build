@@ -41,15 +41,6 @@ if hdf5_dep.found()
   add_project_arguments('-DCUBISM_USE_HDF', language: ['cpp'])
 endif
 
-# .ini type config parser (git submodule): https://github.com/benhoyt/inih.git
-inih_dep = declare_dependency(
-  sources: files([
-    'subprojects/inih/ini.c',
-    'subprojects/inih/ini.h',
-    ]),
-  include_directories: 'subprojects/inih'
-)
-
 # Cubism sources
 inc_cubism_nova = include_directories('include')
 install_subdir('include/Cubism', install_dir: 'include')

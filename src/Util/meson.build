@@ -15,6 +15,10 @@ src_util = files([
     'Profiler.cpp',
   ])
 
+# .ini type config parser: https://github.com/benhoyt/inih.git
+inih_sub = subproject('inih', default_options: ['default_library=static', 'distro_install=false'])
+inih_dep = inih_sub.get_variable('inih_dep')
+
 lib_cubism_util = library('CubismUtil',
   [src_util, vcs_dep],
   include_directories: inc_cubism_nova,
