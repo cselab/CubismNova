@@ -1,4 +1,4 @@
-project('CubismNova', ['c', 'cpp'],
+project('CubismNova', ['cpp'],
   version: files('./VERSION'),
   meson_version: '>=0.57.0',
   license: 'BSD-2-Clause',
@@ -10,7 +10,7 @@ project('CubismNova', ['c', 'cpp'],
 )
 
 if get_option('IGNORE_UNKNOWN_PRAGMAS')
-  add_project_arguments('-Wno-unknown-pragmas', language: ['c', 'cpp'])
+  add_project_arguments('-Wno-unknown-pragmas', language: ['cpp'])
 endif
 null_dep = dependency('', required : false)
 
@@ -34,7 +34,7 @@ if get_option('b_coverage')
       '-fno-inline-small-function',
       '-Wno-error=cpp', # bypass _FORTIFY_SOURCE
     ],
-    language: ['c', 'cpp'])
+    language: ['cpp'])
 endif
 
 # Cubism sources
