@@ -50,11 +50,10 @@ if get_option('CUBISM_TESTS')
   subdir('test')
 endif
 
-# # debugging
-# if (CMAKE_BUILD_TYPE MATCHES Debug)
-#     message("Debug Mode Enabled")
-#     add_subdirectory(test/sandbox)
-# endif ()
+# debug
+if get_option('buildtype').to_lower() == 'debug'
+  subdir('test/sandbox')
+endif
 
 # # create a pkg-config entry
 # pkg_mod = import('pkgconfig')
