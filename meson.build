@@ -55,11 +55,11 @@ if get_option('buildtype').to_lower() == 'debug'
   subdir('test/sandbox')
 endif
 
-# # create a pkg-config entry
-# pkg_mod = import('pkgconfig')
-# pkg_mod.generate(
-#   name: 'CubismNova',
-#   filebase: 'cubismnova',
-#   description: 'CubismNova -- HPC library for structured uniform and adaptive multi resolution',
-#   libraries: cubism_nova_libs
-# )
+# create a pkg-config entry
+pkg_mod = import('pkgconfig')
+pkg_mod.generate(
+  name: 'CubismNova',
+  filebase: 'cubismnova',
+  description: 'CubismNova -- HPC library for structured uniform and adaptive multi resolution',
+  libraries: [lib_cubism_io, lib_cubism_util]
+)
