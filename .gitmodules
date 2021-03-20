@@ -1,3 +1,0 @@
-[submodule "test/gtest-mpi-listener"]
-	path = subprojects/gtest-mpi-listener
-	url = https://github.com/cselab/gtest-mpi-listener.git
