@@ -23,7 +23,7 @@ commands:
             - checkout
             - run:
                 name: Initalize submodules
-                command: git submodule update --init
+                command: git submodule update --init --recursive
 
 jobs:
     debug_and_coverage:
@@ -36,11 +36,12 @@ jobs:
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                    ./cmake_init.sh debug ./install -DCUBISM_COVERAGE=ON &&
-                    cd debug &&
-                    make -j1 && make gcov && make install
+                  meson setup build --buildtype=debug -Db_coverage=true &&
+                  meson test -C build && 
+                  ninja -C build coverage &&
+                  ./tools/quality/codecov
             - store_artifacts:
-                path: debug/covhtml
+                path: build/meson-logs/coveragereport
 
     debug:
         parameters:
@@ -52,9 +53,10 @@ jobs:
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                    ./cmake_init.sh debug ./install &&
-                    cd debug &&
-                    make -j1 && make test && make install
+                  meson setup build --buildtype=debug --prefix=~/test_install &&
+                  meson compile -C build && 
+                  meson test -C build && 
+                  meson install -C build
 
     release:
         parameters:
@@ -66,9 +68,10 @@ jobs:
             - run:
                 name: Release build (full)
                 command: >
-                    ./cmake_init.sh release ./install &&
-                    cd release &&
-                    make -j1 && make test && make install
+                  meson setup build --buildtype=release --prefix=~/test_install &&
+                  meson compile -C build && 
+                  meson test -C build && 
+                  meson install -C build
 
     debug_32bit_index:
         parameters:
@@ -80,9 +83,10 @@ jobs:
             - run:
                 name: Debug build (full; 32bit index)
                 command: >
-                    ./cmake_init.sh debug ./install -DCUBISM_32BIT_INDEX=ON &&
-                    cd debug &&
-                    make -j1 && make test && make install
+                  meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_32BIT_INDEX=true &&
+                  meson compile -C build && 
+                  meson test -C build && 
+                  meson install -C build
 
     debug_no_IO:
         parameters:
@@ -92,11 +96,12 @@ jobs:
         steps:
             - checkout_code
             - run:
-                name: Debug build (no libCubismIO.a)
+                name: Debug build (no libCubismIO)
                 command: >
-                    ./cmake_init.sh debug ./install -DCUBISM_IO=OFF &&
-                    cd debug &&
-                    make -j1 && make test && make install
+                  meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_IO=false &&
+                  meson compile -C build && 
+                  meson test -C build && 
+                  meson install -C build
 
 workflows:
     debian:
