@@ -51,7 +51,6 @@ subdir('tools')
 
 # testing
 if get_option('CUBISM_TESTS')
-  inc_gtest_mpi = include_directories('subprojects/gtest-mpi-listener/include')
   subdir('test')
 endif
 
