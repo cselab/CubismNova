@@ -8,6 +8,5 @@ gtest_mpi_listener_sub = subproject('gtest-mpi-listener')
 gtest_mpi_listener_dep = gtest_mpi_listener_sub.get_variable('gtest_mpi_listener_dep')
 
 subdir('Tests')
-
-# subdir('TestsMPI')
-# subdir('UnitTests')
+subdir('TestsMPI')
+subdir('UnitTests')

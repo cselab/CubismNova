@@ -1,0 +1,26 @@
+e = executable('unit',
+  files([
+    'Alloc/AlignedBlockAllocatorTest.cpp',
+    'BC/AbsorbingTest.cpp',
+    'BC/BaseTest.cpp',
+    'BC/DirichletTest.cpp',
+    'BC/SymmetryTest.cpp',
+    'Block/DataLabTest.cpp',
+    'Block/DataTest.cpp',
+    'Block/FieldTest.cpp',
+    'Core/IndexTest.cpp',
+    'Core/RangeTest.cpp',
+    'Core/StencilTest.cpp',
+    'Core/VectorTest.cpp',
+    'Grid/CartesianTest.cpp',
+    'IO/FieldAOSTest.cpp',
+    'Mesh/BlockMeshTest.cpp',
+    'Mesh/StructuredUniformTest.cpp',
+  ]),
+  include_directories: inc_cubism_nova,
+  dependencies: gtest_main_dep
+  )
+test('unit', e,
+  protocol: 'gtest',
+  suite: 'Unit',
+)
