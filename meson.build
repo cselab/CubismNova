@@ -15,7 +15,9 @@ endif
 null_dep = dependency('', required : false)
 
 # check for MPI and OpenMP support
-mpi_dep = dependency('mpi', language: 'cpp', required: true)
+# FIXME: [fabianw@mavt.ethz.ch; 2021-03-20] buggy with MPICH
+mpi_dep = dependency('mpi', language: 'cpp', required: true, method: 'config-tool')
+# mpi_dep = dependency('mpi', language: 'cpp', required: true)
 openmp_dep = dependency('openmp', required: false)
 
 if get_option('CUBISM_32BIT_INDEX')
