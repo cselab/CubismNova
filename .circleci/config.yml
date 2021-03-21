@@ -17,13 +17,13 @@ executors:
         docker:
             - image:  docker.io/cselab/fedora_openmpi:latest
 
-    focal_mpich:
+    ubuntu_mpich:
         docker:
-            - image:  docker.io/cselab/ubuntu_focal_mpich:latest
+            - image:  docker.io/cselab/ubuntu_mpich:rolling
 
-    focal_openmpi:
+    ubuntu_openmpi:
         docker:
-            - image:  docker.io/cselab/ubuntu_focal_openmpi:latest
+            - image:  docker.io/cselab/ubuntu_openmpi:rolling
 
 commands:
     checkout_code:
@@ -54,7 +54,8 @@ jobs:
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install &&
                   ninja -C build -j 1 coverage &&
-                  ./tools/quality/codecov -f ./build/meson-logs/coverage.xml
+                  ./tools/quality/codecov -s "!*subprojects*"
+                  # ./tools/quality/codecov -f ./build/meson-logs/coverage.xml
             - store_artifacts:
                 path: build/meson-logs
 
@@ -176,6 +177,30 @@ workflows:
     #         - release:
     #             image: buster_mpich
 
+    # fedora_openmpi:
+    #     jobs:
+    #         - debug_and_coverage:
+    #             image: fedora_openmpi
+    #         - debug:
+    #             image: fedora_openmpi
+    #         - debug_32bit_index:
+    #             image: fedora_openmpi
+    #         - debug_no_IO:
+    #             image: fedora_openmpi
+    #         - release:
+    #             image: fedora_openmpi
+
+    # fedora_openmpi_clang:
+    #     jobs:
+    #         - debug:
+    #             image: fedora_openmpi
+    #             CC: clang
+    #             CXX: clang++
+    #         - release:
+    #             image: fedora_openmpi
+    #             CC: clang
+    #             CXX: clang++
+
     # fedora:
     #     jobs:
     #         # - debug_and_coverage:
@@ -213,3 +238,27 @@ workflows:
     #             image: focal_openmpi
     #         - debug_no_IO:
     #             image: focal_openmpi
+
+    ubuntu_openmpi:
+        jobs:
+            - debug_and_coverage:
+                image: ubuntu_openmpi
+            - debug:
+                image: ubuntu_openmpi
+            - debug_32bit_index:
+                image: ubuntu_openmpi
+            - debug_no_IO:
+                image: ubuntu_openmpi
+            - release:
+                image: ubuntu_openmpi
+
+    ubuntu_openmpi_clang:
+        jobs:
+            - debug:
+                image: ubuntu_openmpi
+                CC: clang
+                CXX: clang++
+            - release:
+                image: ubuntu_openmpi
+                CC: clang
+                CXX: clang++
