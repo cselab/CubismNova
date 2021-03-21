@@ -23,7 +23,7 @@ e = executable('unit',
     'Mesh/BlockMeshTest.cpp',
     'Mesh/StructuredUniformTest.cpp',
   ]),
-  include_directories: inc_cubism_nova,
+  include_directories: cubismnova_inc,
   dependencies: [mpi_dep, openmp_dep, gtest_main_dep],
   )
 test('unit', e,

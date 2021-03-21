@@ -20,9 +20,9 @@ p = executable('ini-parser',
   [files([
     'INIParser/INIParserTest.cpp',
     ]), test_data],
-  include_directories: inc_cubism_nova,
+  include_directories: cubismnova_inc,
   dependencies: gtest_main_dep,
-  link_with: lib_cubism_util,
+  link_with: cubismnova_libutil,
 )
 test('ini-parser', p,
   workdir: meson.current_build_dir(),
@@ -35,9 +35,9 @@ v = executable('version',
   files([
     'Version/VersionTest.cpp',
     ]),
-  include_directories: inc_cubism_nova,
+  include_directories: cubismnova_inc,
   dependencies: gtest_main_dep,
-  link_with: lib_cubism_util,
+  link_with: cubismnova_libutil,
 )
 test('version', v,
   protocol: 'gtest',

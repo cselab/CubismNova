@@ -8,8 +8,8 @@ e = executable('TestProfiler',
   files([
     'TestProfiler.cpp',
     ]),
-  include_directories: inc_cubism_nova,
+  include_directories: cubismnova_inc,
   dependencies: [mpi_dep],
-  link_with: lib_cubism_util,
+  link_with: cubismnova_libutil,
   install: false
 )

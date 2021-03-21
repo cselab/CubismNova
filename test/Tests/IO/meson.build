@@ -10,9 +10,9 @@ if hdf5_dep.found()
       'HDF/CartesianHDFTest.cpp',
       'HDF/FieldHDFTest.cpp',
       ]),
-    include_directories: inc_cubism_nova,
+    include_directories: cubismnova_inc,
     dependencies: [mpi_dep, openmp_dep, gtest_main_dep, hdf5_dep],
-    link_with: lib_cubism_io,
+    link_with: cubismnova_libio,
   )
   test('hdf5-io', e,
     workdir: '/tmp',

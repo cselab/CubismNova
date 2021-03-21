@@ -19,9 +19,9 @@ src_util = files([
 inih_sub = subproject('inih', default_options: ['default_library=static', 'distro_install=false'])
 inih_dep = inih_sub.get_variable('inih_dep')
 
-lib_cubism_util = library('CubismUtil',
+cubismnova_libutil = library('CubismUtil',
   [src_util, vcs_dep],
-  include_directories: inc_cubism_nova,
+  include_directories: cubismnova_inc,
   dependencies: [mpi_dep, openmp_dep, inih_dep],
   install: true
 )
