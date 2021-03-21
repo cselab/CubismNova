@@ -149,7 +149,7 @@ jobs:
                 path: build/meson-logs
 
 workflows:
-    debian_openmpi:
+    debian_openmpi_gcc:
         jobs:
             - debug_and_coverage:
                 image: buster_openmpi
@@ -173,7 +173,7 @@ workflows:
                 CC: clang
                 CXX: clang++
 
-    # debian_mpich:
+    # debian_mpich_gcc:
     #     jobs:
     #         - debug_and_coverage:
     #             image: buster_mpich
@@ -186,7 +186,7 @@ workflows:
     #         - release:
     #             image: buster_mpich
 
-    # fedora_openmpi:
+    # fedora_openmpi_gcc:
     #     jobs:
     #         - debug_and_coverage:
     #             image: fedora_openmpi
@@ -210,7 +210,7 @@ workflows:
     #             CC: clang
     #             CXX: clang++
 
-    # fedora:
+    # fedora_gcc:
     #     jobs:
     #         # - debug_and_coverage:
     #         #     image: fedora_mpich
@@ -229,26 +229,7 @@ workflows:
     #         - debug_no_IO:
     #             image: fedora_openmpi
 
-    # ubuntu:
-    #     jobs:
-    #         # - debug_and_coverage:
-    #         #     image: focal_mpich
-    #         # - release:
-    #         #     image: focal_mpich
-    #         # - debug_32bit_index:
-    #         #     image: focal_mpich
-    #         # - debug_no_IO:
-    #         #     image: focal_mpich
-    #         - debug_and_coverage:
-    #             image: focal_openmpi
-    #         - release:
-    #             image: focal_openmpi
-    #         - debug_32bit_index:
-    #             image: focal_openmpi
-    #         - debug_no_IO:
-    #             image: focal_openmpi
-
-    ubuntu_openmpi:
+    ubuntu_openmpi_gcc:
         jobs:
             - debug_and_coverage:
                 image: ubuntu_openmpi
