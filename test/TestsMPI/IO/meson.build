@@ -19,5 +19,6 @@ if hdf5_dep.found()
     protocol: 'gtest',
     suite: 'MPI',
     depends: e,
+    timeout: 60,
   )
 endif
