@@ -29,8 +29,8 @@ if get_option('b_coverage')
   add_project_arguments(
     [
       '-fno-inline',
-      '-fno-default-inline',
-      '-fno-inline-small-functions',
+      # '-fno-default-inline',
+      # '-fno-inline-small-functions',
       '-Wno-error=cpp', # bypass _FORTIFY_SOURCE
     ],
     language: ['cpp'])
