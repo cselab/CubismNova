@@ -45,7 +45,7 @@ jobs:
                 name: Debug build (full, code coverage)
                 command: >
                   meson setup build --buildtype=debug --prefix=~/test_install -Db_coverage=true &&
-                  ninja -C build -j 2 test && 
+                  ninja -C build -j 1 test && 
                   ninja -C build -j 1 install &&
                   ninja -C build -j 1 coverage &&
                   ./tools/quality/codecov
@@ -63,7 +63,7 @@ jobs:
                 name: Debug build (full, code coverage)
                 command: >
                   meson setup build --buildtype=debug --prefix=~/test_install &&
-                  ninja -C build -j 2 test && 
+                  ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
 
     release:
@@ -77,7 +77,7 @@ jobs:
                 name: Release build (full)
                 command: >
                   meson setup build --buildtype=release --prefix=~/test_install &&
-                  ninja -C build -j 2 test && 
+                  ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
 
     debug_32bit_index:
@@ -91,7 +91,7 @@ jobs:
                 name: Debug build (full; 32bit index)
                 command: >
                   meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_32BIT_INDEX=true &&
-                  ninja -C build -j 2 test && 
+                  ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
 
     debug_no_IO:
@@ -105,7 +105,7 @@ jobs:
                 name: Debug build (no libCubismIO)
                 command: >
                   meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_IO=false &&
-                  ninja -C build -j 2 test && 
+                  ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
 
 workflows:
