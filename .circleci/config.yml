@@ -45,8 +45,9 @@ jobs:
                 name: Debug build (full, code coverage)
                 command: >
                   meson setup build --buildtype=debug -Db_coverage=true &&
-                  meson test -C build && 
-                  ninja -C build coverage &&
+                  ninja -C build -j 1 test && 
+                  ninja -C build -j 1 install &&
+                  ninja -C build -j 1 coverage &&
                   ./tools/quality/codecov
             - store_artifacts:
                 path: build/meson-logs/coveragereport
@@ -62,9 +63,8 @@ jobs:
                 name: Debug build (full, code coverage)
                 command: >
                   meson setup build --buildtype=debug --prefix=~/test_install &&
-                  meson compile -C build && 
-                  meson test -C build && 
-                  meson install -C build
+                  ninja -C build -j 1 test && 
+                  ninja -C build -j 1 install
 
     release:
         parameters:
@@ -77,9 +77,8 @@ jobs:
                 name: Release build (full)
                 command: >
                   meson setup build --buildtype=release --prefix=~/test_install &&
-                  meson compile -C build && 
-                  meson test -C build && 
-                  meson install -C build
+                  ninja -C build -j 1 test && 
+                  ninja -C build -j 1 install
 
     debug_32bit_index:
         parameters:
@@ -92,9 +91,8 @@ jobs:
                 name: Debug build (full; 32bit index)
                 command: >
                   meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_32BIT_INDEX=true &&
-                  meson compile -C build && 
-                  meson test -C build && 
-                  meson install -C build
+                  ninja -C build -j 1 test && 
+                  ninja -C build -j 1 install
 
     debug_no_IO:
         parameters:
@@ -107,9 +105,8 @@ jobs:
                 name: Debug build (no libCubismIO)
                 command: >
                   meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_IO=false &&
-                  meson compile -C build && 
-                  meson test -C build && 
-                  meson install -C build
+                  ninja -C build -j 1 test && 
+                  ninja -C build -j 1 install
 
 workflows:
     debian:
