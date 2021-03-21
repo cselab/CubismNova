@@ -38,13 +38,19 @@ jobs:
         parameters:
             image:
                 type: executor
+            CC:
+                type: string
+                default: gcc
+            CXX:
+                type: string
+                default: g++
         executor: << parameters.image >>
         steps:
             - checkout_code
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                  meson setup build --buildtype=debug --prefix=~/test_install -Db_coverage=true &&
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install -Db_coverage=true &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install &&
                   ninja -C build -j 1 coverage &&
@@ -56,13 +62,19 @@ jobs:
         parameters:
             image:
                 type: executor
+            CC:
+                type: string
+                default: gcc
+            CXX:
+                type: string
+                default: g++
         executor: << parameters.image >>
         steps:
             - checkout_code
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                  meson setup build --buildtype=debug --prefix=~/test_install &&
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
 
@@ -70,13 +82,19 @@ jobs:
         parameters:
             image:
                 type: executor
+            CC:
+                type: string
+                default: gcc
+            CXX:
+                type: string
+                default: g++
         executor: << parameters.image >>
         steps:
             - checkout_code
             - run:
                 name: Release build (full)
                 command: >
-                  meson setup build --buildtype=release --prefix=~/test_install &&
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=release --prefix=~/test_install &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
 
@@ -84,13 +102,19 @@ jobs:
         parameters:
             image:
                 type: executor
+            CC:
+                type: string
+                default: gcc
+            CXX:
+                type: string
+                default: g++
         executor: << parameters.image >>
         steps:
             - checkout_code
             - run:
                 name: Debug build (full; 32bit index)
                 command: >
-                  meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_32BIT_INDEX=true &&
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_32BIT_INDEX=true &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
 
@@ -98,37 +122,59 @@ jobs:
         parameters:
             image:
                 type: executor
+            CC:
+                type: string
+                default: gcc
+            CXX:
+                type: string
+                default: g++
         executor: << parameters.image >>
         steps:
             - checkout_code
             - run:
                 name: Debug build (no libCubismIO)
                 command: >
-                  meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_IO=false &&
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_IO=false &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
 
 workflows:
-    debian:
+    debian_openmpi:
         jobs:
-            # - debug_and_coverage:
-            #     image: buster_mpich
-            # - release:
-            #     image: buster_mpich
-            # - debug_32bit_index:
-            #     image: buster_mpich
-            # - debug_no_IO:
-            #     image: buster_mpich
             - debug_and_coverage:
                 image: buster_openmpi
             - debug:
-                image: buster_openmpi
-            - release:
                 image: buster_openmpi
             - debug_32bit_index:
                 image: buster_openmpi
             - debug_no_IO:
                 image: buster_openmpi
+            - release:
+                image: buster_openmpi
+
+    debian_openmpi_clang:
+        jobs:
+            - debug:
+                image: buster_openmpi
+                CC: clang
+                CXX: clang++
+            - release:
+                image: buster_openmpi
+                CC: clang
+                CXX: clang++
+
+    # debian_mpich:
+    #     jobs:
+    #         - debug_and_coverage:
+    #             image: buster_mpich
+    #         - debug:
+    #             image: buster_mpich
+    #         - debug_32bit_index:
+    #             image: buster_mpich
+    #         - debug_no_IO:
+    #             image: buster_mpich
+    #         - release:
+    #             image: buster_mpich
 
     # fedora:
     #     jobs:
