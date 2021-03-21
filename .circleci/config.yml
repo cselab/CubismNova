@@ -26,6 +26,10 @@ executors:
             - image:  docker.io/cselab/ubuntu_openmpi:rolling
 
 # TODO: [fabianw@mavt.ethz.ch; 2021-03-21] centos
+# XXX: [fabianw@mavt.ethz.ch; 2021-03-21] fixup
+
+orbs:
+  codecov: codecov/codecov@1.1.3
 
 commands:
     checkout_code:
@@ -55,8 +59,10 @@ jobs:
                   CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install -Db_coverage=true &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install &&
-                  ninja -C build -j 1 coverage &&
-                  ./tools/quality/codecov -f "$(pwd -P)/build/meson-logs/coverage.xml"
+                  ninja -C build -j 1 coverage
+            - codecov/upload:
+                file: build/meson-logs/coverage.xml
+                flags: any
             - store_artifacts:
                 path: build/meson-logs
 
@@ -231,8 +237,6 @@ workflows:
 
     ubuntu_openmpi_gcc:
         jobs:
-            - debug_and_coverage:
-                image: ubuntu_openmpi
             - debug:
                 image: ubuntu_openmpi
             - debug_32bit_index:
