@@ -1,3 +1,9 @@
+# File       : meson.build
+# Created    : Sun Mar 21 2021 01:10:33 AM (+0100)
+# Author     : Fabian Wermelinger
+# Description: Main meson build definition
+# Copyright 2021 ETH Zurich. All Rights Reserved.
+
 project('CubismNova', ['cpp'],
   version: files('./VERSION'),
   meson_version: '>=0.57.0',

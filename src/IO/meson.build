@@ -1,3 +1,9 @@
+# File       : meson.build
+# Created    : Sun Mar 21 2021 01:14:05 AM (+0100)
+# Author     : Fabian Wermelinger
+# Description: Meson build definition
+# Copyright 2021 ETH Zurich. All Rights Reserved.
+
 hdf5_dep = null_dep
 lib_cubism_io = null_dep
 

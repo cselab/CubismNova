@@ -1,7 +1,7 @@
 # File       : meson.build
 # Created    : Mon Mar 15 2021 06:07:34 PM (+0100)
 # Author     : Fabian Wermelinger
-# Description: Build definitions for libCubismUtil
+# Description: Meson build definition
 # Copyright 2021 ETH Zurich. All Rights Reserved.
 
 vcs_dep = vcs_tag(
