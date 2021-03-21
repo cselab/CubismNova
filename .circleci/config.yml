@@ -3,19 +3,27 @@ version: 2.1
 executors:
     buster_mpich:
         docker:
-            - image:  cselab/debian_buster_mpich:latest
+            - image:  docker.io/cselab/debian_buster_mpich:latest
 
     buster_openmpi:
         docker:
-            - image:  cselab/debian_buster_openmpi:latest
+            - image:  docker.io/cselab/debian_buster_openmpi:latest
 
     fedora_mpich:
         docker:
-            - image:  cselab/fedora_mpich:latest
+            - image:  docker.io/cselab/fedora_mpich:latest
 
     fedora_openmpi:
         docker:
-            - image:  cselab/fedora_openmpi:latest
+            - image:  docker.io/cselab/fedora_openmpi:latest
+
+    focal_mpich:
+        docker:
+            - image:  docker.io/cselab/ubuntu_focal_mpich:latest
+
+    focal_openmpi:
+        docker:
+            - image:  docker.io/cselab/ubuntu_focal_openmpi:latest
 
 commands:
     checkout_code:
@@ -106,14 +114,14 @@ jobs:
 workflows:
     debian:
         jobs:
-            - debug_and_coverage:
-                image: buster_mpich
-            - release:
-                image: buster_mpich
-            - debug_32bit_index:
-                image: buster_mpich
-            - debug_no_IO:
-                image: buster_mpich
+            # - debug_and_coverage:
+            #     image: buster_mpich
+            # - release:
+            #     image: buster_mpich
+            # - debug_32bit_index:
+            #     image: buster_mpich
+            # - debug_no_IO:
+            #     image: buster_mpich
             - debug_and_coverage:
                 image: buster_openmpi
             - release:
@@ -123,21 +131,40 @@ workflows:
             - debug_no_IO:
                 image: buster_openmpi
 
-    fedora:
-        jobs:
-            - debug_and_coverage:
-                image: fedora_mpich
-            - release:
-                image: fedora_mpich
-            - debug_32bit_index:
-                image: fedora_mpich
-            - debug_no_IO:
-                image: fedora_mpich
-            - debug_and_coverage:
-                image: fedora_openmpi
-            - release:
-                image: fedora_openmpi
-            - debug_32bit_index:
-                image: fedora_openmpi
-            - debug_no_IO:
-                image: fedora_openmpi
+    # fedora:
+    #     jobs:
+    #         # - debug_and_coverage:
+    #         #     image: fedora_mpich
+    #         # - release:
+    #         #     image: fedora_mpich
+    #         # - debug_32bit_index:
+    #         #     image: fedora_mpich
+    #         # - debug_no_IO:
+    #         #     image: fedora_mpich
+    #         - debug_and_coverage:
+    #             image: fedora_openmpi
+    #         - release:
+    #             image: fedora_openmpi
+    #         - debug_32bit_index:
+    #             image: fedora_openmpi
+    #         - debug_no_IO:
+    #             image: fedora_openmpi
+
+    # ubuntu:
+    #     jobs:
+    #         # - debug_and_coverage:
+    #         #     image: focal_mpich
+    #         # - release:
+    #         #     image: focal_mpich
+    #         # - debug_32bit_index:
+    #         #     image: focal_mpich
+    #         # - debug_no_IO:
+    #         #     image: focal_mpich
+    #         - debug_and_coverage:
+    #             image: focal_openmpi
+    #         - release:
+    #             image: focal_openmpi
+    #         - debug_32bit_index:
+    #             image: focal_openmpi
+    #         - debug_no_IO:
+    #             image: focal_openmpi
