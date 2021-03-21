@@ -164,10 +164,6 @@ workflows:
 
     debian_openmpi_clang:
         jobs:
-            - debug_and_coverage:
-                image: buster_openmpi
-                CC: clang
-                CXX: clang++
             - debug:
                 image: buster_openmpi
                 CC: clang
@@ -267,10 +263,6 @@ workflows:
 
     ubuntu_openmpi_clang:
         jobs:
-            - debug_and_coverage:
-                image: ubuntu_openmpi
-                CC: clang
-                CXX: clang++
             - debug:
                 image: ubuntu_openmpi
                 CC: clang
