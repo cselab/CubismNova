@@ -15,6 +15,9 @@ project('CubismNova', ['cpp'],
     ]
 )
 
+# compiler object
+cpp = meson.get_compiler('cpp')
+
 # option processing
 if get_option('IGNORE_UNKNOWN_PRAGMAS')
   add_project_arguments('-Wno-unknown-pragmas', language: ['cpp'])
@@ -26,14 +29,17 @@ endif
 
 # code coverage
 if get_option('b_coverage')
-  add_project_arguments(
-    [
-      '-fno-inline',
-      # '-fno-default-inline',
-      # '-fno-inline-small-functions',
-      '-Wno-error=cpp', # bypass _FORTIFY_SOURCE
-    ],
-    language: ['cpp'])
+  gcov_args = [
+    '-fno-inline',
+    '-Wno-error=cpp', # bypass _FORTIFY_SOURCE
+  ]
+  if cpp.get_id().to_lower() == 'gcc'
+    gcov_args += [
+      '-fno-default-inline',
+      '-fno-inline-small-functions',
+    ]
+  endif
+  add_project_arguments(gcov_args, language: ['cpp'])
 endif
 
 # dependencies
