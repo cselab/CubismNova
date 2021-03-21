@@ -44,13 +44,13 @@ jobs:
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                  meson setup build --buildtype=debug -Db_coverage=true &&
-                  ninja -C build -j 1 test && 
+                  meson setup build --buildtype=debug --prefix=~/test_install -Db_coverage=true &&
+                  ninja -C build -j 2 test && 
                   ninja -C build -j 1 install &&
                   ninja -C build -j 1 coverage &&
                   ./tools/quality/codecov
             - store_artifacts:
-                path: build/meson-logs/coveragereport
+                path: build/meson-logs
 
     debug:
         parameters:
@@ -120,6 +120,8 @@ workflows:
             # - debug_no_IO:
             #     image: buster_mpich
             - debug_and_coverage:
+                image: buster_openmpi
+            - debug:
                 image: buster_openmpi
             - release:
                 image: buster_openmpi
