@@ -25,6 +25,8 @@ executors:
         docker:
             - image:  docker.io/cselab/ubuntu_openmpi:rolling
 
+# TODO: [fabianw@mavt.ethz.ch; 2021-03-21] centos
+
 commands:
     checkout_code:
         steps:
@@ -79,6 +81,8 @@ jobs:
                   CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
+            - store_artifacts:
+                path: build/meson-logs
 
     release:
         parameters:
@@ -99,6 +103,8 @@ jobs:
                   CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=release --prefix=~/test_install &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
+            - store_artifacts:
+                path: build/meson-logs
 
     debug_32bit_index:
         parameters:
@@ -119,6 +125,8 @@ jobs:
                   CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_32BIT_INDEX=true &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
+            - store_artifacts:
+                path: build/meson-logs
 
     debug_no_IO:
         parameters:
@@ -139,6 +147,8 @@ jobs:
                   CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install -DCUBISM_IO=false &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
+            - store_artifacts:
+                path: build/meson-logs
 
 workflows:
     debian_openmpi:
