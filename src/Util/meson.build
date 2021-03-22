@@ -16,7 +16,13 @@ src_util = files([
   ])
 
 # .ini type config parser: https://github.com/benhoyt/inih.git
-inih_sub = subproject('inih', default_options: ['default_library=static', 'distro_install=false'])
+inih_sub = subproject('inih',
+  default_options: [
+    'default_library=static',
+    'distro_install=false', 
+    'with_INIReader=false'
+  ]
+)
 inih_dep = inih_sub.get_variable('inih_dep')
 
 cubismnova_libutil = library('CubismUtil',
