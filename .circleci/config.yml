@@ -36,7 +36,7 @@ commands:
                 command: git submodule update --init --recursive
 
 jobs:
-    debug_and_coverage:
+    coverage:
         parameters:
             image:
                 type: executor
@@ -46,13 +46,16 @@ jobs:
             CXX:
                 type: string
                 default: g++
+            buildtype:
+                type: string
+                default: debug
         executor: << parameters.image >>
         steps:
             - checkout_code
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=debug --prefix=~/test_install -Db_coverage=true &&
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --buildtype=<< parameters.buildtype >> --prefix=~/test_install -Db_coverage=true &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install &&
                   ninja -C build -j 1 coverage &&
@@ -150,18 +153,26 @@ jobs:
                 path: build/meson-logs
 
 workflows:
-    debian_openmpi_gcc:
+    coverage:
         jobs:
-            - debug_and_coverage:
+            - coverage:
+                name: debian_buster_openmpi_debug
                 image: buster_openmpi
-            # - debug:
-            #     image: buster_openmpi
-            # - debug_32bit_index:
-            #     image: buster_openmpi
-            # - debug_no_IO:
-            #     image: buster_openmpi
-            # - release:
-            #     image: buster_openmpi
+            - coverage:
+                name: debian_buster_openmpi_release
+                image: buster_openmpi
+                buildtype: release
+
+    # debian_openmpi_gcc:
+    #     jobs:
+    #         - debug:
+    #             image: buster_openmpi
+    #         - debug_32bit_index:
+    #             image: buster_openmpi
+    #         - debug_no_IO:
+    #             image: buster_openmpi
+    #         - release:
+    #             image: buster_openmpi
 
     # debian_openmpi_clang:
     #     jobs:
