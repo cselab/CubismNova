@@ -56,7 +56,8 @@ jobs:
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install &&
                   ninja -C build -j 1 coverage &&
-                  ./tools/quality/codecov -f "build/meson-logs/coverage.xml"
+                  ./tools/quality/coverage &&
+                  ./tools/quality/codecov -X search -X fix -f '*.gcov'
             - store_artifacts:
                 path: build/meson-logs
 

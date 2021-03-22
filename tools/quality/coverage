@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# File       : coverage
+# Created    : Sun Feb 02 2020 10:56:45 PM (+0100)
+# Author     : Fabian Wermelinger
+# Description: Compute gcov coverage data
+# Copyright 2020 ETH Zurich. All Rights Reserved.
+set -e
+
+filter_junk()
+{
+    find ${1} -type f -name "${2}" | \
+        sed '/subprojects/d' | \
+        sed '/sandbox/d' 
+}
+
+ROOT="$(pwd -P)"
+flist=$(mktemp)
+filter_junk ${ROOT} "*.gcno" >${flist}
+
+CWD="gcov_data"
+DST=${ROOT}/${CWD}
+mkdir -p ${CWD}
+cd ${CWD}
+while read file; do
+    gcov -r -s ${ROOT} -m -b -p "$@" "${file}" &>/dev/null
+done <${flist}
+
+# clean up
+mkdir -p tmp
+filter_junk . "*.gcov" >${flist}
+while read file; do
+    mv ${file} tmp/
+done <${flist}
+rm -f *.gcov
+mv tmp/*.gcov .
+rm -rf tmp
+rm -f ${flist}
