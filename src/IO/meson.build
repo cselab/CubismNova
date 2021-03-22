@@ -5,7 +5,6 @@
 # Copyright 2021 ETH Zurich. All Rights Reserved.
 
 hdf5_dep = null_dep
-cubismnova_libio = null_dep
 
 if get_option('CUBISM_IO')
   hdf5_dep = dependency('hdf5', language: 'cpp', required: true)
@@ -19,4 +18,5 @@ if get_option('CUBISM_IO')
     dependencies: [mpi_dep, openmp_dep, hdf5_dep],
     install: true
   )
+  cubismnova_libs += cubismnova_libio
 endif

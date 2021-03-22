@@ -50,6 +50,7 @@ mpi_dep = dependency('mpi', language: 'cpp', required: true)
 openmp_dep = dependency('openmp', required: false)
 
 # Cubism sources
+cubismnova_libs = []
 cubismnova_inc = include_directories('include')
 install_subdir('include/Cubism', install_dir: 'include')
 subdir('src')
@@ -70,7 +71,7 @@ endif
 # declare dependency for subproject usage
 cubismnova_dep = declare_dependency(
   include_directories: cubismnova_inc,
-  link_with: [cubismnova_libio, cubismnova_libutil]
+  link_with: cubismnova_libs
 )
 
 # create a pkg-config entry
@@ -79,5 +80,5 @@ pkg_mod.generate(
   name: 'CubismNova',
   filebase: 'cubismnova',
   description: 'CubismNova -- HPC library for structured uniform and adaptive multi resolution',
-  libraries: [cubismnova_libio, cubismnova_libutil]
+  libraries: cubismnova_libs
 )

@@ -31,3 +31,4 @@ cubismnova_libutil = library('CubismUtil',
   dependencies: [mpi_dep, openmp_dep, inih_dep],
   install: true
 )
+cubismnova_libs += cubismnova_libutil
