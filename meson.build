@@ -12,7 +12,8 @@ project('CubismNova', ['cpp'],
     'cpp_std=c++11',
     'b_ndebug=if-release',
     'default_library=shared',
-    ]
+    'warning_level=3',
+  ]
 )
 
 # compiler object
