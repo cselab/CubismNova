@@ -1,31 +1,35 @@
 version: 2.1
 
 executors:
-    buster_mpich:
-        docker:
-            - image:  docker.io/cselab/debian_buster_mpich:latest
-
+    # OpenMPI
     buster_openmpi:
         docker:
             - image:  docker.io/cselab/debian_buster_openmpi:latest
-
-    fedora_mpich:
-        docker:
-            - image:  docker.io/cselab/fedora_mpich:latest
 
     fedora_openmpi:
         docker:
             - image:  docker.io/cselab/fedora_openmpi:latest
 
-    ubuntu_mpich:
-        docker:
-            - image:  docker.io/cselab/ubuntu_mpich:rolling
-
     ubuntu_openmpi:
         docker:
             - image:  docker.io/cselab/ubuntu_openmpi:rolling
 
-# TODO: [fabianw@mavt.ethz.ch; 2021-03-21] centos
+    centos_openmpi:
+        docker:
+            - image:  docker.io/cselab/centos_openmpi:latest
+
+    # MPICH
+    buster_mpich:
+        docker:
+            - image:  docker.io/cselab/debian_buster_mpich:latest
+
+    fedora_mpich:
+        docker:
+            - image:  docker.io/cselab/fedora_mpich:latest
+
+    ubuntu_mpich:
+        docker:
+            - image:  docker.io/cselab/ubuntu_mpich:rolling
 
 commands:
     checkout_code:
@@ -99,9 +103,14 @@ workflows:
                 name: debian_buster_openmpi_debug
                 image: buster_openmpi
             - coverage:
-                name: debian_buster_openmpi_release
-                image: buster_openmpi
-                buildtype: release
+                name: ubuntu_openmpi_debug
+                image: ubuntu_openmpi
+            - coverage:
+                name: centos_openmpi_debug
+                image: centos_openmpi
+            - coverage:
+                name: fedora_openmpi_debug
+                image: fedora_openmpi
 
     debian_openmpi_gcc:
         jobs:
@@ -115,100 +124,102 @@ workflows:
             - build:
                 name: debug_32bit_index
                 image: buster_openmpi
-                buildargs: -DCUBISM_32BIT_INDEX=true
+                buildargs: "-DCUBISM_32BIT_INDEX=true"
             - build:
                 name: debug_without_IO
                 image: buster_openmpi
-                buildargs: -DCUBISM_IO=false
+                buildargs: "-DCUBISM_IO=false"
 
+    debian_openmpi_clang:
+        jobs:
+            - build:
+                name: debug
+                image: buster_openmpi
+                CC: clang
+                CXX: clang++
+            - build:
+                name: release
+                image: buster_openmpi
+                buildtype: release
+                CC: clang
+                CXX: clang++
 
-    # debian_openmpi_clang:
-    #     jobs:
-    #         - debug:
-    #             image: buster_openmpi
-    #             CC: clang
-    #             CXX: clang++
-    #         - release:
-    #             image: buster_openmpi
-    #             CC: clang
-    #             CXX: clang++
+    centos_openmpi_gcc:
+        jobs:
+            - build:
+                name: debug
+                image: centos_openmpi
+            - build:
+                name: release
+                image: centos_openmpi
+                buildtype: release
+            - build:
+                name: debug_32bit_index
+                image: centos_openmpi
+                buildargs: "-DCUBISM_32BIT_INDEX=true"
+            - build:
+                name: debug_without_IO
+                image: centos_openmpi
+                buildargs: "-DCUBISM_IO=false"
 
-    # debian_mpich_gcc:
-    #     jobs:
-    #         - debug_and_coverage:
-    #             image: buster_mpich
-    #         - debug:
-    #             image: buster_mpich
-    #         - debug_32bit_index:
-    #             image: buster_mpich
-    #         - debug_no_IO:
-    #             image: buster_mpich
-    #         - release:
-    #             image: buster_mpich
+    centos_openmpi_clang:
+        jobs:
+            - build:
+                name: debug
+                image: centos_openmpi
+                CC: clang
+                CXX: clang++
+            - build:
+                name: release
+                image: centos_openmpi
+                buildtype: release
+                CC: clang
+                CXX: clang++
 
-    # fedora_openmpi_gcc:
-    #     jobs:
-    #         - debug_and_coverage:
-    #             image: fedora_openmpi
-    #         - debug:
-    #             image: fedora_openmpi
-    #         - debug_32bit_index:
-    #             image: fedora_openmpi
-    #         - debug_no_IO:
-    #             image: fedora_openmpi
-    #         - release:
-    #             image: fedora_openmpi
+    fedora_openmpi_gcc:
+        jobs:
+            - build:
+                name: debug
+                image: fedora_openmpi
+            - build:
+                name: release
+                image: fedora_openmpi
+                buildtype: release
 
-    # fedora_openmpi_clang:
-    #     jobs:
-    #         - debug:
-    #             image: fedora_openmpi
-    #             CC: clang
-    #             CXX: clang++
-    #         - release:
-    #             image: fedora_openmpi
-    #             CC: clang
-    #             CXX: clang++
+    fedora_openmpi_clang:
+        jobs:
+            - build:
+                name: debug
+                image: fedora_openmpi
+                CC: clang
+                CXX: clang++
+            - build:
+                name: release
+                image: fedora_openmpi
+                buildtype: release
+                CC: clang
+                CXX: clang++
 
-    # fedora_gcc:
-    #     jobs:
-    #         # - debug_and_coverage:
-    #         #     image: fedora_mpich
-    #         # - release:
-    #         #     image: fedora_mpich
-    #         # - debug_32bit_index:
-    #         #     image: fedora_mpich
-    #         # - debug_no_IO:
-    #         #     image: fedora_mpich
-    #         - debug_and_coverage:
-    #             image: fedora_openmpi
-    #         - release:
-    #             image: fedora_openmpi
-    #         - debug_32bit_index:
-    #             image: fedora_openmpi
-    #         - debug_no_IO:
-    #             image: fedora_openmpi
+    ubuntu_openmpi_gcc:
+        jobs:
+            - build:
+                name: debug
+                image: ubuntu_openmpi
+            - build:
+                name: release
+                image: ubuntu_openmpi
+                buildtype: release
 
-    # ubuntu_openmpi_gcc:
-    #     jobs:
-    #         - debug_and_coverage:
-    #             image: ubuntu_openmpi
-    #         - debug:
-    #             image: ubuntu_openmpi
-    #         - debug_32bit_index:
-    #             image: ubuntu_openmpi
-    #         - debug_no_IO:
-    #             image: ubuntu_openmpi
-    #         - release:
-    #             image: ubuntu_openmpi
-
-    # ubuntu_openmpi_clang:
-    #     jobs:
-    #         - debug:
-    #             image: ubuntu_openmpi
-    #             CC: clang
-    #             CXX: clang++
-    #         - release:
-    #             image: ubuntu_openmpi
-    #             CC: clang
-    #             CXX: clang++
+    ubuntu_openmpi_clang:
+        jobs:
+            - build:
+                name: debug
+                image: ubuntu_openmpi
+                CC: clang
+                CXX: clang++
+            - build:
+                name: release
+                image: ubuntu_openmpi
+                buildtype: release
+                CC: clang
+                CXX: clang++
