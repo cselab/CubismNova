@@ -90,7 +90,7 @@ jobs:
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --prefix=~/test_install --buildtype=<< parameters.buildtype >> -Dwerror=true << parameters.buildargs >> &&
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --prefix=~/test_install --buildtype=<< parameters.buildtype >> << parameters.buildargs >> &&
                   ninja -C build -j 1 test && 
                   ninja -C build -j 1 install
             - store_artifacts:
