@@ -12,7 +12,7 @@ e = executable('grid-mpi',
   dependencies: [mpi_dep, openmp_dep, gtest_dep, gtest_mpi_listener_dep],
 )
 test('grid-mpi', tests_mpi_mpirun,
-  args: ['-n', '8', '--hostfile', tests_mpi_hostfile, e],
+  args: ['-n', '8', '--hostfile', tests_mpi_hostfile, e, '&>/dev/null'],
   protocol: 'gtest',
   suite: 'MPI',
   is_parallel: false, # no other test must run when this one runs

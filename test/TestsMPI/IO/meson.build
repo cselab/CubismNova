@@ -14,7 +14,7 @@ if hdf5_dep.found()
     link_with: cubismnova_libio,
   )
   test('hdf5-mpi-io', tests_mpi_mpirun,
-    args: ['-n', '8', '--hostfile', tests_mpi_hostfile, e],
+    args: ['-n', '8', '--hostfile', tests_mpi_hostfile, e, '&>/dev/null'],
     workdir: '/tmp',
     protocol: 'gtest',
     suite: 'MPI',
