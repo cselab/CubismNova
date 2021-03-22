@@ -1,21 +1,35 @@
 version: 2.1
 
 executors:
-    buster_mpich:
-        docker:
-            - image:  cselab/debian_buster_mpich:latest
-
+    # OpenMPI
     buster_openmpi:
         docker:
-            - image:  cselab/debian_buster_openmpi:latest
-
-    fedora_mpich:
-        docker:
-            - image:  cselab/fedora_mpich:latest
+            - image:  docker.io/cselab/debian_buster_openmpi:latest
 
     fedora_openmpi:
         docker:
-            - image:  cselab/fedora_openmpi:latest
+            - image:  docker.io/cselab/fedora_openmpi:latest
+
+    ubuntu_openmpi:
+        docker:
+            - image:  docker.io/cselab/ubuntu_openmpi:rolling
+
+    centos_openmpi:
+        docker:
+            - image:  docker.io/cselab/centos_openmpi:latest
+
+    # MPICH
+    buster_mpich:
+        docker:
+            - image:  docker.io/cselab/debian_buster_mpich:latest
+
+    fedora_mpich:
+        docker:
+            - image:  docker.io/cselab/fedora_mpich:latest
+
+    ubuntu_mpich:
+        docker:
+            - image:  docker.io/cselab/ubuntu_mpich:rolling
 
 commands:
     checkout_code:
@@ -23,116 +37,189 @@ commands:
             - checkout
             - run:
                 name: Initalize submodules
-                command: git submodule update --init
+                command: git submodule update --init --recursive
 
 jobs:
-    debug_and_coverage:
+    coverage:
         parameters:
             image:
                 type: executor
+            CC:
+                type: string
+                default: gcc
+            CXX:
+                type: string
+                default: g++
+            buildtype:
+                type: string
+                default: debug
         executor: << parameters.image >>
         steps:
             - checkout_code
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                    ./cmake_init.sh debug ./install -DCUBISM_COVERAGE=ON &&
-                    cd debug &&
-                    make -j1 && make gcov && make install
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --prefix=~/test_install --buildtype=<< parameters.buildtype >> -Db_coverage=true &&
+                  ninja -C build -j 1 test && 
+                  ninja -C build -j 1 install &&
+                  ninja -C build -j 1 coverage &&
+                  ./tools/quality/coverage &&
+                  ./tools/quality/codecov -X search -X fix -f '*.gcov'
             - store_artifacts:
-                path: debug/covhtml
+                path: build/meson-logs
 
-    debug:
+    build:
         parameters:
             image:
                 type: executor
+            CC:
+                type: string
+                default: gcc
+            CXX:
+                type: string
+                default: g++
+            buildtype:
+                type: string
+                default: debug
+            buildargs:
+                type: string
+                default: ""
         executor: << parameters.image >>
         steps:
             - checkout_code
             - run:
                 name: Debug build (full, code coverage)
                 command: >
-                    ./cmake_init.sh debug ./install &&
-                    cd debug &&
-                    make -j1 && make test && make install
-
-    release:
-        parameters:
-            image:
-                type: executor
-        executor: << parameters.image >>
-        steps:
-            - checkout_code
-            - run:
-                name: Release build (full)
-                command: >
-                    ./cmake_init.sh release ./install &&
-                    cd release &&
-                    make -j1 && make test && make install
-
-    debug_32bit_index:
-        parameters:
-            image:
-                type: executor
-        executor: << parameters.image >>
-        steps:
-            - checkout_code
-            - run:
-                name: Debug build (full; 32bit index)
-                command: >
-                    ./cmake_init.sh debug ./install -DCUBISM_32BIT_INDEX=ON &&
-                    cd debug &&
-                    make -j1 && make test && make install
-
-    debug_no_IO:
-        parameters:
-            image:
-                type: executor
-        executor: << parameters.image >>
-        steps:
-            - checkout_code
-            - run:
-                name: Debug build (no libCubismIO.a)
-                command: >
-                    ./cmake_init.sh debug ./install -DCUBISM_IO=OFF &&
-                    cd debug &&
-                    make -j1 && make test && make install
+                  CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --prefix=~/test_install --buildtype=<< parameters.buildtype >> << parameters.buildargs >> &&
+                  ninja -C build -j 1 test && 
+                  ninja -C build -j 1 install
+            - store_artifacts:
+                path: build/meson-logs
 
 workflows:
-    debian:
+    coverage:
         jobs:
-            - debug_and_coverage:
-                image: buster_mpich
-            - release:
-                image: buster_mpich
-            - debug_32bit_index:
-                image: buster_mpich
-            - debug_no_IO:
-                image: buster_mpich
-            - debug_and_coverage:
+            - coverage:
+                name: debian_buster_openmpi_debug
                 image: buster_openmpi
-            - release:
-                image: buster_openmpi
-            - debug_32bit_index:
-                image: buster_openmpi
-            - debug_no_IO:
-                image: buster_openmpi
+            - coverage:
+                name: ubuntu_openmpi_debug
+                image: ubuntu_openmpi
+            - coverage:
+                name: centos_openmpi_debug
+                image: centos_openmpi
+            - coverage:
+                name: fedora_openmpi_debug
+                image: fedora_openmpi
 
-    fedora:
+    debian_openmpi_gcc:
         jobs:
-            - debug_and_coverage:
-                image: fedora_mpich
-            - release:
-                image: fedora_mpich
-            - debug_32bit_index:
-                image: fedora_mpich
-            - debug_no_IO:
-                image: fedora_mpich
-            - debug_and_coverage:
+            - build:
+                name: debug
+                image: buster_openmpi
+            - build:
+                name: release
+                image: buster_openmpi
+                buildtype: release
+            - build:
+                name: debug_32bit_index
+                image: buster_openmpi
+                buildargs: "-DCUBISM_32BIT_INDEX=true"
+            - build:
+                name: debug_without_IO
+                image: buster_openmpi
+                buildargs: "-DCUBISM_IO=false"
+
+    debian_openmpi_clang:
+        jobs:
+            - build:
+                name: debug
+                image: buster_openmpi
+                CC: clang
+                CXX: clang++
+            - build:
+                name: release
+                image: buster_openmpi
+                buildtype: release
+                CC: clang
+                CXX: clang++
+
+    centos_openmpi_gcc:
+        jobs:
+            - build:
+                name: debug
+                image: centos_openmpi
+            - build:
+                name: release
+                image: centos_openmpi
+                buildtype: release
+            - build:
+                name: debug_32bit_index
+                image: centos_openmpi
+                buildargs: "-DCUBISM_32BIT_INDEX=true"
+            - build:
+                name: debug_without_IO
+                image: centos_openmpi
+                buildargs: "-DCUBISM_IO=false"
+
+    centos_openmpi_clang:
+        jobs:
+            - build:
+                name: debug
+                image: centos_openmpi
+                CC: clang
+                CXX: clang++
+            - build:
+                name: release
+                image: centos_openmpi
+                buildtype: release
+                CC: clang
+                CXX: clang++
+
+    fedora_openmpi_gcc:
+        jobs:
+            - build:
+                name: debug
                 image: fedora_openmpi
-            - release:
+            - build:
+                name: release
                 image: fedora_openmpi
-            - debug_32bit_index:
+                buildtype: release
+
+    fedora_openmpi_clang:
+        jobs:
+            - build:
+                name: debug
                 image: fedora_openmpi
-            - debug_no_IO:
+                CC: clang
+                CXX: clang++
+            - build:
+                name: release
                 image: fedora_openmpi
+                buildtype: release
+                CC: clang
+                CXX: clang++
+
+    ubuntu_openmpi_gcc:
+        jobs:
+            - build:
+                name: debug
+                image: ubuntu_openmpi
+            - build:
+                name: release
+                image: ubuntu_openmpi
+                buildtype: release
+
+    ubuntu_openmpi_clang:
+        jobs:
+            - build:
+                name: debug
+                image: ubuntu_openmpi
+                CC: clang
+                CXX: clang++
+            - build:
+                name: release
+                image: ubuntu_openmpi
+                buildtype: release
+                CC: clang
+                CXX: clang++

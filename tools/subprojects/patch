@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# File       : patch
+# Created    : Sat Mar 20 2021 12:00:16 PM (+0100)
+# Author     : Fabian Wermelinger
+# Description: Patch subprojects that are indexed by the CubismNova repository.
+#              The rationale is that these dependencies are very small (one or
+#              two source files) and they do not change frequently.  Tracking
+#              them directly helps also to get rid of bootstrapping when
+#              generating releases which would need to resolve git submodules
+#              and could potentially break if the dependency is updated at a
+#              later time which would propagate into the release.  These
+#              dependencies are patched by this utility to keep them up to date
+#              when necessary.
+#
+#              This tool must be run from the project root.
+#
+# Copyright 2021 ETH Zurich. All Rights Reserved.
+process_()
+{
+    local dst="${1}"; shift
+    local src="${1}"; shift
+    workdir="$(mktemp -d)"
+    pfile="$(mktemp)"
+    git clone --depth 1 ${src} ${workdir}
+    rm -rf ${workdir}/.git
+    git diff --no-index ${dst} ${workdir} >${pfile}
+    patch -p1 <${pfile}
+    rm -rf ${workdir}
+    rm -f ${pfile}
+}
+
+# process_ 'subprojects/gtest-mpi-listener' 'https://github.com/LLNL/gtest-mpi-listener.git'
+process_ 'subprojects/gtest-mpi-listener' 'https://github.com/cselab/gtest-mpi-listener'

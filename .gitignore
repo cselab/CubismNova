@@ -11,7 +11,7 @@
 perf.data*
 
 /00_sandbox
-/build
-/release
-/debug
+/build*
+/release*
+/debug*
 /trash

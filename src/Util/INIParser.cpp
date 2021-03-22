@@ -5,7 +5,7 @@
 // Copyright 2019 ETH Zurich. All Rights Reserved.
 
 #include "Cubism/Util/INIParser.h"
-#include "third/inih/ini.h"
+#include "ini.h"
 #include <algorithm>
 #include <cctype>
 #include <chrono>

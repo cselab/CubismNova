@@ -39,6 +39,10 @@
 #endif
 
 // skip C++ related OpenMPI code
-#define OMPI_SKIP_MPICXX
+// FIXME: [fabianw@mavt.ethz.ch; 2021-03-15] H5public.h does not guard against
+// OMPI_SKIP_MPICXX if already defined
+// #ifndef OMPI_SKIP_MPICXX
+// #define OMPI_SKIP_MPICXX
+// #endif /* OMPI_SKIP_MPICXX */
 
 #endif /* COMPILER_H_ZNMPGTMC */

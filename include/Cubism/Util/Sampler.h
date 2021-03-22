@@ -9,6 +9,7 @@
 #include "Cubism/Util/Timer.h"
 #include <map>
 #include <stack>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
