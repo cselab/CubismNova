@@ -18,6 +18,7 @@ if hdf5_dep.found()
     workdir: '/tmp',
     protocol: 'gtest',
     suite: 'MPI',
+    is_parallel: false, # no other test must run when this one runs
     depends: e,
     timeout: 60,
   )

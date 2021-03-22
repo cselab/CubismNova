@@ -15,5 +15,6 @@ test('grid-mpi', tests_mpi_mpirun,
   args: ['-n', '8', '--hostfile', tests_mpi_hostfile, e],
   protocol: 'gtest',
   suite: 'MPI',
+  is_parallel: false, # no other test must run when this one runs
   depends: e,
 )
