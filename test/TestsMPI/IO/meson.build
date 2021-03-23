@@ -13,12 +13,11 @@ if hdf5_dep.found()
     dependencies: [mpi_dep, openmp_dep, gtest_dep, gtest_mpi_listener_dep, hdf5_dep],
     link_with: cubismnova_libio,
   )
-  test('hdf5-mpi-io', tests_mpi_mpirun,
-    args: ['-n', '8', '--hostfile', tests_mpi_hostfile, e, '&>/dev/null'],
+  test('hdf5-mpi-io', tests_mpirun,
+    args: ['8', e], # run test with 8 ranks (required by test executable e)
     workdir: '/tmp',
     protocol: 'gtest',
     suite: 'MPI',
-    is_parallel: false, # no other test must run when this one runs
     depends: e,
     timeout: 60,
   )

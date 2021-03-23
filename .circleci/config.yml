@@ -5,18 +5,26 @@ executors:
     buster_openmpi:
         docker:
             - image:  docker.io/cselab/debian_buster_openmpi:latest
+              environment:
+                  CUBISM_TEST_MPI_ARGS: "--mca btl ^openib"
 
     fedora_openmpi:
         docker:
             - image:  docker.io/cselab/fedora_openmpi:latest
+              environment:
+                  CUBISM_TEST_MPI_ARGS: "--mca btl ^openib"
 
     ubuntu_openmpi:
         docker:
             - image:  docker.io/cselab/ubuntu_openmpi:rolling
+              environment:
+                  CUBISM_TEST_MPI_ARGS: "--mca btl ^openib"
 
     centos_openmpi:
         docker:
             - image:  docker.io/cselab/centos_openmpi:latest
+              environment:
+                  CUBISM_TEST_MPI_ARGS: "--mca btl ^openib"
 
     # MPICH
     buster_mpich:

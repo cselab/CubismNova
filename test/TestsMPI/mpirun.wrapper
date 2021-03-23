@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# File       : mpirun.wrapper
+# Created    : Tue Mar 23 2021 06:11:58 PM (+0100)
+# Author     : Fabian Wermelinger
+# Description: Runtime wrapper for MPI tests with additional MPI implementation
+#              dependent arguments
+# Copyright 2021 ETH Zurich. All Rights Reserved.
+ranks=${1}; shift
+hosts=$(mktemp)
+for (( i = 0; i < ${ranks}; i++ )); do
+    echo '127.0.0.1' >>${hosts}
+done
+
+PATH=$(pwd -P):${PATH}
+exec=${1}; shift
+echo "CUBISM_TEST_MPI_ARGS=$CUBISM_TEST_MPI_ARGS"
+mpirun ${CUBISM_TEST_MPI_ARGS} -n ${ranks} --hostfile ${hosts} ${exec} "$@" &>/dev/null
+success=$?
+rm -f ${hosts}
+exit ${success}
