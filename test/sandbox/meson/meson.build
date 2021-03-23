@@ -14,6 +14,7 @@ project('test-project', ['cpp'],
 mpi_dep = dependency('mpi', language: 'cpp', required: true)
 
 cubismnova_dep = dependency('CubismNova', 
+  default_options: ['CUBISM_TESTS=false'],
   fallback: ['CubismNova', 'cubismnova_dep'],
   required: true,
 )
