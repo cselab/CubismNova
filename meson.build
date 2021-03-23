@@ -19,16 +19,18 @@ project('CubismNova', ['cpp'],
 # compiler object
 cpp = meson.get_compiler('cpp')
 
-# option processing
+# configuration object
+cubismnova_conf = configuration_data()
+
+# options for build configuration (need to be set in include/Cubism/Config.h.in)
+cubismnova_conf.set('CUBISM_32BIT_INDEX', get_option('CUBISM_32BIT_INDEX'))
+cubismnova_conf.set('CUBISM_USE_HDF', get_option('CUBISM_IO'))
+
+# other options
 if get_option('IGNORE_UNKNOWN_PRAGMAS')
   add_project_arguments('-Wno-unknown-pragmas', language: ['cpp'])
 endif
 
-if get_option('CUBISM_32BIT_INDEX')
-  add_project_arguments('-DCUBISM_32BIT_INDEX', language: ['cpp'])
-endif
-
-# code coverage
 if get_option('b_coverage')
   gcov_args = [
     '-fno-inline',
@@ -52,8 +54,7 @@ openmp_dep = dependency('openmp', required: false)
 
 # Cubism sources
 cubismnova_libs = []
-cubismnova_inc = include_directories('include')
-install_subdir('include/Cubism', install_dir: 'include')
+subdir('include')
 subdir('src')
 
 # tools

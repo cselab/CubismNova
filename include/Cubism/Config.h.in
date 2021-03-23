@@ -1,10 +1,10 @@
-// File       : Compiler.h
-// Created    : Mon Jan 27 2020 02:55:01 PM (+0100)
+// File       : Config.h
+// Created    : Tue Mar 23 2021 01:46:12 PM (+0100)
 // Author     : Fabian Wermelinger
-// Description: Compiler specific pre-processor settings
-// Copyright 2020 ETH Zurich. All Rights Reserved.
-#ifndef COMPILER_H_ZNMPGTMC
-#define COMPILER_H_ZNMPGTMC
+// Description: CubismNova configuration
+// Copyright 2021 ETH Zurich. All Rights Reserved.
+#ifndef CONFIG_H_LGK2OZTC
+#define CONFIG_H_LGK2OZTC
 
 // https://www.fluentcpp.com/2019/08/30/how-to-disable-a-warning-in-cpp/
 #if defined(_MSC_VER)
@@ -45,4 +45,31 @@
 // #define OMPI_SKIP_MPICXX
 // #endif /* OMPI_SKIP_MPICXX */
 
-#endif /* COMPILER_H_ZNMPGTMC */
+// Use of 32-bit signed integer for indexing.
+#mesondefine CUBISM_32BIT_INDEX
+
+// Use HDF5 for I/O file operations (requires -DCUBISM_IO=true).
+#mesondefine CUBISM_USE_HDF
+
+// Default dimension.  This is the assumed dimension when nothing else is
+// specified at template type instantiation.  The compiled libraries do not
+// depend on this setting, they provide explicit instantiations for the most
+// common built-in types in 2 and 3 dimensions.
+#define CUBISM_DIMENSION 3
+
+// Default byte-boundary alignment of allocated memory.
+#define CUBISM_ALIGNMENT 32
+
+#if !defined(NAMESPACE_BEGIN)
+#define NAMESPACE_BEGIN(name)                                                  \
+    namespace name                                                             \
+    {
+#endif
+
+#if !defined(NAMESPACE_END)
+#define NAMESPACE_END(name) }
+#endif
+
+static_assert(CUBISM_DIMENSION > 0, "CUBISM_DIMENSION must be > 0");
+
+#endif /* CONFIG_H_LGK2OZTC */

@@ -7,7 +7,6 @@
 #include "Cubism/Block/DataLab.h"
 #include "Cubism/Block/Field.h"
 #include "Cubism/Common.h"
-#include "Cubism/Compiler.h"
 #include "gtest/gtest.h"
 
 namespace

@@ -6,27 +6,7 @@
 #ifndef COMMON_H_C0GYQV59
 #define COMMON_H_C0GYQV59
 
-#include "Cubism/Compiler.h"
-
-#if !defined(NAMESPACE_BEGIN)
-#define NAMESPACE_BEGIN(name)                                                  \
-    namespace name                                                             \
-    {
-#endif
-
-#if !defined(NAMESPACE_END)
-#define NAMESPACE_END(name) }
-#endif
-
-#ifndef CUBISM_DIMENSION
-#define CUBISM_DIMENSION 3
-#endif /* CUBISM_DIMENSION */
-
-#ifndef CUBISM_ALIGNMENT
-#define CUBISM_ALIGNMENT 32
-#endif /* CUBISM_ALIGNMENT */
-
-static_assert(CUBISM_DIMENSION > 0, "CUBISM_DIMENSION must be > 0");
+#include "Cubism/Config.h"
 
 /**
  * @addtogroup Cubism

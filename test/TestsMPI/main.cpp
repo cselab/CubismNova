@@ -5,7 +5,6 @@
 // Copyright 2020 ETH Zurich. All Rights Reserved.
 
 #include "Cubism/Common.h"
-#include "Cubism/Compiler.h"
 
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
