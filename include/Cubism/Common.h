@@ -55,7 +55,7 @@ using Vector = Dir;
  * @brief Convenience rank-2 tensor components indexing (CD: C=component;
  * D=direction)
  */
-enum class Tensor { XX = 0, XY, XZ, YX, YY, YZ, ZX, ZY, ZZ };
+enum class Tensor { XX = 0, XY, YX, YY, XZ, YZ, ZX, ZY, ZZ };
 #endif /* 1 == CUBISM_DIMENSION */
 
 /**
