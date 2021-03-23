@@ -1,6 +1,4 @@
-#include "Block/Field.h"
-
-using namespace Cubism;
+#include <Cubism/Block/Field.h>
 
 int main(void)
 {
@@ -9,7 +7,8 @@ int main(void)
         size_t myID; // custom field state
     };
 
-    using CellField = Block::CellField<double, MyFieldState, 2>; // 2D field
+    constexpr size_t dim = 2; // 2D problem
+    using CellField = Cubism::Block::CellField<double, dim, MyFieldState>;
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 

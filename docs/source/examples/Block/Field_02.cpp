@@ -1,11 +1,10 @@
-#include "Block/Field.h"
-
-using namespace Cubism;
+#include <Cubism/Block/Field.h>
 
 int main(void)
 {
-    using CellField = Block::CellField<float>; // CUBISM_DIMENSION-ional field
-    using FieldView = Block::FieldView<CellField>; // a CellField view
+    // CUBISM_DIMENSION-ional field
+    using CellField = Cubism::Block::CellField<float>;
+    using FieldView = Cubism::Block::FieldView<CellField>; // a CellField view
     using IRange = typename CellField::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
 

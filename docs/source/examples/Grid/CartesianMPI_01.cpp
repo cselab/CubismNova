@@ -1,20 +1,21 @@
-#include "Grid/CartesianMPI.h"
-#include "Mesh/StructuredUniform.h"
+#include <Cubism/Grid/CartesianMPI.h>
+#include <Cubism/Mesh/StructuredUniform.h>
 #include <algorithm>
 #include <mpi.h>
-
-using namespace Cubism;
 
 int main(int argc, char *argv[])
 {
     MPI_Init(&argc, &argv);
 
     // 3D mesh
-    using Mesh = Mesh::StructuredUniform<double, 3>;
+    constexpr size_t dim = 3; // 3D problem
+    using Mesh = Cubism::Mesh::StructuredUniform<double, dim>;
     using MIndex = typename Mesh::MultiIndex;
 
     // cell centered scalar grid using integer data
-    using Grid = Grid::CartesianMPI<int, Mesh, EntityType::Cell, 0>;
+    constexpr size_t rank = 0; // rank-0 field (scalar)
+    using Grid =
+        Cubism::Grid::CartesianMPI<int, Mesh, Cubism::EntityType::Cell, rank>;
 
     const MIndex nprocs(2); // number of MPI ranks in the topology (8 processes)
     const MIndex nblocks(3);     // number of blocks per rank (27 blocks)
