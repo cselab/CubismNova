@@ -79,7 +79,7 @@ cubismnova_dep = declare_dependency(
 pkg_mod = import('pkgconfig')
 pkg_mod.generate(
   name: 'CubismNova',
-  filebase: 'cubismnova',
+  filebase: 'CubismNova',
   description: 'CubismNova -- HPC library for structured uniform and adaptive multi resolution',
   libraries: cubismnova_libs
 )
