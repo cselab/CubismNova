@@ -39,14 +39,6 @@ executors:
         docker:
             - image:  docker.io/cselab/ubuntu_mpich:rolling
 
-commands:
-    checkout_code:
-        steps:
-            - checkout
-            - run:
-                name: Initalize submodules
-                command: git submodule update --init --recursive
-
 jobs:
     coverage:
         parameters:
@@ -63,7 +55,7 @@ jobs:
                 default: debug
         executor: << parameters.image >>
         steps:
-            - checkout_code
+            - checkout
             - run:
                 name: Debug build (full, code coverage)
                 command: >
@@ -94,7 +86,7 @@ jobs:
                 default: ""
         executor: << parameters.image >>
         steps:
-            - checkout_code
+            - checkout
             - run:
                 name: Debug build (full, code coverage)
                 command: >
