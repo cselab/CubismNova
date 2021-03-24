@@ -54,15 +54,16 @@ jobs:
                 type: string
                 default: debug
         executor: << parameters.image >>
+        resource_class: large
         steps:
             - checkout
             - run:
                 name: Debug build (full, code coverage)
                 command: >
                   CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --prefix=~/test_install --buildtype=<< parameters.buildtype >> -Db_coverage=true &&
-                  ninja -C build -j 1 test && 
-                  ninja -C build -j 1 install &&
-                  ninja -C build -j 1 coverage &&
+                  ninja -C build test && 
+                  ninja -C build install &&
+                  ninja -C build coverage &&
                   ./tools/quality/coverage &&
                   ./tools/quality/codecov -X search -X fix -f '*.gcov'
             - store_artifacts:
@@ -85,14 +86,15 @@ jobs:
                 type: string
                 default: ""
         executor: << parameters.image >>
+        resource_class: large
         steps:
             - checkout
             - run:
                 name: Debug build (full, code coverage)
                 command: >
                   CC=<< parameters.CC >> CXX=<< parameters.CXX >> meson setup build --prefix=~/test_install --buildtype=<< parameters.buildtype >> << parameters.buildargs >> &&
-                  ninja -C build -j 1 test && 
-                  ninja -C build -j 1 install
+                  ninja -C build test && 
+                  ninja -C build install
             - store_artifacts:
                 path: build/meson-logs
 
