@@ -4,7 +4,7 @@
 // Description: Compute divergence test kernel
 // Copyright 2020 ETH Zurich. All Rights Reserved.
 
-#include "Cubism/Block/DataLab.h"
+#include "Cubism/Block/FieldLab.h"
 #include "Cubism/Grid/Cartesian.h"
 #include "Cubism/Math.h"
 #include "Cubism/Mesh/StructuredUniform.h"
@@ -27,8 +27,8 @@ int main(int argc, char *argv[])
     using VGrid = Grid::Cartesian<float, Mesh, EntityType::Cell, 1>;
     using SGrid = Grid::Cartesian<float, Mesh, EntityType::Cell, 0>;
     using DataType = typename VGrid::DataType;
-    using FieldType = typename VGrid::BaseType;
-    using Lab = Block::DataLab<typename FieldType::FieldType>;
+    using TensorFieldType = typename VGrid::BaseType;
+    using Lab = Block::FieldLab<typename TensorFieldType::FieldType>;
     using Stencil = typename Lab::StencilType;
     // grid blocks and cells per block
     const MIndex nblocks((2 == argc) ? std::atoi(argv[1]) : 8);
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     const Point h = grid.getMesh().getCellSize(0);
 
     // initial condition
-    auto finit = [h](FieldType &b) {
+    auto finit = [h](TensorFieldType &b) {
         const DataType fac = 2 * M_PI;
         const Mesh &bm = *b.getState().mesh;
         for (auto &ci : bm[EntityType::Cell]) {
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     const DataType ih2 = 1. / h[2];
     for (auto f : grid)
     {
-        const FieldType &bf = *f; // reference for field
+        const TensorFieldType &bf = *f; // reference for field
         lab0.loadData(bf.getState().block_index, findex0);
         lab1.loadData(bf.getState().block_index, findex1);
         lab2.loadData(bf.getState().block_index, findex2);

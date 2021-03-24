@@ -44,7 +44,7 @@ TEST(BC, Absorbing)
     using FAL = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
     using MIndex = typename FAL::MIndex;
     using BCVector = typename FAL::BCVector;
-    using BC = BC::Absorbing<typename FAL::DataLab>;
+    using BC = BC::Absorbing<typename FAL::FieldLab>;
 
     BCVector bcv;
     bcv.push_back(new BC(0, 0));
@@ -93,13 +93,13 @@ void testTensorial()
 TEST(BC, AbsorbingTensorial)
 {
     using FALC = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
-    using BCC = BC::Absorbing<typename FALC::DataLab>;
+    using BCC = BC::Absorbing<typename FALC::FieldLab>;
     testTensorial<0, FALC, BCC>();
     testTensorial<1, FALC, BCC>();
     testTensorial<2, FALC, BCC>();
 
     using FALN = FieldAndLab<int, Cubism::EntityType::Node, 3>;
-    using BCN = BC::Absorbing<typename FALN::DataLab>;
+    using BCN = BC::Absorbing<typename FALN::FieldLab>;
     testTensorial<0, FALN, BCN>();
     testTensorial<1, FALN, BCN>();
     testTensorial<2, FALN, BCN>();

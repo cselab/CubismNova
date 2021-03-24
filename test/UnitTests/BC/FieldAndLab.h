@@ -6,8 +6,8 @@
 #ifndef FIELDANDLAB_H_ZULQKGTJ
 #define FIELDANDLAB_H_ZULQKGTJ
 
-#include "Cubism/Block/DataLab.h"
 #include "Cubism/Block/Field.h"
+#include "Cubism/Block/FieldLab.h"
 #include "Cubism/Common.h"
 #include "Cubism/IO/FieldHDF.h"
 #include "Cubism/Mesh/StructuredUniform.h"
@@ -19,8 +19,8 @@ public:
     using Field = Cubism::Block::Field<T, Entity, DIM>;
     using IRange = typename Field::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    using DataLab = Cubism::Block::DataLab<Field>;
-    using Stencil = typename DataLab::StencilType;
+    using FieldLab = Cubism::Block::FieldLab<Field>;
+    using Stencil = typename FieldLab::StencilType;
     using DataType = typename Field::DataType;
     using BCVector = typename Field::BCVector;
 
@@ -42,8 +42,8 @@ public:
 
     Field &getField() { return field_; }
     const Field &getField() const { return field_; }
-    DataLab &getLab() { return lab_; }
-    const DataLab &getLab() const { return lab_; }
+    FieldLab &getLab() { return lab_; }
+    const FieldLab &getLab() const { return lab_; }
     Stencil &getStencil() { return stencil_; }
     const Stencil &getStencil() const { return stencil_; }
 
@@ -69,7 +69,7 @@ public:
 private:
     Field field_;
     Stencil stencil_;
-    DataLab lab_;
+    FieldLab lab_;
 };
 
 #endif /* FIELDANDLAB_H_ZULQKGTJ */

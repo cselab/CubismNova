@@ -368,7 +368,7 @@ public:
             return block_[ix +
                           range_.sizeDim(0) * (iy + range_.sizeDim(1) * iz)];
         }
-        throw std::runtime_error("DataLab: operator() not supported");
+        throw std::runtime_error("FieldLab: operator() not supported");
     }
 
     /**
@@ -396,7 +396,7 @@ public:
             return block_[ix +
                           range_.sizeDim(0) * (iy + range_.sizeDim(1) * iz)];
         }
-        throw std::runtime_error("DataLab: operator() not supported");
+        throw std::runtime_error("FieldLab: operator() not supported");
     }
 
     /**

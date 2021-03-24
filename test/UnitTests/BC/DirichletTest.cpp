@@ -40,7 +40,7 @@ TEST(BC, Dirichlet)
     using FAL = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
     using MIndex = typename FAL::MIndex;
     using BCVector = typename FAL::BCVector;
-    using BC = BC::Dirichlet<typename FAL::DataLab>;
+    using BC = BC::Dirichlet<typename FAL::FieldLab>;
 
     BCVector bcv;
     bcv.push_back(new BC(0, 0, 10));
@@ -90,13 +90,13 @@ void testTensorial(const typename FAL::DataType v0,
 TEST(BC, DirichletTensorial)
 {
     using FALC = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
-    using BCC = BC::Dirichlet<typename FALC::DataLab>;
+    using BCC = BC::Dirichlet<typename FALC::FieldLab>;
     testTensorial<0, FALC, BCC>(101, 102);
     testTensorial<1, FALC, BCC>(103, 104);
     testTensorial<2, FALC, BCC>(105, 106);
 
     using FALN = FieldAndLab<int, Cubism::EntityType::Node, 3>;
-    using BCN = BC::Dirichlet<typename FALN::DataLab>;
+    using BCN = BC::Dirichlet<typename FALN::FieldLab>;
     testTensorial<0, FALN, BCN>(201, 202);
     testTensorial<1, FALN, BCN>(203, 204);
     testTensorial<2, FALN, BCN>(205, 206);
@@ -105,7 +105,7 @@ TEST(BC, DirichletTensorial)
 TEST(BC, DirichletInterface)
 {
     using FAL = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
-    using BC = BC::Dirichlet<typename FAL::DataLab>;
+    using BC = BC::Dirichlet<typename FAL::FieldLab>;
 
     BC *bc = new BC(0, 0, 10);
     EXPECT_EQ(bc->getValue(), 10);

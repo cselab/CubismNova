@@ -5,7 +5,7 @@
 // Copyright 2020 ETH Zurich. All Rights Reserved.
 
 #include "Cubism/Grid/Cartesian.h"
-#include "Cubism/Block/DataLab.h"
+#include "Cubism/Block/FieldLab.h"
 #include "Cubism/Math.h"
 #include "Cubism/Mesh/StructuredUniform.h"
 #include "gtest/gtest.h"
@@ -182,7 +182,7 @@ void testLab()
     using Grid = Grid::Cartesian<double, Mesh, Entity, 0>;
     using DataType = typename Grid::DataType;
     using FieldType = typename Grid::BaseType;
-    using Lab = Block::DataLab<FieldType>;
+    using Lab = Block::FieldLab<FieldType>;
     using Stencil = typename Lab::StencilType;
 
     // grid blocks and cells per block
@@ -257,7 +257,7 @@ void testLab()
     }
 }
 
-TEST(Cartesian, DataLab)
+TEST(Cartesian, FieldLab)
 {
     testLab<Cubism::EntityType::Cell, 1>();
     testLab<Cubism::EntityType::Cell, 2>();

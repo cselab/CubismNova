@@ -14,7 +14,7 @@ NAMESPACE_BEGIN(BC)
 
 /**
  * @brief Zeroth-Order absorbing BC
- * @tparam Lab Type of ``DataLab``
+ * @tparam Lab Type of ``FieldLab``
  *
  * @rst
  * Zeroth-Order absorbing boundary condition

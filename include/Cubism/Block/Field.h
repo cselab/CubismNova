@@ -9,7 +9,7 @@
 #include "Cubism/Alloc/AlignedBlockAllocator.h"
 #include "Cubism/BC/Base.h"
 #include "Cubism/Block/Data.h"
-#include "Cubism/Block/DataLab.h"
+#include "Cubism/Block/FieldLab.h"
 #include "Cubism/Block/FieldOperator.h"
 #include "Cubism/Common.h"
 #include <array>
@@ -70,7 +70,7 @@ public:
     using FieldStateType = State;
 
     // boundary conditions
-    using BCType = BC::Base<Block::DataLab<FieldType>>;
+    using BCType = BC::Base<Block::FieldLab<FieldType>>;
     using BCVector = std::vector<BCType *>;
 
 protected:
@@ -266,7 +266,7 @@ public:
      * @param d Base block data object (owns memory)
      *
      * @rst
-     * Useful for a ``DataLab`` and ``Cubsim::IO`` routines for example.
+     * Useful for a ``FieldLab`` and ``Cubsim::IO`` routines for example.
      * @endrst
      */
     Field(const BlockDataType &d)

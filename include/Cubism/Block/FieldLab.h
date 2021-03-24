@@ -1,13 +1,13 @@
-// File       : DataLab.h
+// File       : FieldLab.h
 // Created    : Mon Feb 10 2020 06:53:39 PM (+0100)
 // Author     : Fabian Wermelinger
 // Description: Data laboratory with stencil specification
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#ifndef DATALAB_H_O091Y6A2
-#define DATALAB_H_O091Y6A2
+#ifndef FIELDLAB_H_8PPKFFY4
+#define FIELDLAB_H_8PPKFFY4
 
 #include "Cubism/Block/Data.h"
-#include "Cubism/Block/DataLabLoader.h"
+#include "Cubism/Block/FieldLabLoader.h"
 #include "Cubism/Common.h"
 #include <cassert>
 #include <cstring>
@@ -18,30 +18,34 @@ NAMESPACE_BEGIN(Block)
 
 /**
  * @brief Data laboratory
- * @tparam FieldType Field type to map to the lab
+ * @tparam TField Field type to map to the lab
  *
  * @rst
- * A ``DataLab`` is an extended data structure to include ghost cells for a
+ * A ``FieldLab`` is an extended data structure to include ghost cells for a
  * given stencil. Loading a lab takes care of loading the ghost cells from
  * neighboring block fields and applies boundary conditions if present.  The
  * default is periodic if no boundary conditions are specified otherwise.
  * @endrst
  * */
-template <typename FieldType>
-class DataLab
-    : public Data<typename FieldType::DataType,
-                  FieldType::EntityType,
-                  FieldType::IndexRangeType::Dim,
-                  Cubism::AlignedBlockAllocator<typename FieldType::DataType>>
+template <typename TField>
+class FieldLab
+    // Alternatively inheritance could be from TField::BlockDataType which would
+    // not allow to use a different data allocator.  The inheritance below
+    // allows to change Cubism::AlignedBlockAllocator for a FieldLab at if
+    // needed at some point.
+    : public Data<typename TField::DataType,
+                  TField::EntityType,
+                  TField::IndexRangeType::Dim,
+                  Cubism::AlignedBlockAllocator<typename TField::DataType>>
 {
     using BaseType =
-        Data<typename FieldType::DataType,
-             FieldType::EntityType,
-             FieldType::IndexRangeType::Dim,
-             Cubism::AlignedBlockAllocator<typename FieldType::DataType>>;
-    using BCVector = typename FieldType::BCVector;
+        Data<typename TField::DataType,
+             TField::EntityType,
+             TField::IndexRangeType::Dim,
+             Cubism::AlignedBlockAllocator<typename TField::DataType>>;
+    using BCVector = typename TField::BCVector;
     using LabLoader =
-        Block::DataLabLoader<FieldType, BaseType::IndexRangeType::Dim>;
+        Block::FieldLabLoader<TField, BaseType::IndexRangeType::Dim>;
     using BoolVec = typename LabLoader::BoolVec;
     using STDFunction = typename LabLoader::STDFunction;
 
@@ -57,19 +61,20 @@ public:
     using typename BaseType::MultiIndex;
     using Index = typename MultiIndex::DataType;
     using StencilType = typename LabLoader::StencilType;
+    using FieldType = TField;
 
     /** @brief Main constructor */
-    DataLab()
+    FieldLab()
         : BaseType(IndexRangeType()), is_allocated_(false),
           block_data_(nullptr), field_(nullptr), lab_begin_(0), lab_end_(0)
     {
     }
 
-    DataLab(const DataLab &c) = delete;
-    DataLab(DataLab &&c) = delete;
-    DataLab &operator=(const DataLab &c) = delete;
-    DataLab &operator=(DataLab &&c) = delete;
-    ~DataLab() override = default;
+    FieldLab(const FieldLab &c) = delete;
+    FieldLab(FieldLab &&c) = delete;
+    FieldLab &operator=(const FieldLab &c) = delete;
+    FieldLab &operator=(FieldLab &&c) = delete;
+    ~FieldLab() override = default;
 
     using iterator = Core::MultiIndexIterator<IndexRangeType::Dim>;
     iterator begin() noexcept { return iterator(loader_.curr_range, 0); }
@@ -159,10 +164,10 @@ public:
                   const BCVector *extern_bc = nullptr)
     {
         static_assert(FieldType::Class == Cubism::FieldClass::Scalar,
-                      "DataLab: field class must be scalar.");
+                      "FieldLab: field class must be scalar.");
         if (!is_allocated_) {
             throw std::runtime_error(
-                "DataLab: can not load lab data when not allocated first");
+                "FieldLab: can not load lab data when not allocated first");
         }
 
         // 1. load the block field data
@@ -310,7 +315,7 @@ public:
                               (iy + lab_begin_[1] +
                                range_.sizeDim(1) * (iz + lab_begin_[2]))];
         }
-        throw std::runtime_error("DataLab: operator() not supported");
+        throw std::runtime_error("FieldLab: operator() not supported");
     }
 
     /**
@@ -344,7 +349,7 @@ public:
                               (iy + lab_begin_[1] +
                                range_.sizeDim(1) * (iz + lab_begin_[2]))];
         }
-        throw std::runtime_error("DataLab: operator() not supported");
+        throw std::runtime_error("FieldLab: operator() not supported");
     }
 
     /**
@@ -388,7 +393,7 @@ public:
     FieldType &getActiveField()
     {
         if (!field_) {
-            throw std::runtime_error("DataLab: no field loaded");
+            throw std::runtime_error("FieldLab: no field loaded");
         }
         return *field_;
     }
@@ -400,7 +405,7 @@ public:
     const FieldType &getActiveField() const
     {
         if (!field_) {
-            throw std::runtime_error("DataLab: no field loaded");
+            throw std::runtime_error("FieldLab: no field loaded");
         }
         return *field_;
     }
@@ -455,4 +460,4 @@ private:
 NAMESPACE_END(Block)
 NAMESPACE_END(Cubism)
 
-#endif /* DATALAB_H_O091Y6A2 */
+#endif /* FIELDLAB_H_8PPKFFY4 */

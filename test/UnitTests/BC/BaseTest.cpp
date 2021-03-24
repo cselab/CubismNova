@@ -17,7 +17,7 @@ TEST(BC, Base)
 {
     using FAL = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
     using BCVector = typename FAL::BCVector;
-    using BC = BC::Base<typename FAL::DataLab>;
+    using BC = BC::Base<typename FAL::FieldLab>;
 
     BCVector bcv;
     bcv.push_back(new BC(0, 0));

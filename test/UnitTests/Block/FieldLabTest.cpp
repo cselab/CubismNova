@@ -1,11 +1,11 @@
-// File       : DataLabTest.cpp
+// File       : FieldLabTest.cpp
 // Created    : Wed Feb 12 2020 05:13:50 PM (+0100)
 // Author     : Fabian Wermelinger
 // Description: Basic block data lab test
 // Copyright 2020 ETH Zurich. All Rights Reserved.
 
-#include "Cubism/Block/DataLab.h"
 #include "Cubism/Block/Field.h"
+#include "Cubism/Block/FieldLab.h"
 #include "Cubism/Common.h"
 #include "gtest/gtest.h"
 
@@ -22,8 +22,8 @@ void runTest()
     using Field = Block::Field<T, Entity, DIM>;
     using IRange = typename Field::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    using DataLab = Block::DataLab<Field>;
-    using Stencil = typename DataLab::StencilType;
+    using FieldLab = Block::FieldLab<Field>;
+    using Stencil = typename FieldLab::StencilType;
 
     MIndex elements(16);
     IRange element_domain(elements);
@@ -35,27 +35,27 @@ void runTest()
     }
     auto fields = [&](const MIndex &) -> Field & { return f; };
 
-    DataLab dlab;
+    FieldLab flab;
     const Stencil s(-2, 3, TENSORIAL);
-    dlab.allocate(s, f.getIndexRange());
-    dlab.loadData(MIndex(0), fields); // periodic
+    flab.allocate(s, f.getIndexRange());
+    flab.loadData(MIndex(0), fields); // periodic
 
-    EXPECT_EQ(dlab.getActiveStencil().getBegin(), s.getBegin());
-    EXPECT_EQ(dlab.getActiveStencil().getEnd(), s.getEnd());
-    EXPECT_EQ(dlab.getActiveStencil().isTensorial(), s.isTensorial());
-    EXPECT_EQ(dlab.getActiveStencil().isTensorial(), TENSORIAL);
-    EXPECT_EQ(dlab.getActiveRange().getBegin(), f.getIndexRange().getBegin());
-    EXPECT_EQ(dlab.getActiveRange().getEnd(), f.getIndexRange().getEnd());
+    EXPECT_EQ(flab.getActiveStencil().getBegin(), s.getBegin());
+    EXPECT_EQ(flab.getActiveStencil().getEnd(), s.getEnd());
+    EXPECT_EQ(flab.getActiveStencil().isTensorial(), s.isTensorial());
+    EXPECT_EQ(flab.getActiveStencil().isTensorial(), TENSORIAL);
+    EXPECT_EQ(flab.getActiveRange().getBegin(), f.getIndexRange().getBegin());
+    EXPECT_EQ(flab.getActiveRange().getEnd(), f.getIndexRange().getEnd());
     const MIndex n_max = f.getIndexRange().getExtent();
     const MIndex s_begin = s.getBegin();
     const MIndex s_end = s.getEnd();
     using Index = typename MIndex::DataType;
-    for (const auto &p : dlab) {
-        EXPECT_EQ(dlab[p], f[p]); // inner data
+    for (const auto &p : flab) {
+        EXPECT_EQ(flab[p], f[p]); // inner data
     }
 
     if (!TENSORIAL) { // ghosts
-        for (const auto &p : dlab) {
+        for (const auto &p : flab) {
             if (0 == p.prod() || 0 == (p - n_max + MIndex(1)).prod()) {
                 for (size_t i = 0; i < DIM; ++i) {
                     if (0 == p[i]) { // left periodic boundary
@@ -63,7 +63,7 @@ void runTest()
                             const MIndex sm = p + si * MIndex::getUnitVector(i);
                             const MIndex sp =
                                 p + (si + n_max[i]) * MIndex::getUnitVector(i);
-                            EXPECT_EQ(dlab[sm], dlab[sp]);
+                            EXPECT_EQ(flab[sm], flab[sp]);
                         }
                     }
                     if (0 == p[i] - (n_max[i] - 1)) { // right periodic boundary
@@ -71,17 +71,17 @@ void runTest()
                             const MIndex sm =
                                 p + (si - n_max[i]) * MIndex::getUnitVector(i);
                             const MIndex sp = p + si * MIndex::getUnitVector(i);
-                            EXPECT_EQ(dlab[sm], dlab[sp]);
+                            EXPECT_EQ(flab[sm], flab[sp]);
                         }
                     }
                 }
             }
         }
     } else {
-        const IRange inner_range = dlab.getActiveRange();
+        const IRange inner_range = flab.getActiveRange();
         const MIndex inner_extent = inner_range.getExtent();
-        const MIndex ghost_begin = dlab.getActiveLabRange().getBegin();
-        for (const auto &p : dlab.getActiveLabRange()) {
+        const MIndex ghost_begin = flab.getActiveLabRange().getBegin();
+        for (const auto &p : flab.getActiveLabRange()) {
             const MIndex q = p + ghost_begin;
             if (inner_range.isIndex(q)) {
                 continue;
@@ -94,12 +94,12 @@ void runTest()
                     s[i] = s[i] % inner_extent[i];
                 }
             }
-            EXPECT_EQ(dlab[q], dlab[s]);
+            EXPECT_EQ(flab[q], flab[s]);
         }
     }
 }
 
-TEST(DataLab, Ghosts)
+TEST(FieldLab, Ghosts)
 {
     runTest<int, 1, Cubism::EntityType::Cell, false>();
     runTest<int, 1, Cubism::EntityType::Cell, true>();
@@ -114,37 +114,37 @@ TEST(DataLab, Ghosts)
     runTest<int, 2, Cubism::EntityType::Face, true>();
 }
 
-TEST(DataLab, Reuse)
+TEST(FieldLab, Reuse)
 {
     using Field = Block::Field<int, Cubism::EntityType::Cell, 2>;
     using IRange = typename Field::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    using DataLab = Block::DataLab<Field>;
-    using Stencil = typename DataLab::StencilType;
+    using FieldLab = Block::FieldLab<Field>;
+    using Stencil = typename FieldLab::StencilType;
 
     MIndex elements(16);
     IRange element_domain(elements);
     Field f(element_domain);
 
-    DataLab dlab;
+    FieldLab flab;
     const Stencil ssmall(-1, 2);
     const Stencil slarge(-3, 4);
     const Stencil shuge(-128, 129);
-    dlab.allocate(slarge, f.getIndexRange());
-    const void *p0 = dlab.getBlockPtr();
-    const size_t b0 = dlab.getBlockBytes();
+    flab.allocate(slarge, f.getIndexRange());
+    const void *p0 = flab.getBlockPtr();
+    const size_t b0 = flab.getBlockBytes();
     const size_t a0 = reinterpret_cast<size_t>(p0) % CUBISM_ALIGNMENT;
     EXPECT_EQ(a0, 0);
-    dlab.allocate(ssmall, f.getIndexRange());
-    const void *p1 = dlab.getBlockPtr();
-    const size_t b1 = dlab.getBlockBytes();
+    flab.allocate(ssmall, f.getIndexRange());
+    const void *p1 = flab.getBlockPtr();
+    const size_t b1 = flab.getBlockBytes();
     const size_t a1 = reinterpret_cast<size_t>(p1) % CUBISM_ALIGNMENT;
     EXPECT_EQ(a1, 0);
     EXPECT_EQ(p0, p1);
     EXPECT_EQ(b0, b1);
-    dlab.allocate(shuge, f.getIndexRange());
-    const void *p2 = dlab.getBlockPtr();
-    const size_t b2 = dlab.getBlockBytes();
+    flab.allocate(shuge, f.getIndexRange());
+    const void *p2 = flab.getBlockPtr();
+    const size_t b2 = flab.getBlockBytes();
     const size_t a2 = reinterpret_cast<size_t>(p2) % CUBISM_ALIGNMENT;
     EXPECT_EQ(a2, 0);
     EXPECT_NE(p2, p1);
@@ -196,7 +196,7 @@ void testIndexer()
     }
 }
 
-TEST(DataLab, PeriodicIndexer)
+TEST(FieldLab, PeriodicIndexer)
 {
     testIndexer<0, EntityType::Cell, 3>();
     testIndexer<0, EntityType::Node, 3>();
@@ -220,13 +220,13 @@ TEST(DataLab, PeriodicIndexer)
     testIndexer<1, EntityType::Face, 3, 2, 2>();
 }
 
-TEST(DataLab, Interface)
+TEST(FieldLab, Interface)
 {
     using Field = Block::Field<int, Cubism::EntityType::Cell, 2>;
     using IRange = typename Field::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
-    using DataLab = Block::DataLab<Field>;
-    using Stencil = typename DataLab::StencilType;
+    using FieldLab = Block::FieldLab<Field>;
+    using Stencil = typename FieldLab::StencilType;
     using DataType = typename Field::DataType;
 
     MIndex elements(16);
@@ -238,55 +238,55 @@ TEST(DataLab, Interface)
         k += 1;
     }
 
-    DataLab dlab;
-    const auto bytes0 = dlab.getMemoryFootprint();
+    FieldLab flab;
+    const auto bytes0 = flab.getMemoryFootprint();
     EXPECT_EQ(bytes0.allocated, 0);
     EXPECT_EQ(bytes0.used, 0);
 
     try {
-        auto &f1 = dlab.getActiveField();
+        auto &f1 = flab.getActiveField();
     } catch (const std::runtime_error &e) {
-        EXPECT_STREQ("DataLab: no field loaded", e.what());
+        EXPECT_STREQ("FieldLab: no field loaded", e.what());
     }
-    EXPECT_THROW(auto &f1 = dlab.getActiveField(), std::runtime_error);
+    EXPECT_THROW(auto &f1 = flab.getActiveField(), std::runtime_error);
 
     try {
-        const auto &f2 = dlab.getActiveField();
+        const auto &f2 = flab.getActiveField();
     } catch (const std::runtime_error &e) {
-        EXPECT_STREQ("DataLab: no field loaded", e.what());
+        EXPECT_STREQ("FieldLab: no field loaded", e.what());
     }
-    EXPECT_THROW(const auto &f2 = dlab.getActiveField(), std::runtime_error);
+    EXPECT_THROW(const auto &f2 = flab.getActiveField(), std::runtime_error);
 
     const Stencil stencil(-3, 4);
     auto fields = [&](const MIndex &) -> Field & { return f; };
-    dlab.allocate(stencil, f.getIndexRange());
-    dlab.loadData(MIndex(0), fields);
-    EXPECT_EQ(*dlab.getInnerData(), f[0]);
-    *dlab.getInnerData() = 1;
-    EXPECT_NE(*dlab.getInnerData(), f[0]);
+    flab.allocate(stencil, f.getIndexRange());
+    flab.loadData(MIndex(0), fields);
+    EXPECT_EQ(*flab.getInnerData(), f[0]);
+    *flab.getInnerData() = 1;
+    EXPECT_NE(*flab.getInnerData(), f[0]);
 
-    EXPECT_EQ(dlab.getActiveStencil().getBegin(), stencil.getBegin());
-    EXPECT_EQ(dlab.getActiveStencil().getEnd(), stencil.getEnd());
-    EXPECT_EQ(dlab.getActiveStencil().isTensorial(), stencil.isTensorial());
+    EXPECT_EQ(flab.getActiveStencil().getBegin(), stencil.getBegin());
+    EXPECT_EQ(flab.getActiveStencil().getEnd(), stencil.getEnd());
+    EXPECT_EQ(flab.getActiveStencil().isTensorial(), stencil.isTensorial());
 
-    const IRange arange = dlab.getActiveRange();
+    const IRange arange = flab.getActiveRange();
     EXPECT_EQ(arange.getBegin(), f.getIndexRange().getBegin());
     EXPECT_EQ(arange.getEnd(), f.getIndexRange().getEnd());
     EXPECT_EQ(arange.getExtent(), f.getIndexRange().getExtent());
 
-    auto &f3 = dlab.getActiveField();
+    auto &f3 = flab.getActiveField();
     EXPECT_EQ(&f, &f3);
 
-    const auto &f4 = dlab.getActiveField();
+    const auto &f4 = flab.getActiveField();
     EXPECT_EQ(&f, &f4);
 
-    const IRange lrange = dlab.getActiveLabRange();
+    const IRange lrange = flab.getActiveLabRange();
     EXPECT_EQ(lrange.getBegin(), stencil.getBegin());
     EXPECT_EQ(lrange.getEnd(),
               f.getIndexRange().getExtent() + stencil.getEnd() - MIndex(1));
 
-    const auto abytes = dlab.getMemoryFootprint();
-    EXPECT_EQ(abytes.allocated, dlab.getBlockBytes());
+    const auto abytes = flab.getMemoryFootprint();
+    EXPECT_EQ(abytes.allocated, flab.getBlockBytes());
     EXPECT_EQ(abytes.used, lrange.size() * sizeof(DataType));
 }
 

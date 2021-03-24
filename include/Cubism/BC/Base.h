@@ -29,7 +29,7 @@ struct BoundaryInfo {
 
 /**
  * @brief Boundary condition base class
- * @tparam Lab Type of ``DataLab``
+ * @tparam Lab Type of ``FieldLab``
  *
  * @rst
  * Each boundary condition is applied for a specific ``dir < CUBISM_DIMENSION``

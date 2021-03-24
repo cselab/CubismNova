@@ -14,7 +14,7 @@ NAMESPACE_BEGIN(BC)
 
 /**
  * @brief Symmetry BC (reflecting)
- * @tparam Lab Type of ``DataLab``
+ * @tparam Lab Type of ``FieldLab``
  *
  * @rst
  * Symmetry/reflecting boundary condition

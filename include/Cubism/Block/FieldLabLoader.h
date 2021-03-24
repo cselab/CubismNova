@@ -1,10 +1,10 @@
-// File       : DataLabLoader.h
+// File       : FieldLabLoader.h
 // Created    : Fri Feb 14 2020 03:18:12 PM (+0100)
 // Author     : Fabian Wermelinger
 // Description: Data laboratory load driver specializations
 // Copyright 2020 ETH Zurich. All Rights Reserved.
-#ifndef DATALABLOADER_H_IQCYDR89
-#define DATALABLOADER_H_IQCYDR89
+#ifndef FIELDLABLOADER_H_PKYUCECQ
+#define FIELDLABLOADER_H_PKYUCECQ
 
 #include "Cubism/Common.h"
 #include "Cubism/Core/Index.h"
@@ -17,8 +17,10 @@
 NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
+// TODO: [fabianw@mavt.ethz.ch; 2021-03-24] Documentation
+
 template <typename FieldType, size_t DIM>
-struct DataLabLoader {
+struct FieldLabLoader {
     using DataType = typename FieldType::DataType;
     using StencilType = Core::Stencil<DIM>;
     using IndexRangeType = typename Core::IndexRange<DIM>;
@@ -111,7 +113,7 @@ struct DataLabLoader {
 
 // specialization for 3D
 template <typename FieldType>
-struct DataLabLoader<FieldType, 3> {
+struct FieldLabLoader<FieldType, 3> {
     using DataType = typename FieldType::DataType;
     using StencilType = Core::Stencil<3>;
     using IndexRangeType = typename Core::IndexRange<3>;
@@ -227,6 +229,7 @@ struct DataLabLoader<FieldType, 3> {
             for (Index iz = begin[2]; iz < end[2]; ++iz) {
                 const Index szx = (iz - stencil_begin[2]) * lslicexy + sx;
                 if ((end[1] - begin[1]) % 4 != 0) {
+                    // general case
                     for (Index iy = begin[1]; iy < end[1]; ++iy) {
                         DataType *dst0 =
                             pdst + szx + (iy - stencil_begin[1]) * lstridex;
@@ -239,6 +242,7 @@ struct DataLabLoader<FieldType, 3> {
                         std::memcpy(dst0, src0, bytesx);
                     }
                 } else {
+                    // unrolled copies
                     for (Index iy = begin[1]; iy < end[1]; iy += 4) {
                         DataType *dst0 =
                             pdst + szx + (iy + 0 - stencil_begin[1]) * lstridex;
@@ -410,4 +414,4 @@ private:
 NAMESPACE_END(Block)
 NAMESPACE_END(Cubism)
 
-#endif /* DATALABLOADER_H_IQCYDR89 */
+#endif /* FIELDLABLOADER_H_PKYUCECQ */

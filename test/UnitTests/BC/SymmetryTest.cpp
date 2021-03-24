@@ -49,7 +49,7 @@ TEST(BC, Symmetry)
     using FAL = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
     using MIndex = typename FAL::MIndex;
     using BCVector = typename FAL::BCVector;
-    using BC = BC::Symmetry<typename FAL::DataLab>;
+    using BC = BC::Symmetry<typename FAL::FieldLab>;
 
     BCVector bcv;
     bcv.push_back(new BC(0, 0, 1));
@@ -98,13 +98,13 @@ void testTensorial()
 TEST(BC, SymmetryTensorial)
 {
     using FALC = FieldAndLab<int, Cubism::EntityType::Cell, 3>;
-    using BCC = BC::Symmetry<typename FALC::DataLab>;
+    using BCC = BC::Symmetry<typename FALC::FieldLab>;
     testTensorial<0, FALC, BCC>();
     testTensorial<1, FALC, BCC>();
     testTensorial<2, FALC, BCC>();
 
     using FALN = FieldAndLab<int, Cubism::EntityType::Node, 3>;
-    using BCN = BC::Symmetry<typename FALN::DataLab>;
+    using BCN = BC::Symmetry<typename FALN::FieldLab>;
     testTensorial<0, FALN, BCN>();
     testTensorial<1, FALN, BCN>();
     testTensorial<2, FALN, BCN>();

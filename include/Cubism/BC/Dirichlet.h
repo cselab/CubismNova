@@ -14,7 +14,7 @@ NAMESPACE_BEGIN(BC)
 
 /**
  * @brief Dirichlet BC
- * @tparam Lab Type of ``DataLab``
+ * @tparam Lab Type of ``FieldLab``
  *
  * @rst
  * Constant value Dirichlet boundary condition

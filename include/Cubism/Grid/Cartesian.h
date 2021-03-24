@@ -7,8 +7,8 @@
 #define CARTESIAN_H_QBSFTWK7
 
 #include "Cubism/Alloc/AlignedBlockAllocator.h"
-#include "Cubism/Block/DataLabLoader.h"
 #include "Cubism/Block/Field.h"
+#include "Cubism/Block/FieldLabLoader.h"
 #include "Cubism/Common.h"
 #include "Cubism/Grid/BlockFieldAssembler.h"
 #include <cassert>
