@@ -54,7 +54,7 @@ jobs:
                 type: string
                 default: debug
         executor: << parameters.image >>
-        resource_class: large
+        resource_class: xlarge
         steps:
             - checkout
             - run:
@@ -86,7 +86,7 @@ jobs:
                 type: string
                 default: ""
         executor: << parameters.image >>
-        resource_class: large
+        resource_class: xlarge
         steps:
             - checkout
             - run:
