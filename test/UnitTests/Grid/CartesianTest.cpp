@@ -231,12 +231,36 @@ void testLab()
     const MIndex send(s.getEnd() - 1); // stencil end
     lab.allocate(s, grid[0].getIndexRange());
 
-    // process block fields
+    // load block fields into lab explicitly
     auto findex = grid.getIndexFunctor(); // grid block index functor
     for (auto f : grid) {
-        const FieldType &bf = *f;                // reference for field
+        const FieldType &bf = *f; // reference for field
         lab.loadData(bf.getState().block_index,
                      findex); // load the data lab block
+
+        // create a lab mesh
+        const auto lab_range = lab.getActiveLabRange(); // lab index range
+        const Mesh &bm = *bf.getState().mesh;           // block mesh
+        const MIndex lab_cells =
+            bm.getIndexRange(EntityType::Cell).getExtent() + send - sbegin;
+        const Mesh mlab(bm.getBegin() + Point(sbegin) * h,
+                        bm.getEnd() + Point(send) * h,
+                        lab_cells,
+                        Mesh::MeshIntegrity::SubMesh);
+
+        // process lab
+        for (auto i : lab_range) {
+            const Point x = mlab.getCoords(i, Entity);
+            const DataType adiff = Cubism::myAbs(lab[i + sbegin] - fexact(x));
+            EXPECT_LE(adiff, 8 * std::numeric_limits<DataType>::epsilon());
+        }
+    }
+
+    // load block fields into lab via grid
+    for (auto f : grid) {
+        const FieldType &bf = *f; // reference for field
+        // same as: grid.loadLab(bf, lab); // scalar cell field
+        grid.loadLab(bf, lab, Vector::X, Dir::X);
 
         // create a lab mesh
         const auto lab_range = lab.getActiveLabRange(); // lab index range

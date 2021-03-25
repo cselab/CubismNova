@@ -8,6 +8,7 @@
 
 #include "Cubism/Alloc/AlignedBlockAllocator.h"
 #include "Cubism/Block/Field.h"
+#include "Cubism/Block/FieldLab.h"
 #include "Cubism/Block/FieldLabLoader.h"
 #include "Cubism/Common.h"
 #include "Cubism/Grid/BlockFieldAssembler.h"
@@ -393,6 +394,37 @@ public:
      * @return Number of blocks in all dimensions in the global grid
      */
     virtual MultiIndex getGlobalSize() const { return nblocks_; }
+
+    /**
+     * @brief Field lab loader utility to load data from ``field`` into ``lab``
+     * @tparam Comp Type for components that defines a cast to ``size_t``
+     * @tparam Dir Type for direction that defines a cast to ``size_t``
+     * @param field Source field data to be loaded
+     * @param lab Laboratory where data is loaded into
+     * @param c Component index
+     * @param d Face direction
+     *
+     * @rst
+     * The ``field`` must be contained in within this Cartesian grid.
+     * @endrst
+     */
+    template <typename Comp = size_t, typename Dir = size_t>
+    void loadLab(const BaseType &field,
+                 Block::FieldLab<typename BaseType::FieldType> &lab,
+                 const Comp c = 0,
+                 const Dir d = 0)
+    {
+        // `field` bust be owned by `assembler_`
+        assert(assembler_.fields.contains(field));
+        // The `lab` must be allocated
+        assert(lab.isAllocated());
+        // The allocated `lab` must be large enough to process `field`
+        assert(field.getIndexRange().getExtent() <=
+               lab.getMaximumRange().getExtent());
+        const auto &bi = field.getState().block_index;
+        auto idx_functor = this->getIndexFunctor(c, d);
+        lab.loadData(bi, idx_functor);
+    }
 
 protected:
     MultiIndex nblocks_;
