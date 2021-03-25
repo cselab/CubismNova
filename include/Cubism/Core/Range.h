@@ -177,12 +177,12 @@ public:
         return null_idx;
     }
 
-        /**
-         * @brief Check if other range is contained in this range
-         * @param o Other range
-         * @return True if ``o`` is contained in this range (inclusive)
-         */
-        bool isContained(const Range &o) const
+    /**
+     * @brief Check if other range is contained in this range
+     * @param o Other range
+     * @return True if ``o`` is contained in this range (inclusive)
+     */
+    bool isContained(const Range &o) const
     {
         return begin_ <= o.begin_ && o.end_ <= end_;
     }
