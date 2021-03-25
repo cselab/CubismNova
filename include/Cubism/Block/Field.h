@@ -894,6 +894,23 @@ public:
     const ContainerType &getContainer() const { return components_; }
 
     /**
+     * @brief Check if element is contained
+     * @param element Reference element
+     * @return True if element is in this container
+     */
+    bool contains(const BaseType &element) const
+    {
+        bool found = false;
+        for (const auto e : components_) {
+            if (e == &element) {
+                found = true;
+                break;
+            }
+        }
+        return found;
+    }
+
+    /**
      * @brief Forced deep copy of underlying fields
      * @param rhs Field container to copy from
      *

@@ -956,6 +956,25 @@ TEST(FieldContainer, Arithmetic)
     }
 }
 
+TEST(FieldContainer, Containment)
+{
+    using NodeField = Block::Field<char, EntityType::Node, 2>;
+    using IRange = typename NodeField::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    using FC = Block::FieldContainer<NodeField>;
+
+    MIndex nodes(8);
+    IRange node_domain(nodes);
+
+    NodeField *f0 = new NodeField(node_domain);
+    NodeField *f1 = new NodeField(node_domain);
+    FC fc;
+    fc.pushBack(f0);
+    fc.pushBack(f1);
+    EXPECT_TRUE(fc.contains(*f0));
+    EXPECT_TRUE(fc.contains(*f1));
+}
+
 TEST(TensorField, Construction)
 {
     // Rank 2 tensor, cell-centered data, 3-dimensional
