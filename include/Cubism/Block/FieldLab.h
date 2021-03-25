@@ -17,7 +17,7 @@ NAMESPACE_BEGIN(Cubism)
 NAMESPACE_BEGIN(Block)
 
 /**
- * @brief Data laboratory
+ * @brief Field laboratory
  * @tparam TField Field type to map to the lab
  *
  * @rst
@@ -119,6 +119,7 @@ public:
         // of block fields in a grid topology which may differ by one cell for
         // boundary adjacent blocks (depends on Cubism::EntityType).
         MultiIndex max_extent = max_range.getExtent() + 2;
+        max_range_ = IndexRangeType(max_extent);
 
         const typename MultiIndex::DataType n_per_align =
             CUBISM_ALIGNMENT / sizeof(DataType);
@@ -375,19 +376,19 @@ public:
     const DataType *getInnerData() const { return block_data_; }
 
     /**
-     * @brief Get currently active stencil
+     * @brief Get currently active (loaded) stencil
      * @return ``const`` reference to ``StencilType``
      */
     const StencilType &getActiveStencil() const { return loader_.curr_stencil; }
 
     /**
-     * @brief Get currently active index range
+     * @brief Get currently active (loaded) index range
      * @return ``const`` reference to ``IndexRangeType``
      */
     const IndexRangeType &getActiveRange() const { return loader_.curr_range; }
 
     /**
-     * @brief Get reference to currently loaded field
+     * @brief Get reference to currently active (loaded) field
      * @return Reference to ``FieldType``
      */
     FieldType &getActiveField()
@@ -399,7 +400,7 @@ public:
     }
 
     /**
-     * @brief Get reference to currently loaded field
+     * @brief Get reference to currently active (loaded) field
      * @return ``const`` reference to ``FieldType``
      */
     const FieldType &getActiveField() const
@@ -411,7 +412,7 @@ public:
     }
 
     /**
-     * @brief Get currently active lab index range
+     * @brief Get currently active (loaded) lab index range
      * @return Index range including ghost indices
      *
      * @rst
@@ -420,6 +421,18 @@ public:
      * @endrst
      */
     IndexRangeType getActiveLabRange() const { return loader_.curr_labrange; }
+
+    /**
+     * @brief Get the maximum range that the lab can hold
+     * @return Index range of maximum span
+     */
+    IndexRangeType getMaximumRange() const { return max_range_; }
+
+    /**
+     * @brief Check if lab is allocated
+     * @return True if laboratory is allocated
+     */
+    bool isAllocated() const { return is_allocated_; }
 
     /**
      * @brief Get byte utilization of block
@@ -448,6 +461,7 @@ protected:
 
 private:
     bool is_allocated_;
+    IndexRangeType max_range_;
     LabLoader loader_;
     DataType *block_data_; // start of block data
     FieldType *field_;     // currently loaded field
