@@ -1,5 +1,5 @@
 [wrap-git]
-directory = gtest-mpi-listener-cselab
+directory = gtest-mpi-listener-master
 url = https://github.com/cselab/gtest-mpi-listener.git
 revision = master
 depth = 1
