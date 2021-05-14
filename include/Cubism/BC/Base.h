@@ -21,7 +21,7 @@ NAMESPACE_BEGIN(BC)
 struct BoundaryInfo {
     /** @brief Boundary direction index */
     size_t dir;
-    /** @brief Side index alond direction ``dir`` */
+    /** @brief Side index along direction ``dir`` */
     size_t side;
     /** @brief Periodic flag */
     bool is_periodic;
