@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# File       : uncov
+# Created    : Fri May 28 2021 07:12:28 PM (+0200)
+# Author     : Fabian Wermelinger
+# Description: Create new uncov entry
+# Copyright 2021 ETH Zurich. All Rights Reserved.
+set -e
+
+parse_coverage() 
+{
+    uncov-gcov \
+        --root ${ROOT} \
+        --collect-root ${ROOT}/${GCOV} \
+        --exclude build* \
+        --exclude subprojects \
+        --exclude docs \
+        --exclude test/sandbox \
+        --no-gcov
+}
+
+ROOT="$(pwd -P)"
+GCOV="gcov_data"
+
+if [[ $# -eq 1 ]]; then
+    parse_coverage
+else
+    parse_coverage | uncov new
+fi

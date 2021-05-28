@@ -22,7 +22,8 @@ DST=${ROOT}/${CWD}
 mkdir -p ${CWD}
 cd ${CWD}
 while read file; do
-    gcov -r -s ${ROOT} -m -b -p "$@" "${file}" &>/dev/null
+    # gcov -r -s ${ROOT} -m -b -p "$@" "${file}" &>/dev/null
+    gcov -r -s ${ROOT} -p "$@" "${file}" &>/dev/null
 done <${flist}
 
 # clean up
