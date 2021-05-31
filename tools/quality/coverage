@@ -19,8 +19,9 @@ filter_junk ${ROOT} "*.gcno" >${flist}
 
 CWD="gcov_data"
 DST=${ROOT}/${CWD}
-mkdir -p ${CWD}
-cd ${CWD}
+rm -rf ${DST}
+mkdir -p ${DST}
+cd ${DST}
 while read file; do
     # gcov -r -s ${ROOT} -m -b -p "$@" "${file}" &>/dev/null
     gcov -r -s ${ROOT} -p "$@" "${file}" &>/dev/null
