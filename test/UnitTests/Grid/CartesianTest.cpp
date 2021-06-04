@@ -238,7 +238,7 @@ void testLab()
         lab.loadData(bf.getState().block_index,
                      findex); // load the data lab block
 
-        // create a lab mesh
+        // create a lab mesh (mesh includes ghost cells)
         const auto lab_range = lab.getActiveLabRange(); // lab index range
         const Mesh &bm = *bf.getState().mesh;           // block mesh
         const MIndex lab_cells =
@@ -262,7 +262,7 @@ void testLab()
         // same as: grid.loadLab(bf, lab); // scalar cell field
         grid.loadLab(bf, lab, Vector::X, Dir::X);
 
-        // create a lab mesh
+        // create a lab mesh (mesh includes ghost cells)
         const auto lab_range = lab.getActiveLabRange(); // lab index range
         const Mesh &bm = *bf.getState().mesh;           // block mesh
         const MIndex lab_cells =
@@ -279,6 +279,42 @@ void testLab()
             EXPECT_LE(adiff, 8 * std::numeric_limits<DataType>::epsilon());
         }
     }
+
+#ifdef _OPENMP
+    // multi-threaded processing of block fields
+#pragma omp parallel num_threads(2)
+    {
+        // allocate thread local lab
+        Lab thread_lab;
+        thread_lab.allocate(s, grid[0].getIndexRange());
+
+#pragma omp for
+        for (size_t block_idx = 0; block_idx < grid.size(); ++block_idx) {
+            const FieldType &bf = grid[block_idx]; // reference for field
+            // load the block field into the thread local lab
+            grid.loadLab(bf, thread_lab, Vector::X, Dir::X);
+
+            // create a lab mesh (mesh includes ghost cells)
+            const auto lab_range =
+                thread_lab.getActiveLabRange();   // lab index range
+            const Mesh &bm = *bf.getState().mesh; // block mesh
+            const MIndex lab_cells =
+                bm.getIndexRange(EntityType::Cell).getExtent() + send - sbegin;
+            const Mesh mlab(bm.getBegin() + Point(sbegin) * h,
+                            bm.getEnd() + Point(send) * h,
+                            lab_cells,
+                            Mesh::MeshIntegrity::SubMesh);
+
+            // process thread local lab
+            for (auto i : lab_range) {
+                const Point x = mlab.getCoords(i, Entity);
+                const DataType adiff =
+                    Cubism::myAbs(thread_lab[i + sbegin] - fexact(x));
+                EXPECT_LE(adiff, 8 * std::numeric_limits<DataType>::epsilon());
+            }
+        }
+    }
+#endif /* _OPENMP */
 }
 
 TEST(Cartesian, FieldLab)
