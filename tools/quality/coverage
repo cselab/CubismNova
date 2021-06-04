@@ -24,7 +24,7 @@ mkdir -p ${DST}
 cd ${DST}
 while read file; do
     # gcov -r -s ${ROOT} -m -b -p "$@" "${file}" &>/dev/null
-    gcov -r -s ${ROOT} -p "$@" "${file}" &>/dev/null
+    gcov -r -s ${ROOT} -m -p "$@" "${file}" &>/dev/null
 done <${flist}
 
 # clean up
