@@ -7,9 +7,9 @@
 #define BLOCKPROCESSORMPI_H_IKFSZWUJ
 
 #include <vector>
-#ifdef __OPENMP
+#ifdef _OPENMP
 #include <omp.h>
-#endif /* __OPENMP */
+#endif /* _OPENMP */
 
 #include "Types.h"
 
@@ -24,11 +24,11 @@ inline void BlockProcessor(Operator rhs,
 {
     vector<BlockInfo> avail0;
 
-#ifdef __OPENMP
+#ifdef _OPENMP
     const int nthreads = omp_get_max_threads();
 #else
     const int nthreads = 1;
-#endif /* __OPENMP */
+#endif /* _OPENMP */
 
     TLab * labs = new TLab[nthreads];
 
@@ -44,11 +44,11 @@ inline void BlockProcessor(Operator rhs,
 
 #pragma omp parallel num_threads(nthreads)
     {
-#ifdef __OPENMP
+#ifdef _OPENMP
         int tid = omp_get_thread_num();
 #else
         int tid = 0;
-#endif /* __OPENMP */
+#endif /* _OPENMP */
         TLab& mylab = labs[tid];
 
 #pragma omp for schedule(dynamic,1)
