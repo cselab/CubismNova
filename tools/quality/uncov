@@ -12,9 +12,10 @@ parse_coverage()
         --root ${ROOT} \
         --collect-root ${ROOT}/${GCOV} \
         --exclude build* \
-        --exclude subprojects \
         --exclude docs \
+        --exclude subprojects \
         --exclude test/sandbox \
+        --exclude trash \
         --no-gcov
 }
 
