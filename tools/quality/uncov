@@ -11,6 +11,7 @@ parse_coverage()
     uncov-gcov \
         --root ${ROOT} \
         --collect-root ${ROOT}/${GCOV} \
+        --capture-worktree \
         --exclude build* \
         --exclude docs \
         --exclude subprojects \
