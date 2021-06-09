@@ -73,6 +73,7 @@ endif
 # declare dependency for subproject usage
 cubismnova_dep = declare_dependency(
   include_directories: cubismnova_inc,
+  dependencies: [mpi_dep, openmp_dep],
   link_with: cubismnova_libs
 )
 
