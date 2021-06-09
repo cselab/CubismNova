@@ -31,8 +31,8 @@ template <typename TField>
 class FieldLab
     // Alternatively inheritance could be from TField::BlockDataType which would
     // not allow to use a different data allocator.  The inheritance below
-    // allows to change Cubism::AlignedBlockAllocator for a FieldLab at if
-    // needed at some point.
+    // allows to change Cubism::AlignedBlockAllocator for a FieldLab if needed
+    // at some point.
     : public Data<typename TField::DataType,
                   TField::EntityType,
                   TField::IndexRangeType::Dim,
@@ -55,6 +55,7 @@ class FieldLab
     using BaseType::range_;
 
 public:
+    using BlockDataType = BaseType;
     using typename BaseType::BlockBytes;
     using typename BaseType::DataType;
     using typename BaseType::IndexRangeType;
