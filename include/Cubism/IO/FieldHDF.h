@@ -9,6 +9,7 @@
 #include "Cubism/Common.h"
 #include "Cubism/IO/FieldAOS.h"
 #include "Cubism/IO/HDFDriver.h"
+#include "Cubism/Mesh/StructuredUniform.h"
 #include <cstdio>
 #include <fstream>
 #include <stdexcept>
@@ -100,7 +101,7 @@ void FieldWriteHDF(const std::string &fname,
     static_assert(Field::Class == Cubism::FieldClass::Scalar ||
                       Field::Class == Cubism::FieldClass::Tensor ||
                       Field::Class == Cubism::FieldClass::FaceContainer,
-                  "FieldReadHDF: Unsupported Cubism::FieldClass");
+                  "FieldWriteHDF: Unsupported Cubism::FieldClass");
     using IRange = typename Mesh::IndexRangeType;
     using MIndex = typename IRange::MultiIndex;
     const size_t dface = static_cast<size_t>(face_dir);
@@ -192,6 +193,72 @@ void FieldReadHDF(const std::string &fname,
 #else
     std::fprintf(
         stderr, "FieldReadHDF: HDF not supported (%s)\n", fname.c_str());
+#endif /* CUBISM_USE_HDF */
+}
+
+/**
+ * @ingroup IO
+ * @brief Convenience file writer using a uniform mesh in [0, 1]
+ * @tparam FileDataType HDF file data type
+ * @tparam Field Field type
+ * @tparam Dir Special type that defines a cast to ``size_t``
+ * @param fname Output full filename without file extension
+ * @param aname Name of quantity in ``field``
+ * @param field Input field
+ * @param time Current time
+ * @param face_dir Face direction (relevant for ``Cubism::EntityType::Face``)
+ * @param create_xdmf Flag for XDMF wrapper
+ *
+ * @rst
+ * Write the data carried by ``field`` to an HDF5 container file.  This function
+ * does not require a mesh argument.  Instead, a uniform mesh in [0, 1] will be
+ * assumed.
+ * @endrst
+ */
+template <typename FileDataType, typename Field, typename Dir = size_t>
+void FieldWriteUniformHDF(const std::string &fname,
+                          const std::string &aname,
+                          const Field &field,
+                          const double time = 0.0,
+                          const Dir face_dir = 0,
+                          const bool create_xdmf = true)
+{
+#ifdef CUBISM_USE_HDF
+    static_assert(Field::Class == Cubism::FieldClass::Scalar ||
+                      Field::Class == Cubism::FieldClass::Tensor ||
+                      Field::Class == Cubism::FieldClass::FaceContainer,
+                  "FieldWriteUniformHDF: Unsupported Cubism::FieldClass");
+
+    using Mesh = Mesh::StructuredUniform<double, Field::IndexRangeType::Dim>;
+    using IRange = typename Mesh::IndexRangeType;
+    using MIndex = typename IRange::MultiIndex;
+    const size_t dface = static_cast<size_t>(face_dir);
+    Mesh mesh(MIndex(0),
+              MIndex(1),
+              field.getIndexRange(dface).getExtent(),
+              Mesh::MeshIntegrity::FullMesh);
+    const auto clip =
+        mesh.getSubMesh(field.getIndexRange(dface), Field::EntityType, dface);
+    const IRange file_span = clip->getIndexRange(Field::EntityType, dface);
+    const MIndex file_extent = file_span.getExtent();
+    constexpr size_t NComp = Field::NComponents;
+    if (create_xdmf) {
+        std::printf(
+            "FieldWriteUniformHDF: Allocating %.1f kB file buffer (%s)\n",
+            file_extent.prod() * NComp * sizeof(FileDataType) / 1024.,
+            fname.c_str());
+    }
+    FileDataType *buf = new FileDataType[file_extent.prod() * NComp];
+    Field2AOS(field, file_span, buf, dface);
+    HDFDriver<FileDataType, typename Mesh::BaseMesh, Mesh::Class> hdf_driver;
+    hdf_driver.file_span = file_span;
+    hdf_driver.write(
+        fname, aname, buf, *clip, Field::EntityType, NComp, time, create_xdmf);
+    delete[] buf;
+#else
+    std::fprintf(stderr,
+                 "FieldWriteUniformHDF: HDF not supported (%s)\n",
+                 fname.c_str());
 #endif /* CUBISM_USE_HDF */
 }
 
