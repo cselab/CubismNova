@@ -7,6 +7,7 @@
 if hdf5_dep.found()
   e = executable('hdf5-io',
     files([
+      'Data/DataHDFTest.cpp',
       'HDF/CartesianHDFTest.cpp',
       'HDF/FieldHDFTest.cpp',
       ]),

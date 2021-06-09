@@ -127,36 +127,6 @@ TEST(IO, FieldWriteHDF)
                 "fliz" + std::to_string(d), "beers", f, *liz, time, d);
         }
     }
-
-    // convenience writer assuming uniform mesh in [0, 1]
-    { // cell field
-        using DataType = typename Field::DataType;
-        Field f(m.getIndexRange(Field::EntityType));
-        Initializer<Field::EntityType> finit;
-        finit.init(f);
-        IO::FieldWriteUniformHDF<DataType>("ucall", "basket", f);
-    }
-    { // node field
-        using Field =
-            Block::FieldTypeFactory<int, 0, Cubism::EntityType::Node>::Type;
-        using DataType = typename Field::DataType;
-        Field f(m.getIndexRange(Field::EntityType));
-        Initializer<Field::EntityType> finit;
-        finit.init(f);
-        IO::FieldWriteUniformHDF<DataType>("unall", "basket", f);
-    }
-    { // face field's
-        using Field =
-            Block::FieldTypeFactory<int, 0, Cubism::EntityType::Face>::Type;
-        using DataType = typename Field::DataType;
-        Field f(m.getIndexRange(Field::EntityType));
-        Initializer<Field::EntityType> finit;
-        finit.init(f);
-        for (size_t d = 0; d < Field::IndexRangeType::Dim; ++d) {
-            IO::FieldWriteUniformHDF<DataType>(
-                "ufall" + std::to_string(d), "basket", f);
-        }
-    }
 }
 
 TEST(IO, FieldWriteReadBackHDF)
