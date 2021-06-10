@@ -6,6 +6,7 @@
 #ifndef RANGE_H_JDWNYXZA
 #define RANGE_H_JDWNYXZA
 
+#include "Cubism/Common.h"
 #include "Cubism/Core/Vector.h"
 #include <limits>
 #include <string>
@@ -22,7 +23,7 @@ NAMESPACE_BEGIN(Core)
  * @tparam T Data type that describes coordinates in the range
  * @tparam DIM Dimension
  */
-template <typename T, size_t DIM>
+template <typename T, size_t DIM = CUBISM_DIMENSION>
 class Range
 {
 public:

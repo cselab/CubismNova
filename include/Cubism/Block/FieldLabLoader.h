@@ -19,7 +19,7 @@ NAMESPACE_BEGIN(Block)
 
 // TODO: [fabianw@mavt.ethz.ch; 2021-03-24] Documentation
 
-template <typename FieldType, size_t DIM>
+template <typename FieldType, size_t DIM = CUBISM_DIMENSION>
 struct FieldLabLoader {
     using DataType = typename FieldType::DataType;
     using StencilType = Core::Stencil<DIM>;

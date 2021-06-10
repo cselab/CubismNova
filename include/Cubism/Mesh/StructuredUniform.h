@@ -22,7 +22,7 @@ NAMESPACE_BEGIN(Mesh)
  * @tparam TReal Float type for mesh entities
  * @tparam DIM Mesh dimension
  * */
-template <typename TReal, size_t DIM>
+template <typename TReal, size_t DIM = CUBISM_DIMENSION>
 class StructuredUniform : public StructuredBase<TReal, DIM>
 {
 public:

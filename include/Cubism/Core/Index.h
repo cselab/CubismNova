@@ -6,6 +6,7 @@
 #ifndef INDEX_H_CPAHO0UM
 #define INDEX_H_CPAHO0UM
 
+#include "Cubism/Common.h"
 #include "Cubism/Core/Range.h"
 #include <cassert>
 #include <cstddef>
@@ -24,7 +25,7 @@ using Index = std::ptrdiff_t;
  * respectively
  * @tparam DIM Dimension of the index space
  */
-template <size_t DIM>
+template <size_t DIM = CUBISM_DIMENSION>
 struct IndexConverter {
     using MultiIndex = typename Core::Range<Index, DIM>::PointType;
 
@@ -125,7 +126,7 @@ class MultiIndexIterator;
  *
  * Defines a simple consecutive index space.
  */
-template <size_t DIM>
+template <size_t DIM = CUBISM_DIMENSION>
 class IndexRange : public Core::Range<Index, DIM>
 {
 public:
@@ -307,7 +308,7 @@ private:
  * @brief Alias for a multi-dimensional index
  * @tparam DIM Dimension of associated index space
  */
-template <size_t DIM>
+template <size_t DIM = CUBISM_DIMENSION>
 using MultiIndex = typename IndexRange<DIM>::PointType;
 
 template <size_t DIM>

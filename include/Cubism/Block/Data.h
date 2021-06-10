@@ -88,7 +88,7 @@ public:
  */
 template <typename T,
           Cubism::EntityType Entity,
-          size_t DIM,
+          size_t DIM = CUBISM_DIMENSION,
           typename BlockAlloc = AlignedBlockAllocator<T>>
 class Data : public DataBase
 {

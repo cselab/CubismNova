@@ -34,7 +34,7 @@ NAMESPACE_BEGIN(Core)
  * low-dimensional when used for automatic variables on the stack.
  * @endrst
  */
-template <typename T, size_t DIM>
+template <typename T, size_t DIM = CUBISM_DIMENSION>
 class Vector
 {
 public:

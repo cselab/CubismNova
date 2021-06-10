@@ -6,6 +6,7 @@
 #ifndef STENCIL_H_WOXG1TZC
 #define STENCIL_H_WOXG1TZC
 
+#include "Cubism/Common.h"
 #include "Cubism/Core/Index.h"
 #include <stdexcept>
 
@@ -16,7 +17,7 @@ NAMESPACE_BEGIN(Core)
  * @brief Describes a stencil
  * @tparam DIM Stencil dimensionality
  * */
-template <size_t DIM>
+template <size_t DIM = CUBISM_DIMENSION>
 class Stencil
 {
     using BaseType = Core::IndexRange<DIM>;

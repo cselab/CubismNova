@@ -27,7 +27,7 @@ NAMESPACE_BEGIN(Mesh)
  *
  * Defines the (pure virtual) interface for a structured mesh.
  * */
-template <typename TReal, size_t DIM>
+template <typename TReal, size_t DIM = CUBISM_DIMENSION>
 class StructuredBase
 {
 public:
