@@ -12,13 +12,33 @@ project('ISPC-Benchmark', ['cpp'],
 cubismnova_proj = subproject('CubismNova')
 cubismnova_dep = cubismnova_proj.get_variable('cubismnova_dep')
 
-inc = [include_directories('.')]
+if get_option('SINGLE_PRECISION')
+  add_project_arguments('-D_SINGLE_PRECISION_', language: 'cpp')
+endif
 
-ispc_main = executable('main',
-  files('main.cpp'),
+inc = [include_directories('.')]
+base_lib = library('bbase',
+  files([
+    'BaseBenchmark.cpp',
+    'BaseBenchmark.h',
+    'Common.h',
+    ]),
   include_directories: inc,
   dependencies: [cubismnova_dep],
   install: false,
 )
 
-benchmark('ISPC', ispc_main)
+libs = [base_lib]
+subdir('CFD_2ndOrder')
+
+main = executable('main',
+  files([
+    'main.cpp',
+    ]),
+  include_directories: inc,
+  dependencies: [cubismnova_dep],
+  link_with: libs,
+  install: false,
+)
+
+benchmark('ISPC', main)

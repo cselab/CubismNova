@@ -4,25 +4,31 @@
 // Description: Main ISPC driver code
 // Copyright 2021 ETH Zurich. All Rights Reserved.
 
-#include "Benchmark.h"
+#include "Common.h"
 
-// benchmark data type
-using Real = float;
+#include "CFD_2ndOrder/Benchmark.h"
+
+#include <cstdio>
 
 // number of samples to collect
-constexpr int n_samples = 20;
-
+#ifndef _NSAMPLES_
+#define _NSAMPLES_ 50
+#endif /* _NSAMPLES_ */
+constexpr int n_samples = _NSAMPLES_;
 
 int main(int argc, char *argv[])
 {
-    // Benchmark object
-    const int elements_per_dim = (2 == argc) ? std::atoi(argv[1]) : 32;
-    // FD::CenteredSecondOrder<Real> benchmark(n_samples, elements_per_dim);
-    Benchmark<Real> benchmark(n_samples, elements_per_dim, -1, 2);
+#ifdef _SINGLE_PRECISION_
+    const char prec[] = "Single";
+#else
+    const char prec[] = "Double";
+#endif /* _SINGLE_PRECISION_ */
+    printf("BENCHMARK PRECISION: %s\n", prec);
 
-    // info float precision
+    const int elements_per_dim = (2 == argc) ? std::atoi(argv[1]) : 128;
 
-    // benchmark.writeTestData();
+    // Benchmark objects
+    CFD::Order2::Benchmark benchmark(n_samples, elements_per_dim);
     benchmark.run();
 
     return 0;
