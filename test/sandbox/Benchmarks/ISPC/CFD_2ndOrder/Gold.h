@@ -29,16 +29,16 @@ void ddx(const int Nx,
          const Real factor);
 
 constexpr int loop_flop_ddx_tree_vec = 8;
-void ddx_tree_vec(const int Nx,
-                  const int Ny,
-                  const int Nz,
-                  const Real *src,
-                  const int x_pitch_src,
-                  const int xy_pitch_src,
-                  Real *dst,
-                  const int x_pitch_dst,
-                  const int xy_pitch_dst,
-                  const Real factor);
+void ddxTreeVec(const int Nx,
+                const int Ny,
+                const int Nz,
+                const Real *src,
+                const int x_pitch_src,
+                const int xy_pitch_src,
+                Real *dst,
+                const int x_pitch_dst,
+                const int xy_pitch_dst,
+                const Real factor);
 } // namespace Gold
 } // namespace Order2
 } // namespace CFD

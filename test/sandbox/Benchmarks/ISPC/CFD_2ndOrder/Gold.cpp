@@ -13,20 +13,20 @@
                 for (int ix = 0; ix < Nx; ++ix) {                              \
                     dst[ix + x_pitch_dst * iy + xy_pitch_dst * iz] =           \
                         fac *                                                  \
-                        (src[(ix - 1) + x_pitch_dst * iy +                     \
-                             xy_pitch_dst * iz] +                              \
-                         src[(ix + 1) + x_pitch_dst * iy +                     \
-                             xy_pitch_dst * iz] +                              \
-                         src[ix + x_pitch_dst * (iy - 1) +                     \
-                             xy_pitch_dst * iz] +                              \
-                         src[ix + x_pitch_dst * (iy + 1) +                     \
-                             xy_pitch_dst * iz] +                              \
-                         src[ix + x_pitch_dst * iy +                           \
-                             xy_pitch_dst * (iz - 1)] +                        \
-                         src[ix + x_pitch_dst * iy +                           \
-                             xy_pitch_dst * (iz + 1)] +                        \
+                        (src[(ix - 1) + x_pitch_src * iy +                     \
+                             xy_pitch_src * iz] +                              \
+                         src[(ix + 1) + x_pitch_src * iy +                     \
+                             xy_pitch_src * iz] +                              \
+                         src[ix + x_pitch_src * (iy - 1) +                     \
+                             xy_pitch_src * iz] +                              \
+                         src[ix + x_pitch_src * (iy + 1) +                     \
+                             xy_pitch_src * iz] +                              \
+                         src[ix + x_pitch_src * iy +                           \
+                             xy_pitch_src * (iz - 1)] +                        \
+                         src[ix + x_pitch_src * iy +                           \
+                             xy_pitch_src * (iz + 1)] -                        \
                          static_cast<Real>(6) *                                \
-                             src[ix + x_pitch_dst * iy + xy_pitch_dst * iz]);  \
+                             src[ix + x_pitch_src * iy + xy_pitch_src * iz]);  \
                 }                                                              \
             }                                                                  \
         }                                                                      \
@@ -53,17 +53,19 @@ void CFD::Order2::Gold::ddx(const int Nx,
 }
 
 // auto vectorized
-void CFD::Order2::Gold::ddx_tree_vec(const int Nx,
-                                     const int Ny,
-                                     const int Nz,
-                                     const Real *src,
-                                     const int x_pitch_src,
-                                     const int xy_pitch_src,
-                                     Real *dst,
-                                     const int x_pitch_dst,
-                                     const int xy_pitch_dst,
-                                     const Real factor)
+void CFD::Order2::Gold::ddxTreeVec(const int Nx,
+                                   const int Ny,
+                                   const int Nz,
+                                   const Real *src,
+                                   const int x_pitch_src,
+                                   const int xy_pitch_src,
+                                   Real *dst,
+                                   const int x_pitch_dst,
+                                   const int xy_pitch_dst,
+                                   const Real factor)
 {
     const Real fac = factor * factor; // square of inverse grid spacing
     LOOP_BODY();
 }
+
+#undef LOOP_BODY

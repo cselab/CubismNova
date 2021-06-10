@@ -19,11 +19,22 @@ public:
               const int n_elements_per_dim,
               const bool is_tensorial = false)
         // stencil start = -1, stencil end = 2 (exclusive)
-        : BaseBenchmark(n_samples, n_elements_per_dim, -1, 2, is_tensorial)
+        : BaseBenchmark(n_samples, n_elements_per_dim, -1, 2, is_tensorial),
+          naive_flop_(8)
     {
     }
 
     void run() override;
+
+protected:
+    void benchmarkCustom_(const Result *gold) override;
+
+private:
+    const int naive_flop_;
+    void naiveMultiIndex_();
+    void naiveMultiIndexTreeVec_();
+    void naive3DIndex_();
+    void naive3DIndexTreeVec_();
 };
 } // namespace Order2
 } // namespace CFD
