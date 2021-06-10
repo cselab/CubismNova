@@ -67,7 +67,7 @@ public:
     /** @brief Main constructor */
     FieldLab()
         : BaseType(IndexRangeType()), is_allocated_(false),
-          block_data_(nullptr), field_(nullptr), lab_begin_(0), lab_end_(0)
+          block_data_(nullptr), field_(nullptr), lab_begin_(0)
     {
     }
 
@@ -92,7 +92,7 @@ public:
     /**
      * @brief Allocate data lab memory block for a given stencil
      * @param s Target stencil
-     * @param max_range Maximum index range to be processed in the lab
+     * @param max_request_range Maximum index range to be processed in the lab
      * @param force Force a reallocation for subsequent requests
      *
      * @rst
@@ -102,7 +102,7 @@ public:
      * @endrst
      */
     void allocate(const StencilType &s,
-                  const IndexRangeType &max_range,
+                  const IndexRangeType &max_request_range,
                   const bool force = false)
     {
         // TODO: [fabianw@mavt.ethz.ch; 2020-02-11] Should offsets be const? any
@@ -119,21 +119,39 @@ public:
         // add two extra memory locations in each direction for equal treatment
         // of block fields in a grid topology which may differ by one cell for
         // boundary adjacent blocks (depends on Cubism::EntityType).
-        MultiIndex max_extent = max_range.getExtent() + 2;
+        MultiIndex max_extent = max_request_range.getExtent() + 2;
+        // maximum range that can be handled by this lab allocation
         max_range_ = IndexRangeType(max_extent);
 
+        // memory alignment adjustment
         const typename MultiIndex::DataType n_per_align =
             CUBISM_ALIGNMENT / sizeof(DataType);
+
+        // number of extra computational elements needed due to stencil
         lab_begin_ = -loader_.curr_stencil.getBegin();
-        lab_end_ = loader_.curr_stencil.getEnd() - 1;
+        const MultiIndex lab_end = loader_.curr_stencil.getEnd() - 1;
+
+        // adjust fastest moving index to alignment requirement
         lab_begin_[0] =
             ((lab_begin_[0] + n_per_align - 1) / n_per_align) * n_per_align;
-        max_extent += lab_end_;
+
+        // expand the maximum range extent by additional ghost cells on the far
+        // end and adjust the fastest moving index to alignment requirement
+        max_extent += lab_end;
         max_extent[0] =
             ((max_extent[0] + n_per_align - 1) / n_per_align) * n_per_align;
+
+        // total lab extent including ghost cells and alignment requirements
         const MultiIndex lab_extent = lab_begin_ + max_extent;
+
+        // if this is a subsequent call, can we recycle the current allocation?
         const bool can_reuse = lab_extent <= range_.getExtent();
+
+        // this is the new lab extent for this allocation call
         range_ = IndexRangeType(lab_extent);
+
+        // if there is an existing allocation and no forced re-allocation
+        // needed, exit here
         if (!force && is_allocated_ && can_reuse) {
             block_data_ = block_ + range_.getFlatIndex(lab_begin_);
             return;
@@ -299,19 +317,20 @@ public:
      */
     DataType &operator()(const Index ix, const Index iy = 0, const Index iz = 0)
     {
-        assert((ix + lab_begin_[0] >= 0) && (ix + lab_begin_[0] < lab_end_[0]));
+        assert((ix >= loader_.curr_labrange.getBegin()[0]) &&
+               (ix <= loader_.curr_labrange.getEnd()[0]));
         if (1 == IndexRangeType::Dim) {
             return block_[ix + lab_begin_[0]];
         } else if (2 == IndexRangeType::Dim) {
-            assert((iy + lab_begin_[1] >= 0) &&
-                   (iy + lab_begin_[1] < lab_end_[1]));
+            assert((iy >= loader_.curr_labrange.getBegin()[1]) &&
+                   (iy <= loader_.curr_labrange.getEnd()[1]));
             return block_[ix + lab_begin_[0] +
                           range_.sizeDim(0) * (iy + lab_begin_[1])];
         } else if (3 == IndexRangeType::Dim) {
-            assert((iy + lab_begin_[1] >= 0) &&
-                   (iy + lab_begin_[1] < lab_end_[1]));
-            assert((iz + lab_begin_[2] >= 0) &&
-                   (iz + lab_begin_[2] < lab_end_[2]));
+            assert((iy >= loader_.curr_labrange.getBegin()[1]) &&
+                   (iy <= loader_.curr_labrange.getEnd()[1]));
+            assert((iz >= loader_.curr_labrange.getBegin()[2]) &&
+                   (iz <= loader_.curr_labrange.getEnd()[2]));
             return block_[ix + lab_begin_[0] +
                           range_.sizeDim(0) *
                               (iy + lab_begin_[1] +
@@ -333,19 +352,20 @@ public:
     const DataType &
     operator()(const Index ix, const Index iy = 0, const Index iz = 0) const
     {
-        assert((ix + lab_begin_[0] >= 0) && (ix + lab_begin_[0] < lab_end_[0]));
+        assert((ix >= loader_.curr_labrange.getBegin()[0]) &&
+               (ix <= loader_.curr_labrange.getEnd()[0]));
         if (1 == IndexRangeType::Dim) {
             return block_[ix + lab_begin_[0]];
         } else if (2 == IndexRangeType::Dim) {
-            assert((iy + lab_begin_[1] >= 0) &&
-                   (iy + lab_begin_[1] < lab_end_[1]));
+            assert((iy >= loader_.curr_labrange.getBegin()[1]) &&
+                   (iy <= loader_.curr_labrange.getEnd()[1]));
             return block_[ix + lab_begin_[0] +
                           range_.sizeDim(0) * (iy + lab_begin_[1])];
         } else if (3 == IndexRangeType::Dim) {
-            assert((iy + lab_begin_[1] >= 0) &&
-                   (iy + lab_begin_[1] < lab_end_[1]));
-            assert((iz + lab_begin_[2] >= 0) &&
-                   (iz + lab_begin_[2] < lab_end_[2]));
+            assert((iy >= loader_.curr_labrange.getBegin()[1]) &&
+                   (iy <= loader_.curr_labrange.getEnd()[1]));
+            assert((iz >= loader_.curr_labrange.getBegin()[2]) &&
+                   (iz <= loader_.curr_labrange.getEnd()[2]));
             return block_[ix + lab_begin_[0] +
                           range_.sizeDim(0) *
                               (iy + lab_begin_[1] +
@@ -467,9 +487,8 @@ private:
     DataType *block_data_; // start of block data
     FieldType *field_;     // currently loaded field
 
-    // lab memory
+    // offset helper
     MultiIndex lab_begin_;
-    MultiIndex lab_end_;
 };
 
 NAMESPACE_END(Block)
