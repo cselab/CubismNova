@@ -21,6 +21,9 @@ NAMESPACE_BEGIN(IO)
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER
 
+// TODO: [fabianw@mavt.ethz.ch; 2021-03-24] Documentation in docs (rst files
+// missing)
+
 /**
  * @ingroup IO
  * @brief Convenience HDF5 data writer using a uniform mesh in [0, 1]
