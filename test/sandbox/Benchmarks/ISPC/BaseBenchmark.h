@@ -45,24 +45,26 @@ public:
 
     // main interface
     virtual void run() {}
-    void writeTestData();
+    void writeInitTestData();
+    void writeTestData(const std::string label = "");
 
 protected:
+    const int n_samples_;
+    Field field_;
+    FieldLab lab_;
+    Real hinv_; // inverse grid spacing
+
     struct Result {
         double mean, sdev, min, max;
         std::string tag;
     };
 
+    virtual void benchmarkCustom_(const Result * = nullptr) {}
+
     Result benchmark_(const std::string &tag,
                       Kernel kernel,
                       const int loop_flop,
                       const Result *gold = nullptr);
-
-private:
-    const int n_samples_;
-    Field field_;
-    FieldLab lab_;
-    Real hinv_; // inverse grid spacing
 
     Result report_(const std::string &tag,
                    const int flop,

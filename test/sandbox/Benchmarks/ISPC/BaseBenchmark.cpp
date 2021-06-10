@@ -21,16 +21,24 @@ BaseBenchmark::BaseBenchmark(const int n_samples,
 {
     const Stencil stencil(stencil_start, stencil_end, is_tensorial);
     lab_.allocate(stencil, field_.getIndexRange());
-    hinv_ = 1.0 / n_elements_per_dim;
 }
 
-void BaseBenchmark::writeTestData()
+void BaseBenchmark::writeTestData(const std::string label)
+{
+    Cubism::IO::DataWriteUniformHDF<Real>(
+        label + "_field",
+        "data",
+        static_cast<typename Field::BlockDataType>(field_));
+    Cubism::IO::DataWriteUniformHDF<Real>(
+        label + "_lab",
+        "data",
+        static_cast<typename FieldLab::BlockDataType>(lab_));
+}
+
+void BaseBenchmark::writeInitTestData()
 {
     init_();
-    Cubism::IO::DataWriteUniformHDF<Real>(
-        "field", "data", static_cast<typename Field::BlockDataType>(field_));
-    Cubism::IO::DataWriteUniformHDF<Real>(
-        "lab", "data", static_cast<typename FieldLab::BlockDataType>(lab_));
+    this->writeTestData("initial");
 }
 
 typename BaseBenchmark::Result
@@ -93,7 +101,7 @@ BaseBenchmark::report_(const std::string &tag,
                        const std::vector<double> &samples,
                        const typename BaseBenchmark::Result *gold)
 {
-    Result res{0};
+    Result res;
     res.tag = tag;
     const int n_samples = samples.size();
 
@@ -113,22 +121,23 @@ BaseBenchmark::report_(const std::string &tag,
     }
     res.sdev = std::sqrt(res.sdev / (n_samples - 1.0));
 
+    std::printf("\033[1;35m%-16s\033[0m avg:%.4ems std:%.4ems min:%.4ems "
+                "max:%.4ems samples:%d\n",
+                tag.c_str(),
+                1.0e3 * res.mean,
+                1.0e3 * res.sdev,
+                1.0e3 * res.min,
+                1.0e3 * res.max,
+                n_samples);
     std::printf(
-        "%-14s avg:%.4ems std:%.4ems min:%.4ems max:%.4ems samples:%d\n",
-        tag.c_str(),
-        1.0e3 * res.mean,
-        1.0e3 * res.sdev,
-        1.0e3 * res.min,
-        1.0e3 * res.max,
-        n_samples);
-    std::printf("%-14s Gflop/s:%.4e", "", flop / res.mean * 1.0e-9);
+        "%-16s \033[1;34mGflop/s:%.4e\033[0m", "", flop / res.mean * 1.0e-9);
     if (gold != nullptr) {
-        const double rel = (res.mean - gold->mean) / gold->mean;
-        const double sup = gold->mean / res.mean;
-        std::printf(" [%-10s rel:%.3f%% speedup:%.3f]\n",
+        const double diff = res.mean - gold->mean;
+        const double speedup = gold->mean / res.mean;
+        std::printf(" [ref:%s diff:%.4ems \033[1;33mspeedup:%.3f\033[0m]\n",
                     (gold->tag).c_str(),
-                    rel,
-                    sup);
+                    1.0e3 * diff,
+                    speedup);
     } else {
         std::printf("\n");
     }
@@ -149,6 +158,7 @@ void BaseBenchmark::init_()
         field_[i] = std::sin(2.0 * M_PI * x) * std::cos(2.0 * M_PI * y) *
                     std::sin(2.0 * M_PI * z);
     }
+    hinv_ = 1.0 / static_cast<Real>(extent[0]);
 
     // load the lab with periodic boundary
     auto periodic = [&](const MIndex &) -> Field & { return field_; };
