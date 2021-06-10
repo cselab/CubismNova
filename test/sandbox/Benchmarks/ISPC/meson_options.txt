@@ -1,0 +1,5 @@
+option('SINGLE_PRECISION',
+  type : 'boolean',
+  value : false,
+  description : 'Compile benchmark for single precision data',
+)
