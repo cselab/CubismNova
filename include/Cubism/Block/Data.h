@@ -356,15 +356,15 @@ public:
      */
     DataType &operator()(const Index ix, const Index iy = 0, const Index iz = 0)
     {
-        assert((ix >= 0) && (ix < range_.sizeDim(0)));
+        assert((ix >= 0) && (ix < static_cast<Index>(range_.sizeDim(0))));
         if (1 == IndexRangeType::Dim) {
             return block_[ix];
         } else if (2 == IndexRangeType::Dim) {
-            assert((iy >= 0) && (iy < range_.sizeDim(1)));
+            assert((iy >= 0) && (iy < static_cast<Index>(range_.sizeDim(1))));
             return block_[ix + range_.sizeDim(0) * iy];
         } else if (3 == IndexRangeType::Dim) {
-            assert((iy >= 0) && (iy < range_.sizeDim(1)));
-            assert((iz >= 0) && (iz < range_.sizeDim(2)));
+            assert((iy >= 0) && (iy < static_cast<Index>(range_.sizeDim(1))));
+            assert((iz >= 0) && (iz < static_cast<Index>(range_.sizeDim(2))));
             return block_[ix +
                           range_.sizeDim(0) * (iy + range_.sizeDim(1) * iz)];
         }
@@ -384,15 +384,15 @@ public:
     const DataType &
     operator()(const Index ix, const Index iy = 0, const Index iz = 0) const
     {
-        assert((ix >= 0) && (ix < range_.sizeDim(0)));
+        assert((ix >= 0) && (ix < static_cast<Index>(range_.sizeDim(0))));
         if (1 == IndexRangeType::Dim) {
             return block_[ix];
         } else if (2 == IndexRangeType::Dim) {
-            assert((iy >= 0) && (iy < range_.sizeDim(1)));
+            assert((iy >= 0) && (iy < static_cast<Index>(range_.sizeDim(1))));
             return block_[ix + range_.sizeDim(0) * iy];
         } else if (3 == IndexRangeType::Dim) {
-            assert((iy >= 0) && (iy < range_.sizeDim(1)));
-            assert((iz >= 0) && (iz < range_.sizeDim(2)));
+            assert((iy >= 0) && (iy < static_cast<Index>(range_.sizeDim(1))));
+            assert((iz >= 0) && (iz < static_cast<Index>(range_.sizeDim(2))));
             return block_[ix +
                           range_.sizeDim(0) * (iy + range_.sizeDim(1) * iz)];
         }
