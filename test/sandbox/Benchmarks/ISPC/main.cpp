@@ -28,8 +28,10 @@ int main(int argc, char *argv[])
     const int elements_per_dim = (2 == argc) ? std::atoi(argv[1]) : 32;
 
     // Benchmark objects
-    CFD::Order2::Benchmark benchmark(n_samples, elements_per_dim);
-    benchmark.run();
+    { // 2nd order centered finite differences
+        CFD::Order2::Benchmark benchmark(n_samples, elements_per_dim);
+        benchmark.run();
+    }
 
     return 0;
 }
