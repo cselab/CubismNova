@@ -1,5 +1,11 @@
-option('SINGLE_PRECISION',
+option('single_precision',
   type : 'boolean',
   value : false,
   description : 'Compile benchmark for single precision data',
+)
+
+option('ispc_native_only',
+  type : 'boolean',
+  value : false,
+  description : 'Compile only ISPC native target',
 )

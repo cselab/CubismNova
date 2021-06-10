@@ -7,6 +7,21 @@
 #define KERNELS_H_YSFTYPUO
 
 #include "Gold.h"
-#include "ISPC.h"
+
+// ISPC kernels
+namespace CFD
+{
+namespace Order2
+{
+#include "ddxISPC_avx.h"
+#include "ddxISPC_avx2.h"
+#include "ddxISPC_sse2.h"
+#include "ddxISPC_sse4.h"
+namespace ispc
+{
+constexpr int loop_flop_ddx = 8;
+} // namespace ispc
+} // namespace Order2
+} // namespace CFD
 
 #endif /* KERNELS_H_YSFTYPUO */

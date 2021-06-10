@@ -4,6 +4,8 @@
 # Description: Main build definition for ISPC benchmark
 # Copyright 2021 ETH Zurich. All Rights Reserved.
 
+ispc_files = ispc_gen.process('ddx.ispc')
+
 libs += library('cfd_2ndorder',
   files([
     'Benchmark.cpp',
@@ -11,6 +13,7 @@ libs += library('cfd_2ndorder',
     'Gold.cpp',
     'Gold.h',
     ]),
+  ispc_files,
   include_directories: inc,
   dependencies: [cubismnova_dep],
   link_with: base_lib,
