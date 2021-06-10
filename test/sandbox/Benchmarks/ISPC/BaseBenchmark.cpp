@@ -56,7 +56,7 @@ BaseBenchmark::benchmark_(const std::string &tag,
     const int x_pitch_dst = extent[0];
     const int xy_pitch_dst = extent[0] * extent[1];
 
-    const auto lab_extent = lab_.getMaximumRange().getExtent();
+    const auto lab_extent = lab_.getIndexRange().getExtent();
     const Real *src = lab_.getInnerData();
     const int x_pitch_src = lab_extent[0];
     const int xy_pitch_src = lab_extent[0] * lab_extent[1];
