@@ -8,6 +8,7 @@
 #include "CFD_2ndOrder/Kernels.h"
 
 #include "Cubism/Util/Timer.h"
+#include <cmath>
 #include <cstdio>
 
 namespace CFD
@@ -25,16 +26,44 @@ void Benchmark::run()
 
     this->benchmarkCustom_(&gold);
 
-    this->benchmark_(
-        "ISPC_SSE2", ispc::ddxISPCsse2, ispc::loop_flop_ddx, &gold);
+    this->benchmark_("ISPC_SSE2", ispc::ddx_sse2, ispc::loop_flop_ddx, &gold);
 
-    this->benchmark_(
-        "ISPC_SSE4", ispc::ddxISPCsse4, ispc::loop_flop_ddx, &gold);
+    this->benchmark_("ISPC_SSE4", ispc::ddx_sse4, ispc::loop_flop_ddx, &gold);
 
-    this->benchmark_("ISPC_AVX", ispc::ddxISPCavx, ispc::loop_flop_ddx, &gold);
+    this->benchmark_("ISPC_AVX", ispc::ddx_avx, ispc::loop_flop_ddx, &gold);
 
-    this->benchmark_(
-        "ISPC_AVX2", ispc::ddxISPCavx2, ispc::loop_flop_ddx, &gold);
+    this->benchmark_("ISPC_AVX2", ispc::ddx_avx2, ispc::loop_flop_ddx, &gold);
+}
+
+Benchmark::Error
+Benchmark::applicationSpecificError_(const Benchmark::Result *gold)
+{
+    Error err;
+    err.L1 = 0.0;
+    err.L2 = 0.0;
+    err.Linf = 0.0;
+
+    for (const auto &i : field_.getIndexRange()) {
+        const Real x = char_spacing_ * (static_cast<Real>(i[0]) + 0.5);
+        const Real y = char_spacing_ * (static_cast<Real>(i[1]) + 0.5);
+        const Real z = char_spacing_ * (static_cast<Real>(i[2]) + 0.5);
+        Real e = 0.0;
+        if (gold == nullptr) {
+            // error relative to exact solution
+            e = std::abs(field_[i] - divgradf_(x, y, z));
+        } else {
+            // error relative to gold values
+            e = std::abs(field_[i] - gold_values_[i]);
+        }
+        err.L1 += e;
+        err.L2 += e * e;
+        err.Linf = (e > err.Linf) ? e : err.Linf;
+    }
+    const auto n_elements = field_.size();
+    err.L1 /= n_elements;
+    err.L2 = std::sqrt(err.L2 / n_elements);
+
+    return err;
 }
 
 void Benchmark::benchmarkCustom_(const Result *gold)
@@ -46,6 +75,7 @@ void Benchmark::benchmarkCustom_(const Result *gold)
     { // naive multi-index implementation
         // warm-up
         naiveMultiIndex_();
+        const Error error = error_(gold);
 
         // collect samples
         Cubism::Util::Timer t;
@@ -55,12 +85,14 @@ void Benchmark::benchmarkCustom_(const Result *gold)
             naiveMultiIndex_();
             samples[i] = t.stop();
         }
-        report_("NAIVE_MIDX", total_elements * naive_flop_, samples, gold);
+        report_(
+            "NAIVE_MIDX", total_elements * naive_flop_, samples, error, gold);
     }
 
     { // compiler auto-vectorized multi-index implementation
         // warm-up
         naiveMultiIndexTreeVec_();
+        const Error error = error_(gold);
 
         // collect samples
         Cubism::Util::Timer t;
@@ -70,12 +102,14 @@ void Benchmark::benchmarkCustom_(const Result *gold)
             naiveMultiIndexTreeVec_();
             samples[i] = t.stop();
         }
-        report_("AUTOVEC_MIDX", total_elements * naive_flop_, samples, gold);
+        report_(
+            "AUTOVEC_MIDX", total_elements * naive_flop_, samples, error, gold);
     }
 
     { // naive explicit 3-loop implementation
         // warm-up
         naive3DIndex_();
+        const Error error = error_(gold);
 
         // collect samples
         Cubism::Util::Timer t;
@@ -85,12 +119,14 @@ void Benchmark::benchmarkCustom_(const Result *gold)
             naive3DIndex_();
             samples[i] = t.stop();
         }
-        report_("NAIVE_3DIDX", total_elements * naive_flop_, samples, gold);
+        report_(
+            "NAIVE_3DIDX", total_elements * naive_flop_, samples, error, gold);
     }
 
     { // compiler auto-vectorized explicit 3-loop implementation
         // warm-up
         naive3DIndexTreeVec_();
+        const Error error = error_(gold);
 
         // collect samples
         Cubism::Util::Timer t;
@@ -100,7 +136,11 @@ void Benchmark::benchmarkCustom_(const Result *gold)
             naive3DIndexTreeVec_();
             samples[i] = t.stop();
         }
-        report_("AUTOVEC_3DIDX", total_elements * naive_flop_, samples, gold);
+        report_("AUTOVEC_3DIDX",
+                total_elements * naive_flop_,
+                samples,
+                error,
+                gold);
     }
 }
 

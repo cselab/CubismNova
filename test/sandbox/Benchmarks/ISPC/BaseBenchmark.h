@@ -10,6 +10,7 @@
 
 #include "Cubism/Block/Field.h"
 #include "Cubism/Block/FieldLab.h"
+#include "Cubism/Core/Vector.h"
 
 #include <string>
 #include <vector>
@@ -17,7 +18,7 @@
 class BaseBenchmark
 {
 public:
-
+    using RealVec = Cubism::Core::Vector<Real>;
     using Field = Cubism::Block::CellField<Real>;
     using FieldLab = Cubism::Block::FieldLab<Field>;
     using IndexRange = typename Field::IndexRangeType;
@@ -51,26 +52,51 @@ public:
 protected:
     const int n_samples_;
     Field field_;
+    Field gold_values_;
     FieldLab lab_;
     Real char_spacing_; // characteristic grid spacing
 
     struct Result {
-        double mean, sdev, min, max;
+        double mean, sdev, min, max, Gflop_per_second;
         std::string tag;
     };
 
-    virtual void benchmarkCustom_(const Result * = nullptr) {}
+    struct Error {
+        double L1, L2, Linf;
+    };
 
+    virtual Error applicationSpecificError_(const Result *)
+    {
+        Error err;
+        err.L1 = 0.0;
+        err.L2 = 0.0;
+        err.Linf = 0.0;
+        return err;
+    }
+    virtual void benchmarkCustom_(const Result * = nullptr) {}
     Result benchmark_(const std::string &tag,
                       Kernel kernel,
                       const int loop_flop,
                       const Result *gold = nullptr);
-
+    Error error_(const Result *gold)
+    {
+        if (gold == nullptr) {
+            // This call initiates the reference.  Save the computed values for
+            // relative error comparison due to different instructions and
+            // instruction order of the benchmark kernels
+            gold_values_ = field_;
+        }
+        return applicationSpecificError_(gold);
+    }
     Result report_(const std::string &tag,
                    const int flop,
                    const std::vector<double> &samples,
+                   const Error error,
                    const Result *gold = nullptr);
     void init_();
+    Real f_(const Real x, const Real y, const Real z);
+    RealVec gradf_(const Real x, const Real y, const Real z);
+    Real divgradf_(const Real x, const Real y, const Real z);
 };
 
 #endif /* BASEBENCHMARK_H_AGNZJOFH */

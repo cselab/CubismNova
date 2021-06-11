@@ -17,7 +17,8 @@ BaseBenchmark::BaseBenchmark(const int n_samples,
                              const int stencil_start,
                              const int stencil_end,
                              const bool is_tensorial)
-    : n_samples_(n_samples), field_(IndexRange(n_elements_per_dim))
+    : n_samples_(n_samples), field_(IndexRange(n_elements_per_dim)),
+      gold_values_(IndexRange(n_elements_per_dim))
 {
     const Stencil stencil(stencil_start, stencil_end, is_tensorial);
     lab_.allocate(stencil, field_.getIndexRange());
@@ -41,11 +42,11 @@ void BaseBenchmark::writeInitTestData()
     this->writeTestData("initial");
 }
 
-typename BaseBenchmark::Result
+BaseBenchmark::Result
 BaseBenchmark::benchmark_(const std::string &tag,
                           BaseBenchmark::Kernel kernel,
                           const int loop_flop,
-                          const typename BaseBenchmark::Result *gold)
+                          const BaseBenchmark::Result *gold)
 {
     // prepare the test data
     init_();
@@ -73,6 +74,9 @@ BaseBenchmark::benchmark_(const std::string &tag,
            xy_pitch_dst,
            char_spacing_);
 
+    // compute error
+    const Error error = error_(gold);
+
     // collect samples
     Cubism::Util::Timer t;
     std::vector<double> samples(n_samples_, 0.0);
@@ -92,14 +96,14 @@ BaseBenchmark::benchmark_(const std::string &tag,
     }
 
     const int total_elements = field_.size();
-    return report_(tag, total_elements * loop_flop, samples, gold);
+    return report_(tag, total_elements * loop_flop, samples, error, gold);
 }
 
-typename BaseBenchmark::Result
-BaseBenchmark::report_(const std::string &tag,
-                       const int flop,
-                       const std::vector<double> &samples,
-                       const typename BaseBenchmark::Result *gold)
+BaseBenchmark::Result BaseBenchmark::report_(const std::string &tag,
+                                             const int flop,
+                                             const std::vector<double> &samples,
+                                             const BaseBenchmark::Error error,
+                                             const BaseBenchmark::Result *gold)
 {
     Result res;
     res.tag = tag;
@@ -129,12 +133,27 @@ BaseBenchmark::report_(const std::string &tag,
                 1.0e3 * res.min,
                 1.0e3 * res.max,
                 n_samples);
+    std::string error_string;
+    if (gold == nullptr) {
+        error_string = "Error (exact solution)";
+    } else {
+        error_string = "Error (relative to \033[1;35m" + gold->tag + "\033[0m)";
+    }
+    // std::printf("%-16s \033[1;31mError:\033[0m L1=%.6e L2=%.6e Linf=%.6e\n",
+    std::printf("%-16s %s: L1=%.6e L2=%.6e Linf=%.6e\n",
+                "",
+                error_string.c_str(),
+                error.L1,
+                error.L2,
+                error.Linf);
+    res.Gflop_per_second = flop / res.mean * 1.0e-9;
     std::printf(
-        "%-16s \033[1;34mGflop/s:%.4e\033[0m", "", flop / res.mean * 1.0e-9);
+        "%-16s \033[1;34mGflop/s:%.4e\033[0m", "", res.Gflop_per_second);
     if (gold != nullptr) {
         const double diff = res.mean - gold->mean;
-        const double speedup = gold->mean / res.mean;
-        std::printf(" [ref:%s diff:%.4ems \033[1;33mspeedup:%.3f\033[0m]\n",
+        const double speedup = res.Gflop_per_second / gold->Gflop_per_second;
+        std::printf(" [ref:\033[1;35m%s\033[0m diff:%.4ems "
+                    "\033[1;33mspeedup:%.3f\033[0m]\n",
                     (gold->tag).c_str(),
                     1.0e3 * diff,
                     speedup);
@@ -150,17 +169,38 @@ void BaseBenchmark::init_()
     using MIndex = typename Field::MultiIndex;
 
     // initialize field data
-    const auto extent = field_.getIndexRange().getExtent();
+    const MIndex extent = field_.getIndexRange().getExtent();
+    char_spacing_ = 1.0 / static_cast<Real>(extent[0]);
     for (auto i : field_.getIndexRange()) {
-        const Real x = (static_cast<Real>(i[0]) + 0.5) / extent[0];
-        const Real y = (static_cast<Real>(i[1]) + 0.5) / extent[1];
-        const Real z = (static_cast<Real>(i[2]) + 0.5) / extent[2];
-        field_[i] = std::sin(2.0 * M_PI * x) * std::cos(2.0 * M_PI * y) *
-                    std::sin(2.0 * M_PI * z);
+        const Real x = char_spacing_ * (static_cast<Real>(i[0]) + 0.5);
+        const Real y = char_spacing_ * (static_cast<Real>(i[1]) + 0.5);
+        const Real z = char_spacing_ * (static_cast<Real>(i[2]) + 0.5);
+        field_[i] = f_(x, y, z);
     }
-    hinv_ = 1.0 / static_cast<Real>(extent[0]);
 
     // load the lab with periodic boundary
     auto periodic = [&](const MIndex &) -> Field & { return field_; };
     lab_.loadData(MIndex(0), periodic);
+}
+
+Real BaseBenchmark::f_(const Real x, const Real y, const Real z)
+{
+    const Real fac = 2.0 * M_PI;
+    return std::sin(fac * x) * std::cos(fac * y) * std::sin(fac * z);
+}
+
+BaseBenchmark::RealVec
+BaseBenchmark::gradf_(const Real x, const Real y, const Real z)
+{
+    const Real fac = 2.0 * M_PI;
+    return RealVec{
+        fac * std::cos(fac * x) * std::cos(fac * y) * std::sin(fac * z),
+        -fac * std::sin(fac * x) * std::sin(fac * y) * std::sin(fac * z),
+        fac * std::sin(fac * x) * std::cos(fac * y) * std::cos(fac * z)};
+}
+
+Real BaseBenchmark::divgradf_(const Real x, const Real y, const Real z)
+{
+    const Real fac = -12.0 * M_PI * M_PI;
+    return fac * f_(x, y, z);
 }

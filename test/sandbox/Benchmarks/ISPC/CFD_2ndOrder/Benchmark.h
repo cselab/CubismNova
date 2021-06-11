@@ -27,6 +27,7 @@ public:
     void run() override;
 
 protected:
+    Error applicationSpecificError_(const Result *gold) override;
     void benchmarkCustom_(const Result *gold) override;
 
 private:
