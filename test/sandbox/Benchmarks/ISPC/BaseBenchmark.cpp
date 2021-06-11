@@ -71,7 +71,7 @@ BaseBenchmark::benchmark_(const std::string &tag,
            dst,
            x_pitch_dst,
            xy_pitch_dst,
-           hinv_);
+           char_spacing_);
 
     // collect samples
     Cubism::Util::Timer t;
@@ -87,7 +87,7 @@ BaseBenchmark::benchmark_(const std::string &tag,
                dst,
                x_pitch_dst,
                xy_pitch_dst,
-               hinv_);
+               char_spacing_);
         samples[i] = t.stop();
     }
 

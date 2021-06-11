@@ -109,7 +109,7 @@ void Benchmark::benchmarkCustom_(const Result *gold)
         const MIndex ix{1, 0, 0};                                              \
         const MIndex iy{0, 1, 0};                                              \
         const MIndex iz{0, 0, 1};                                              \
-        const Real fac = hinv_ * hinv_;                                        \
+        const Real fac = 1.0 / (char_spacing_ * char_spacing_);                \
         for (const auto &i : field_.getIndexRange()) {                         \
             field_[i] = fac * (lab_[i - ix] + lab_[i + ix] + lab_[i - iy] +    \
                                lab_[i + iy] + lab_[i - iz] + lab_[i + iz] -    \
@@ -137,7 +137,7 @@ void Benchmark::naiveMultiIndexTreeVec_()
 
 #define NAIVE_3D_INDEX()                                                       \
     do {                                                                       \
-        const Real fac = hinv_ * hinv_;                                        \
+        const Real fac = 1.0 / (char_spacing_ * char_spacing_);                \
         const MIndex extent = field_.getIndexRange().getExtent();              \
         for (Index iz = 0; iz < extent[2]; ++iz) {                             \
             for (Index iy = 0; iy < extent[1]; ++iy) {                         \

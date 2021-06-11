@@ -37,7 +37,8 @@ export
         const uniform int xy_pitch_dst,
         const uniform Real factor)
 {
-    const uniform Real fac = factor * factor; // square of inverse grid spacing
+    const uniform Real fac =
+        1.0 / (factor * factor); // square of inverse grid spacing
     const uniform Real cfac = 6.0;
     foreach (iz = 0 ... Nz, iy = 0 ... Ny, ix = 0 ... Nx) {
         dst[ix + x_pitch_dst * iy + xy_pitch_dst * iz] =

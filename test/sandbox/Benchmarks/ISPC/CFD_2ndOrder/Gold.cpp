@@ -48,7 +48,7 @@ void CFD::Order2::Gold::ddx(const int Nx,
                        const int xy_pitch_dst,
                        const Real factor)
 {
-    const Real fac = factor * factor; // square of inverse grid spacing
+    const Real fac = 1.0 / (factor * factor); // square of inverse grid spacing
     LOOP_BODY();
 }
 
@@ -64,7 +64,7 @@ void CFD::Order2::Gold::ddxTreeVec(const int Nx,
                                    const int xy_pitch_dst,
                                    const Real factor)
 {
-    const Real fac = factor * factor; // square of inverse grid spacing
+    const Real fac = 1.0 / (factor * factor); // square of inverse grid spacing
     LOOP_BODY();
 }
 

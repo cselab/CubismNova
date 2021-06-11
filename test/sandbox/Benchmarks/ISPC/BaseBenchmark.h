@@ -52,7 +52,7 @@ protected:
     const int n_samples_;
     Field field_;
     FieldLab lab_;
-    Real hinv_; // inverse grid spacing
+    Real char_spacing_; // characteristic grid spacing
 
     struct Result {
         double mean, sdev, min, max;
