@@ -12,6 +12,8 @@ namespace CFD
 {
 namespace Order2
 {
+namespace DDX
+{
 class Benchmark : public BaseBenchmark
 {
 public:
@@ -37,6 +39,7 @@ private:
     void naive3DIndex_();
     void naive3DIndexTreeVec_();
 };
+} // namespace DDX
 } // namespace Order2
 } // namespace CFD
 

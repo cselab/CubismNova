@@ -6,7 +6,7 @@
 
 #include "Common.h"
 
-#include "CFD_2ndOrder/Benchmark.h"
+#include "CFD_2ndOrder/DDX/Benchmark.h"
 
 #include <cstdio>
 
@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
     const int elements_per_dim = (2 == argc) ? std::atoi(argv[1]) : 32;
 
     // Benchmark objects
-    { // 2nd order centered finite differences
-        CFD::Order2::Benchmark benchmark(n_samples, elements_per_dim);
+    { // 2nd order centered finite differences (DDX)
+        CFD::Order2::DDX::Benchmark benchmark(n_samples, elements_per_dim);
         benchmark.run();
     }
 

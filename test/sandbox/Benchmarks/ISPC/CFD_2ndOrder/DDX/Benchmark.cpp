@@ -4,8 +4,8 @@
 // Description: Centered finite differences 2nd order
 // Copyright 2021 ETH Zurich. All Rights Reserved.
 
-#include "CFD_2ndOrder/Benchmark.h"
-#include "CFD_2ndOrder/Kernels.h"
+#include "Benchmark.h"
+#include "Kernels.h"
 
 #include "Cubism/Util/Timer.h"
 #include <cmath>
@@ -14,6 +14,8 @@
 namespace CFD
 {
 namespace Order2
+{
+namespace DDX
 {
 void Benchmark::run()
 {
@@ -212,5 +214,6 @@ void Benchmark::naive3DIndexTreeVec_()
 
 #undef NAIVE_3D_INDEX
 
+} // namespace DDX
 } // namespace Order2
 } // namespace CFD

@@ -4,7 +4,7 @@
 // Description: Gold reference implementations
 // Copyright 2021 ETH Zurich. All Rights Reserved.
 
-#include "CFD_2ndOrder/Gold.h"
+#include "Gold.h"
 
 #define LOOP_BODY()                                                            \
     do {                                                                       \
