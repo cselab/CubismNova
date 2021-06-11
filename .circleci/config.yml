@@ -99,20 +99,20 @@ jobs:
                 path: build/meson-logs
 
 workflows:
-    coverage:
-        jobs:
-            - coverage:
-                name: debian_buster_openmpi_debug
-                image: buster_openmpi
-            - coverage:
-                name: ubuntu_openmpi_debug
-                image: ubuntu_openmpi
-            - coverage:
-                name: centos_openmpi_debug
-                image: centos_openmpi
-            - coverage:
-                name: fedora_openmpi_debug
-                image: fedora_openmpi
+    # coverage:
+    #     jobs:
+    #         - coverage:
+    #             name: debian_buster_openmpi_debug
+    #             image: buster_openmpi
+    #         - coverage:
+    #             name: ubuntu_openmpi_debug
+    #             image: ubuntu_openmpi
+    #         - coverage:
+    #             name: centos_openmpi_debug
+    #             image: centos_openmpi
+    #         - coverage:
+    #             name: fedora_openmpi_debug
+    #             image: fedora_openmpi
 
     debian_openmpi_gcc:
         jobs:
