@@ -5,7 +5,34 @@
 // Copyright 2021 ETH Zurich. All Rights Reserved.
 
 #include "Benchmark.h"
-#include "Kernels.h"
+
+// plain CPU implementations
+#include "ddxGold.h"  // 3D blocks
+#include "ddxSlice.h" // 2D slices
+
+// ISPC kernels
+namespace CFD
+{
+namespace Order2
+{
+// 3D blocks
+#include "ddx_ispc_avx.h"
+#include "ddx_ispc_avx2.h"
+#include "ddx_ispc_sse2.h"
+#include "ddx_ispc_sse4.h"
+
+// 2D slices
+#include "ddxSlice_ispc_avx.h"
+#include "ddxSlice_ispc_avx2.h"
+#include "ddxSlice_ispc_sse2.h"
+#include "ddxSlice_ispc_sse4.h"
+namespace ispc
+{
+constexpr int loop_flop_ddx = 8;
+constexpr int loop_flop_ddx_slice = 8;
+} // namespace ispc
+} // namespace Order2
+} // namespace CFD
 
 #include "Cubism/Util/Timer.h"
 #include <cmath>
@@ -19,12 +46,14 @@ namespace DDX
 {
 void Benchmark::run()
 {
-    printf("RUNNING: CFD_2ndOrder (2nd derivative)\n");
+    printf("RUNNING: CFD_2ndOrder (DDX, 3D blocks)\n");
 
-    Result gold = this->benchmark_("GOLD", Gold::ddx, Gold::loop_flop_ddx);
+    Result gold = this->benchmark_("CPU_GOLD", Gold::ddx, Gold::loop_flop_ddx);
 
-    this->benchmark_(
-        "AUTOVEC_GOLD", Gold::ddxTreeVec, Gold::loop_flop_ddx_tree_vec, &gold);
+    this->benchmark_("AUTOVEC_CPU_GOLD",
+                     Gold::ddxTreeVec,
+                     Gold::loop_flop_ddx_tree_vec,
+                     &gold);
 
     this->benchmarkCustom_(&gold);
 
@@ -35,6 +64,27 @@ void Benchmark::run()
     this->benchmark_("ISPC_AVX", ispc::ddx_avx, ispc::loop_flop_ddx, &gold);
 
     this->benchmark_("ISPC_AVX2", ispc::ddx_avx2, ispc::loop_flop_ddx, &gold);
+
+    printf("RUNNING: CFD_2ndOrder (DDX, 2D slices)\n");
+
+    this->benchmark_("CPU", Gold::ddxSlice, Gold::loop_flop_ddx_slice, &gold);
+
+    this->benchmark_("AUTOVEC_CPU",
+                     Gold::ddxSliceTreeVec,
+                     Gold::loop_flop_ddx_slice_tree_vec,
+                     &gold);
+
+    this->benchmark_(
+        "ISPC_SSE2", ispc::ddxSlice_sse2, ispc::loop_flop_ddx_slice, &gold);
+
+    this->benchmark_(
+        "ISPC_SSE4", ispc::ddxSlice_sse4, ispc::loop_flop_ddx_slice, &gold);
+
+    this->benchmark_(
+        "ISPC_AVX", ispc::ddxSlice_avx, ispc::loop_flop_ddx_slice, &gold);
+
+    this->benchmark_(
+        "ISPC_AVX2", ispc::ddxSlice_avx2, ispc::loop_flop_ddx_slice, &gold);
 }
 
 Benchmark::Error

@@ -7,7 +7,6 @@
 #include "Common.h"
 
 #include "CFD_2ndOrder/DDX/Benchmark.h"
-#include "CFD_2ndOrder/DDXSlice/Benchmark.h"
 
 #include <cstdio>
 
@@ -31,10 +30,6 @@ int main(int argc, char *argv[])
     // Benchmark objects
     { // 2nd order centered finite differences (DDX)
         CFD::Order2::DDX::Benchmark benchmark(n_samples, elements_per_dim);
-        benchmark.run();
-    }
-    { // 2nd order centered finite differences (2D slice processing DDXSlice)
-        CFD::Order2::DDXSlice::Benchmark benchmark(n_samples, elements_per_dim);
         benchmark.run();
     }
 

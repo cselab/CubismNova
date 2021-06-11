@@ -5,5 +5,4 @@
 # Copyright 2021 ETH Zurich. All Rights Reserved.
 
 # second derivative kernel
-subdir('DDX') # 3D block
-subdir('DDXSlice') # 2D slices
+subdir('DDX')

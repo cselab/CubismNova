@@ -4,7 +4,7 @@
 // Description: Gold reference implementations (2D slice processing)
 // Copyright 2021 ETH Zurich. All Rights Reserved.
 
-#include "Gold.h"
+#include "ddxSlice.h"
 
 inline void processSlice_xy(const int Nx,
                             const int Ny,
