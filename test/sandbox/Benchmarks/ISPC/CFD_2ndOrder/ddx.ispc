@@ -13,16 +13,16 @@ typedef double Real;
 export
 #if defined(ISPC_TARGET_SSE2)
     void
-    ddxISPCsse2(
+    ddx_sse2(
 #elif defined(ISPC_TARGET_SSE4)
     void
-    ddxISPCsse4(
+    ddx_sse4(
 #elif defined(ISPC_TARGET_AVX)
     void
-    ddxISPCavx(
+    ddx_avx(
 #elif defined(ISPC_TARGET_AVX2)
     void
-    ddxISPCavx2(
+    ddx_avx2(
 #else
 #error "Unknown ISPC target platform"
 #endif

@@ -42,9 +42,10 @@ endif
 # ISPC generator
 ispc_gen = generator(ispc,
   output: ['@BASENAME@_ispc.h', outputnames],
+  # output: '@BASENAME@_ispc.h',
   arguments: ['-O2', '--werror', '-DNDEBUG', '--opt=disable-assertions',
   '--no-pragma-once', '--arch=' + ispc_arch, '--target=' + ispc_target, 
-  '@INPUT@', '-o', '@OUTPUT1@' ,'-h', '@OUTPUT0@'] + ispc_extra_args
+  '@INPUT@', '-o', '@OUTPUT1@', '-h', '@OUTPUT0@'] + ispc_extra_args
 )
 
 inc = [include_directories('.')]
